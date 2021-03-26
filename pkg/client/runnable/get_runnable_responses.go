@@ -12,7 +12,7 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
 
-	"github.com/fuseml/fuseml/core/pkg/models"
+	"github.com/fuseml/fuseml-core/pkg/models"
 )
 
 // GetRunnableReader is a Reader for the GetRunnable structure.

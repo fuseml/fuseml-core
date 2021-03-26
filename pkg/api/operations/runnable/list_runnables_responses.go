@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-openapi/runtime"
 
-	"github.com/fuseml/fuseml/core/pkg/models"
+	"github.com/fuseml/fuseml-core/pkg/models"
 )
 
 // ListRunnablesOKCode is the HTTP code returned for type ListRunnablesOK

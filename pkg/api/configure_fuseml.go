@@ -10,8 +10,8 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 
-	"github.com/fuseml/fuseml/core/pkg/api/operations"
-	"github.com/fuseml/fuseml/core/pkg/api/operations/runnable"
+	"github.com/fuseml/fuseml-core/pkg/api/operations"
+	"github.com/fuseml/fuseml-core/pkg/api/operations/runnable"
 )
 
 //go:generate swagger generate server --target ../../pkg --name Fuseml --spec ../../api/swagger.yaml --server-package api --principal interface{} --exclude-main

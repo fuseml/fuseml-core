@@ -19,7 +19,7 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 
-	"github.com/fuseml/fuseml/core/pkg/api/operations/runnable"
+	"github.com/fuseml/fuseml-core/pkg/api/operations/runnable"
 )
 
 // NewFusemlAPI creates a new Fuseml instance

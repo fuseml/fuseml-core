@@ -1,4 +1,4 @@
-module github.com/fuseml/fuseml/core
+module github.com/fuseml/fuseml-core
 
 go 1.14
 

@@ -1,9 +1,9 @@
 package runnable
 
 import (
-	"github.com/fuseml/fuseml/core/pkg/api/operations"
-	"github.com/fuseml/fuseml/core/pkg/api/operations/runnable"
-	"github.com/fuseml/fuseml/core/pkg/models"
+	"github.com/fuseml/fuseml-core/pkg/api/operations"
+	"github.com/fuseml/fuseml-core/pkg/api/operations/runnable"
+	"github.com/fuseml/fuseml-core/pkg/models"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/google/uuid"
 )

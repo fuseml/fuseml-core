@@ -1,7 +1,7 @@
 package runnable
 
 import (
-	"github.com/fuseml/fuseml/core/pkg/models"
+	"github.com/fuseml/fuseml-core/pkg/models"
 	"github.com/go-openapi/strfmt"
 	"github.com/google/uuid"
 )

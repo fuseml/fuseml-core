@@ -7,9 +7,9 @@ import (
 	"github.com/go-openapi/loads"
 	flags "github.com/jessevdk/go-flags"
 
-	swaggerapisrv "github.com/fuseml/fuseml/core/pkg/api"
-	"github.com/fuseml/fuseml/core/pkg/api/operations"
-	"github.com/fuseml/fuseml/core/pkg/service/runnable"
+	swaggerapisrv "github.com/fuseml/fuseml-core/pkg/api"
+	"github.com/fuseml/fuseml-core/pkg/api/operations"
+	"github.com/fuseml/fuseml-core/pkg/service/runnable"
 )
 
 func main() {

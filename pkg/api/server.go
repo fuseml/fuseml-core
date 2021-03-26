@@ -25,7 +25,7 @@ import (
 	flags "github.com/jessevdk/go-flags"
 	"golang.org/x/net/netutil"
 
-	"github.com/fuseml/fuseml/core/pkg/api/operations"
+	"github.com/fuseml/fuseml-core/pkg/api/operations"
 )
 
 const (
