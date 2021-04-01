@@ -1,6 +1,8 @@
 package runnable
 
 import (
+	"log"
+
 	"github.com/fuseml/fuseml-core/pkg/api/operations"
 	"github.com/fuseml/fuseml-core/pkg/api/operations/runnable"
 	"github.com/fuseml/fuseml-core/pkg/models"
@@ -23,7 +25,14 @@ func GetRunnableHandler(params runnable.GetRunnableParams) middleware.Responder 
 }
 
 func ListRunnablesHandler(params runnable.ListRunnablesParams) middleware.Responder {
-	return middleware.NotImplemented("operation runnable.GetRunnable has not yet been implemented yet")
+	if params.ID == nil {
+		log.Println("empty id given, returning all items")
+		return runnable.NewListRunnablesOK().WithPayload(store.GetAllRunnables())
+	} else {
+		log.Printf("id: %s", *params.ID)
+		// now we should filter by ID (but it does not make sense to ask for ID in list op)
+		return runnable.NewListRunnablesOK().WithPayload(store.GetAllRunnables())
+	}
 }
 
 func RegisterRunnableHandler(params runnable.RegisterRunnableParams) middleware.Responder {
