@@ -20,6 +20,7 @@ func main() {
 	}
 
 	api := operations.NewFusemlAPI(swaggerSpec)
+	runnable.RegisterHandlers(api)
 	server := swaggerapisrv.NewServer(api)
 	defer server.Shutdown()
 
@@ -45,7 +46,6 @@ func main() {
 	}
 
 	server.ConfigureAPI()
-	runnable.RegisterHandlers(api)
 
 	if err := server.Serve(); err != nil {
 		log.Fatalln(err)
