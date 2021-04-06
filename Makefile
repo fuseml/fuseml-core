@@ -1,23 +1,24 @@
 
-SWAGGER_SPEC:=api/swagger.yaml
 GO_LDFLAGS:=-ldflags '-s -w'
 GO_GCFLAGS=
 
-all: fuseml_core fuseml_client
+all: build
 
-fuseml_core: gen_server lint
+build: gen_core example tidy lint
 	go build ${GO_GCFLAGS} -o bin/fuseml_core ${GO_LDFLAGS} ./cmd/fuseml_core
-
-fuseml_client: gen_client lint
+	go build ${GO_GCFLAGS} -o bin/fuseml_core-cli ${GO_LDFLAGS} ./cmd/fuseml_core-cli
 
 test:
-	ginkgo ./cmd ./pkg
+	ginkgo ./gen ./pkg
 
-gen_server:
-	swagger generate server -t pkg -f $(SWAGGER_SPEC) -s api --exclude-main --regenerate-configureapi
+gen_core:
+	go mod download
+	go get -u google.golang.org/protobuf/cmd/protoc-gen-go
+	go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc
+	go run goa.design/goa/v3/cmd/goa gen github.com/fuseml/fuseml-core/design
 
-gen_client:
-	swagger generate client -t pkg -f $(SWAGGER_SPEC) -c client
+example:
+	go run goa.design/goa/v3/cmd/goa example github.com/fuseml/fuseml-core/design
 
 lint: fmt vet tidy
 

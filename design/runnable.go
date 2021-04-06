@@ -1,0 +1,161 @@
+package design
+
+import (
+	. "goa.design/goa/v3/dsl"
+)
+
+var _ = Service("runnable", func() {
+	Description("The runable service performs operations on runnables.")
+
+	// Method describes a service method (endpoint)
+	Method("list", func() {
+		Description("Retrieve information about runnables registered in FuseML.")
+		// Payload describes the method payload.
+		// Here the payload is an object that consists of two fields.
+		Payload(func() {
+			// Field describes an object field given a field index, a field
+			// name, a type and a description.
+			Field(1, "id", String, "The runnable's id")
+		})
+
+		// Result describes the method result.
+		// Here the result is a collection of runnables value.
+		Result(ArrayOf(Runnable), "Return all registered runnables matching the query.")
+
+		Error("NotFound", func() {
+			Description("If the runnable is not found, should return 404 Not Found.")
+		})
+
+		// HTTP describes the HTTP transport mapping.
+		HTTP(func() {
+			// Requests to the service consist of HTTP GET requests.
+			// The payload fields are encoded as path parameters.
+			GET("/runnables")
+			Param("id", String, "ID of a registered runnable", func() {
+				Example("List runnable with ID=123", "123")
+			})
+			// Responses use a "200 OK" HTTP status.
+			// The result is encoded in the response body (default).
+			Response(StatusOK)
+			Response("NotFound", StatusNotFound)
+		})
+
+		// GRPC describes the gRPC transport mapping.
+		GRPC(func() {
+			// Responses use a "OK" gRPC code.
+			// The result is encoded in the response message (default).
+			Response(CodeOK)
+			Response("NotFound", CodeNotFound)
+		})
+
+	})
+
+	Method("register", func() {
+		Description("Register a runnable with the FuseML runnable store.")
+
+		// Payload also accepts a Type object where you can list its attribute
+		// as well as its required fields
+		Payload(Runnable, "Runnable descriptor")
+
+		Error("BadRequest", func() {
+			Description("If the runnable does not have the required fields, should return 400 Bad Request.")
+		})
+
+		Result(Runnable)
+
+		HTTP(func() {
+			POST("/runnables")
+			Response(StatusCreated)
+			Response("BadRequest", StatusBadRequest)
+		})
+
+		GRPC(func() {
+			Response(CodeOK)
+			Response("BadRequest", CodeInvalidArgument)
+		})
+	})
+
+	Method("get", func() {
+		Description("Retrieve an Runnable from FuseML.")
+
+		Payload(func() {
+			Field(1, "runnableNameOrId", String, "Runnable name or id")
+			Required("runnableNameOrId")
+		})
+
+		Error("BadRequest", func() {
+			Description("If not name neither ID is given, should return 400 Bad Request.")
+		})
+		Error("NotFound", func() {
+			Description("If there is no runnable with the given name/id, should return 404 Not Found.")
+		})
+
+		Result(Runnable)
+
+		HTTP(func() {
+			GET("/runnables/{runnableNameOrId}")
+			Response(StatusOK)
+			Response("BadRequest", StatusBadRequest)
+			Response("NotFound", StatusNotFound)
+		})
+
+		GRPC(func() {
+			Response(CodeOK)
+			Response("BadRequest", CodeInvalidArgument)
+			Response("NotFound", CodeNotFound)
+		})
+	})
+
+	// Serve the file with relative path ./gen/http/openapi.json for
+	// requests sent to /swagger.json.
+	Files("/openapi.json", "./gen/http/openapi.json")
+})
+
+var RunnableImage = Type("RunnableImage", func() {
+	Field(1, "registryUrl", String, "The URL for the external registry where the image is stored (empty for internal images)")
+	Field(2, "repository", String, "The image repository")
+	Field(3, "tag", String, "The image tag")
+
+})
+
+var RunnableRef = Type("RunnableRef", func() {
+	Field(1, "name", String, "Runnable name")
+	Field(2, "kind", String, "Runnable kind")
+	Field(3, "labels", ArrayOf(String), "Runnable labels")
+})
+
+var RunnableInput = Type("RunnableInput", func() {
+	Field(1, "name", String, "Input name")
+	Field(2, "kind", String, "Kind of input (e.g. runnable, dataset, model, parameter, etc.)")
+	Field(3, "runnable")
+})
+
+var InputParameter = Type("InputParameter", func() {
+	Field(1, "datatype", String, "Parameter data type")
+	Field(2, "optional", Boolean, "Optional parameter")
+	Field(3, "default", String, "Default value")
+})
+
+var RunnabelOutput = Type("RunnableOutput", func() {
+	Field(1, "name", String, "Output name")
+	Field(2, "kind", String, "Kind of output (e.g. runnable, dataset, model, metatada, etc.)")
+	Field(3, "runnable", RunnableRef, "Runnable reference")
+	Field(4, "metadata", InputParameter, "Metadata description")
+})
+
+var Runnable = Type("Runnable", func() {
+	Field(1, "id", String, "The ID of the runnable", func() {
+		Pattern(FormatUUID)
+	})
+	Field(2, "name", String, "The name of the runnable")
+	Field(3, "kind", String, "The kind of runnable (builder, trainer, predictor etc.)")
+	Field(4, "image", RunnableImage, "The OCI container image associated with the runnable")
+	Field(5, "inputs", ArrayOf(RunnableInput), "List of inputs (artifacts, values etc.) accepted by this runnable")
+	Field(6, "outputs", ArrayOf(RunnabelOutput), "List of outputs (artifacts, values etc.) generated by this runnable")
+	Field(7, "created", String, "The runnable's creation time", func() {
+		Pattern(string(FormatDateTime))
+	})
+	Field(8, "labels", ArrayOf(String), "Labels associated with the runnable")
+
+	Required("name", "kind", "image", "inputs", "outputs", "labels")
+})
