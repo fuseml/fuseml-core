@@ -257,26 +257,14 @@ func marshalRunnableRunnableImageToRunnableImageResponse(v *runnable.RunnableIma
 // *RunnableInputResponse from a value of type *runnable.RunnableInput.
 func marshalRunnableRunnableInputToRunnableInputResponse(v *runnable.RunnableInput) *RunnableInputResponse {
 	res := &RunnableInputResponse{
-		Name:     v.Name,
-		Kind:     v.Kind,
-		Runnable: v.Runnable,
-	}
-
-	return res
-}
-
-// marshalRunnableRunnableOutputToRunnableOutputResponse builds a value of type
-// *RunnableOutputResponse from a value of type *runnable.RunnableOutput.
-func marshalRunnableRunnableOutputToRunnableOutputResponse(v *runnable.RunnableOutput) *RunnableOutputResponse {
-	res := &RunnableOutputResponse{
 		Name: v.Name,
 		Kind: v.Kind,
 	}
 	if v.Runnable != nil {
 		res.Runnable = marshalRunnableRunnableRefToRunnableRefResponse(v.Runnable)
 	}
-	if v.Metadata != nil {
-		res.Metadata = marshalRunnableInputParameterToInputParameterResponse(v.Metadata)
+	if v.Parameter != nil {
+		res.Parameter = marshalRunnableInputParameterToInputParameterResponse(v.Parameter)
 	}
 
 	return res
@@ -317,6 +305,23 @@ func marshalRunnableInputParameterToInputParameterResponse(v *runnable.InputPara
 	return res
 }
 
+// marshalRunnableRunnableOutputToRunnableOutputResponse builds a value of type
+// *RunnableOutputResponse from a value of type *runnable.RunnableOutput.
+func marshalRunnableRunnableOutputToRunnableOutputResponse(v *runnable.RunnableOutput) *RunnableOutputResponse {
+	res := &RunnableOutputResponse{
+		Name: v.Name,
+		Kind: v.Kind,
+	}
+	if v.Runnable != nil {
+		res.Runnable = marshalRunnableRunnableRefToRunnableRefResponse(v.Runnable)
+	}
+	if v.Metadata != nil {
+		res.Metadata = marshalRunnableInputParameterToInputParameterResponse(v.Metadata)
+	}
+
+	return res
+}
+
 // unmarshalRunnableImageRequestBodyToRunnableRunnableImage builds a value of
 // type *runnable.RunnableImage from a value of type *RunnableImageRequestBody.
 func unmarshalRunnableImageRequestBodyToRunnableRunnableImage(v *RunnableImageRequestBody) *runnable.RunnableImage {
@@ -333,27 +338,14 @@ func unmarshalRunnableImageRequestBodyToRunnableRunnableImage(v *RunnableImageRe
 // type *runnable.RunnableInput from a value of type *RunnableInputRequestBody.
 func unmarshalRunnableInputRequestBodyToRunnableRunnableInput(v *RunnableInputRequestBody) *runnable.RunnableInput {
 	res := &runnable.RunnableInput{
-		Name:     v.Name,
-		Kind:     v.Kind,
-		Runnable: v.Runnable,
-	}
-
-	return res
-}
-
-// unmarshalRunnableOutputRequestBodyToRunnableRunnableOutput builds a value of
-// type *runnable.RunnableOutput from a value of type
-// *RunnableOutputRequestBody.
-func unmarshalRunnableOutputRequestBodyToRunnableRunnableOutput(v *RunnableOutputRequestBody) *runnable.RunnableOutput {
-	res := &runnable.RunnableOutput{
 		Name: v.Name,
 		Kind: v.Kind,
 	}
 	if v.Runnable != nil {
 		res.Runnable = unmarshalRunnableRefRequestBodyToRunnableRunnableRef(v.Runnable)
 	}
-	if v.Metadata != nil {
-		res.Metadata = unmarshalInputParameterRequestBodyToRunnableInputParameter(v.Metadata)
+	if v.Parameter != nil {
+		res.Parameter = unmarshalInputParameterRequestBodyToRunnableInputParameter(v.Parameter)
 	}
 
 	return res
@@ -395,6 +387,24 @@ func unmarshalInputParameterRequestBodyToRunnableInputParameter(v *InputParamete
 	return res
 }
 
+// unmarshalRunnableOutputRequestBodyToRunnableRunnableOutput builds a value of
+// type *runnable.RunnableOutput from a value of type
+// *RunnableOutputRequestBody.
+func unmarshalRunnableOutputRequestBodyToRunnableRunnableOutput(v *RunnableOutputRequestBody) *runnable.RunnableOutput {
+	res := &runnable.RunnableOutput{
+		Name: v.Name,
+		Kind: v.Kind,
+	}
+	if v.Runnable != nil {
+		res.Runnable = unmarshalRunnableRefRequestBodyToRunnableRunnableRef(v.Runnable)
+	}
+	if v.Metadata != nil {
+		res.Metadata = unmarshalInputParameterRequestBodyToRunnableInputParameter(v.Metadata)
+	}
+
+	return res
+}
+
 // marshalRunnableRunnableImageToRunnableImageResponseBody builds a value of
 // type *RunnableImageResponseBody from a value of type *runnable.RunnableImage.
 func marshalRunnableRunnableImageToRunnableImageResponseBody(v *runnable.RunnableImage) *RunnableImageResponseBody {
@@ -411,27 +421,14 @@ func marshalRunnableRunnableImageToRunnableImageResponseBody(v *runnable.Runnabl
 // type *RunnableInputResponseBody from a value of type *runnable.RunnableInput.
 func marshalRunnableRunnableInputToRunnableInputResponseBody(v *runnable.RunnableInput) *RunnableInputResponseBody {
 	res := &RunnableInputResponseBody{
-		Name:     v.Name,
-		Kind:     v.Kind,
-		Runnable: v.Runnable,
-	}
-
-	return res
-}
-
-// marshalRunnableRunnableOutputToRunnableOutputResponseBody builds a value of
-// type *RunnableOutputResponseBody from a value of type
-// *runnable.RunnableOutput.
-func marshalRunnableRunnableOutputToRunnableOutputResponseBody(v *runnable.RunnableOutput) *RunnableOutputResponseBody {
-	res := &RunnableOutputResponseBody{
 		Name: v.Name,
 		Kind: v.Kind,
 	}
 	if v.Runnable != nil {
 		res.Runnable = marshalRunnableRunnableRefToRunnableRefResponseBody(v.Runnable)
 	}
-	if v.Metadata != nil {
-		res.Metadata = marshalRunnableInputParameterToInputParameterResponseBody(v.Metadata)
+	if v.Parameter != nil {
+		res.Parameter = marshalRunnableInputParameterToInputParameterResponseBody(v.Parameter)
 	}
 
 	return res
@@ -468,6 +465,24 @@ func marshalRunnableInputParameterToInputParameterResponseBody(v *runnable.Input
 		Datatype: v.Datatype,
 		Optional: v.Optional,
 		Default:  v.Default,
+	}
+
+	return res
+}
+
+// marshalRunnableRunnableOutputToRunnableOutputResponseBody builds a value of
+// type *RunnableOutputResponseBody from a value of type
+// *runnable.RunnableOutput.
+func marshalRunnableRunnableOutputToRunnableOutputResponseBody(v *runnable.RunnableOutput) *RunnableOutputResponseBody {
+	res := &RunnableOutputResponseBody{
+		Name: v.Name,
+		Kind: v.Kind,
+	}
+	if v.Runnable != nil {
+		res.Runnable = marshalRunnableRunnableRefToRunnableRefResponseBody(v.Runnable)
+	}
+	if v.Metadata != nil {
+		res.Metadata = marshalRunnableInputParameterToInputParameterResponseBody(v.Metadata)
 	}
 
 	return res

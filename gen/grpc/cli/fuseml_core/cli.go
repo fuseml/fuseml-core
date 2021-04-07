@@ -29,7 +29,7 @@ func UsageCommands() string {
 // UsageExamples produces an example of a valid invocation of the CLI tool.
 func UsageExamples() string {
 	return os.Args[0] + ` runnable list --message '{
-      "id": "Minima aut et."
+      "id": "Id reprehenderit aut."
    }'` + "\n" +
 		""
 }
@@ -164,7 +164,7 @@ Retrieve information about runnables registered in FuseML.
 
 Example:
     `+os.Args[0]+` runnable list --message '{
-      "id": "Minima aut et."
+      "id": "Id reprehenderit aut."
    }'
 `, os.Args[0])
 }
@@ -177,108 +177,107 @@ Register a runnable with the FuseML runnable store.
 
 Example:
     `+os.Args[0]+` runnable register --message '{
-      "created": "date-time",
-      "id": "uuid",
+      "created": "1971-11-06T07:17:04Z",
+      "id": "5E3B665E-1239-9C12-9643-FFC1E6C04697",
       "image": {
-         "registryUrl": "Dolor amet et et occaecati.",
-         "repository": "Facere sint aut voluptas minus fuga.",
-         "tag": "Voluptas et quis."
+         "registryUrl": "Autem voluptatem qui molestiae debitis aliquam et.",
+         "repository": "Nihil ab similique.",
+         "tag": "Adipisci temporibus assumenda necessitatibus quos."
       },
       "inputs": [
          {
-            "kind": "Molestiae expedita.",
-            "name": "Maxime et quisquam dolor exercitationem veritatis quo.",
-            "runnable": "Hic est aut occaecati possimus in."
+            "kind": "Earum corrupti.",
+            "name": "Odit possimus consequatur minus consequuntur exercitationem.",
+            "parameter": {
+               "datatype": "Sint dolor.",
+               "default": "Dolor pariatur et a ratione unde.",
+               "optional": true
+            },
+            "runnable": {
+               "kind": "Enim et error labore.",
+               "labels": [
+                  "Officiis ut.",
+                  "Dicta saepe officiis qui labore temporibus illo."
+               ],
+               "name": "Nihil beatae cum consectetur corporis."
+            }
          },
          {
-            "kind": "Molestiae expedita.",
-            "name": "Maxime et quisquam dolor exercitationem veritatis quo.",
-            "runnable": "Hic est aut occaecati possimus in."
+            "kind": "Earum corrupti.",
+            "name": "Odit possimus consequatur minus consequuntur exercitationem.",
+            "parameter": {
+               "datatype": "Sint dolor.",
+               "default": "Dolor pariatur et a ratione unde.",
+               "optional": true
+            },
+            "runnable": {
+               "kind": "Enim et error labore.",
+               "labels": [
+                  "Officiis ut.",
+                  "Dicta saepe officiis qui labore temporibus illo."
+               ],
+               "name": "Nihil beatae cum consectetur corporis."
+            }
          },
          {
-            "kind": "Molestiae expedita.",
-            "name": "Maxime et quisquam dolor exercitationem veritatis quo.",
-            "runnable": "Hic est aut occaecati possimus in."
+            "kind": "Earum corrupti.",
+            "name": "Odit possimus consequatur minus consequuntur exercitationem.",
+            "parameter": {
+               "datatype": "Sint dolor.",
+               "default": "Dolor pariatur et a ratione unde.",
+               "optional": true
+            },
+            "runnable": {
+               "kind": "Enim et error labore.",
+               "labels": [
+                  "Officiis ut.",
+                  "Dicta saepe officiis qui labore temporibus illo."
+               ],
+               "name": "Nihil beatae cum consectetur corporis."
+            }
          }
       ],
-      "kind": "Ratione temporibus.",
+      "kind": "Quia corrupti nihil quidem ut.",
       "labels": [
-         "Voluptas qui et dolor.",
-         "Sed omnis ad reiciendis ut eum.",
-         "Pariatur in et ut molestiae qui modi."
+         "Error sint sit velit rerum rerum autem.",
+         "Voluptatem ipsum sed odit totam minima in.",
+         "Id molestiae possimus nostrum vero distinctio aut.",
+         "Accusamus totam ea."
       ],
-      "name": "Porro praesentium ut quos.",
+      "name": "Ab ex commodi illo exercitationem.",
       "outputs": [
          {
-            "kind": "Ad voluptas perferendis delectus ut.",
+            "kind": "Et ex beatae omnis.",
             "metadata": {
-               "datatype": "Earum corrupti.",
-               "default": "Beatae cum.",
-               "optional": false
+               "datatype": "Sint dolor.",
+               "default": "Dolor pariatur et a ratione unde.",
+               "optional": true
             },
-            "name": "Sint ut omnis eius.",
+            "name": "Omnis deleniti temporibus doloremque illum quia odio.",
             "runnable": {
-               "kind": "Et nihil.",
+               "kind": "Enim et error labore.",
                "labels": [
-                  "Similique fugiat adipisci temporibus assumenda.",
-                  "Quos laboriosam velit odit.",
-                  "Consequatur minus consequuntur exercitationem."
+                  "Officiis ut.",
+                  "Dicta saepe officiis qui labore temporibus illo."
                ],
-               "name": "Voluptatem qui molestiae debitis."
+               "name": "Nihil beatae cum consectetur corporis."
             }
          },
          {
-            "kind": "Ad voluptas perferendis delectus ut.",
+            "kind": "Et ex beatae omnis.",
             "metadata": {
-               "datatype": "Earum corrupti.",
-               "default": "Beatae cum.",
-               "optional": false
+               "datatype": "Sint dolor.",
+               "default": "Dolor pariatur et a ratione unde.",
+               "optional": true
             },
-            "name": "Sint ut omnis eius.",
+            "name": "Omnis deleniti temporibus doloremque illum quia odio.",
             "runnable": {
-               "kind": "Et nihil.",
+               "kind": "Enim et error labore.",
                "labels": [
-                  "Similique fugiat adipisci temporibus assumenda.",
-                  "Quos laboriosam velit odit.",
-                  "Consequatur minus consequuntur exercitationem."
+                  "Officiis ut.",
+                  "Dicta saepe officiis qui labore temporibus illo."
                ],
-               "name": "Voluptatem qui molestiae debitis."
-            }
-         },
-         {
-            "kind": "Ad voluptas perferendis delectus ut.",
-            "metadata": {
-               "datatype": "Earum corrupti.",
-               "default": "Beatae cum.",
-               "optional": false
-            },
-            "name": "Sint ut omnis eius.",
-            "runnable": {
-               "kind": "Et nihil.",
-               "labels": [
-                  "Similique fugiat adipisci temporibus assumenda.",
-                  "Quos laboriosam velit odit.",
-                  "Consequatur minus consequuntur exercitationem."
-               ],
-               "name": "Voluptatem qui molestiae debitis."
-            }
-         },
-         {
-            "kind": "Ad voluptas perferendis delectus ut.",
-            "metadata": {
-               "datatype": "Earum corrupti.",
-               "default": "Beatae cum.",
-               "optional": false
-            },
-            "name": "Sint ut omnis eius.",
-            "runnable": {
-               "kind": "Et nihil.",
-               "labels": [
-                  "Similique fugiat adipisci temporibus assumenda.",
-                  "Quos laboriosam velit odit.",
-                  "Consequatur minus consequuntur exercitationem."
-               ],
-               "name": "Voluptatem qui molestiae debitis."
+               "name": "Nihil beatae cum consectetur corporis."
             }
          }
       ]
@@ -294,7 +293,7 @@ Retrieve an Runnable from FuseML.
 
 Example:
     `+os.Args[0]+` runnable get --message '{
-      "runnableNameOrId": "Laborum natus."
+      "runnableNameOrId": "Quae quaerat autem quia."
    }'
 `, os.Args[0])
 }

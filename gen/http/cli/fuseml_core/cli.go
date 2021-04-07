@@ -180,75 +180,115 @@ Register a runnable with the FuseML runnable store.
 
 Example:
     `+os.Args[0]+` runnable register --body '{
-      "created": "date-time",
-      "id": "uuid",
+      "created": "2014-10-25T06:06:51Z",
+      "id": "FF1D889F-0741-6290-783B-66E606310D86",
       "image": {
-         "registryUrl": "Neque dolorem ullam deserunt excepturi ut.",
-         "repository": "Corporis necessitatibus cupiditate voluptatem amet neque dolorem.",
-         "tag": "Qui corrupti aliquid voluptatem architecto inventore."
+         "registryUrl": "Quidem hic sapiente quasi quia explicabo.",
+         "repository": "Et esse.",
+         "tag": "Consectetur ex doloribus qui."
       },
       "inputs": [
          {
-            "kind": "Distinctio magni quisquam aut temporibus vel accusantium.",
-            "name": "Autem ipsa voluptas ut commodi quidem.",
-            "runnable": "Facere dolore eius."
-         },
-         {
-            "kind": "Distinctio magni quisquam aut temporibus vel accusantium.",
-            "name": "Autem ipsa voluptas ut commodi quidem.",
-            "runnable": "Facere dolore eius."
-         },
-         {
-            "kind": "Distinctio magni quisquam aut temporibus vel accusantium.",
-            "name": "Autem ipsa voluptas ut commodi quidem.",
-            "runnable": "Facere dolore eius."
-         }
-      ],
-      "kind": "Fugit omnis quo distinctio blanditiis explicabo.",
-      "labels": [
-         "Fuga quia.",
-         "Eos facere ipsam ducimus repellat vel nam.",
-         "Cupiditate nulla dolor qui illum ut non.",
-         "Non iusto perferendis optio tempore voluptate."
-      ],
-      "name": "Sit commodi labore vel voluptatum inventore.",
-      "outputs": [
-         {
-            "kind": "Totam animi.",
-            "metadata": {
-               "datatype": "Ea et ea voluptatibus quod.",
-               "default": "Laboriosam id et rem voluptatem laudantium aliquam.",
-               "optional": false
+            "kind": "Minus aut.",
+            "name": "Incidunt vitae illum eveniet.",
+            "parameter": {
+               "datatype": "Debitis ut provident voluptatibus sit laudantium.",
+               "default": "Rem eum.",
+               "optional": true
             },
-            "name": "Et dolores molestias accusantium.",
             "runnable": {
-               "kind": "Qui nostrum.",
+               "kind": "Et mollitia iste libero sapiente sint et.",
                "labels": [
-                  "Earum voluptas dolor.",
-                  "Nisi quis quas alias aut possimus.",
-                  "Libero omnis eum ea amet suscipit.",
-                  "Error itaque sequi."
+                  "Dolor nulla aut voluptatibus qui nihil.",
+                  "Placeat ipsum aut.",
+                  "A enim tempora sapiente debitis sint ut.",
+                  "Eligendi porro."
                ],
-               "name": "Omnis natus."
+               "name": "Enim dolorum."
             }
          },
          {
-            "kind": "Totam animi.",
-            "metadata": {
-               "datatype": "Ea et ea voluptatibus quod.",
-               "default": "Laboriosam id et rem voluptatem laudantium aliquam.",
-               "optional": false
+            "kind": "Minus aut.",
+            "name": "Incidunt vitae illum eveniet.",
+            "parameter": {
+               "datatype": "Debitis ut provident voluptatibus sit laudantium.",
+               "default": "Rem eum.",
+               "optional": true
             },
-            "name": "Et dolores molestias accusantium.",
             "runnable": {
-               "kind": "Qui nostrum.",
+               "kind": "Et mollitia iste libero sapiente sint et.",
                "labels": [
-                  "Earum voluptas dolor.",
-                  "Nisi quis quas alias aut possimus.",
-                  "Libero omnis eum ea amet suscipit.",
-                  "Error itaque sequi."
+                  "Dolor nulla aut voluptatibus qui nihil.",
+                  "Placeat ipsum aut.",
+                  "A enim tempora sapiente debitis sint ut.",
+                  "Eligendi porro."
                ],
-               "name": "Omnis natus."
+               "name": "Enim dolorum."
+            }
+         }
+      ],
+      "kind": "Aut tempora.",
+      "labels": [
+         "Atque non in velit sint.",
+         "Laborum natus."
+      ],
+      "name": "Accusamus in iure possimus sed quod.",
+      "outputs": [
+         {
+            "kind": "Et similique suscipit laborum porro praesentium.",
+            "metadata": {
+               "datatype": "Debitis ut provident voluptatibus sit laudantium.",
+               "default": "Rem eum.",
+               "optional": true
+            },
+            "name": "Atque blanditiis libero minima.",
+            "runnable": {
+               "kind": "Et mollitia iste libero sapiente sint et.",
+               "labels": [
+                  "Dolor nulla aut voluptatibus qui nihil.",
+                  "Placeat ipsum aut.",
+                  "A enim tempora sapiente debitis sint ut.",
+                  "Eligendi porro."
+               ],
+               "name": "Enim dolorum."
+            }
+         },
+         {
+            "kind": "Et similique suscipit laborum porro praesentium.",
+            "metadata": {
+               "datatype": "Debitis ut provident voluptatibus sit laudantium.",
+               "default": "Rem eum.",
+               "optional": true
+            },
+            "name": "Atque blanditiis libero minima.",
+            "runnable": {
+               "kind": "Et mollitia iste libero sapiente sint et.",
+               "labels": [
+                  "Dolor nulla aut voluptatibus qui nihil.",
+                  "Placeat ipsum aut.",
+                  "A enim tempora sapiente debitis sint ut.",
+                  "Eligendi porro."
+               ],
+               "name": "Enim dolorum."
+            }
+         },
+         {
+            "kind": "Et similique suscipit laborum porro praesentium.",
+            "metadata": {
+               "datatype": "Debitis ut provident voluptatibus sit laudantium.",
+               "default": "Rem eum.",
+               "optional": true
+            },
+            "name": "Atque blanditiis libero minima.",
+            "runnable": {
+               "kind": "Et mollitia iste libero sapiente sint et.",
+               "labels": [
+                  "Dolor nulla aut voluptatibus qui nihil.",
+                  "Placeat ipsum aut.",
+                  "A enim tempora sapiente debitis sint ut.",
+                  "Eligendi porro."
+               ],
+               "name": "Enim dolorum."
             }
          }
       ]
@@ -263,6 +303,6 @@ Retrieve an Runnable from FuseML.
     -runnable-name-or-id STRING: Runnable name or id
 
 Example:
-    `+os.Args[0]+` runnable get --runnable-name-or-id "Modi placeat."
+    `+os.Args[0]+` runnable get --runnable-name-or-id "Aut omnis similique eum."
 `, os.Args[0])
 }

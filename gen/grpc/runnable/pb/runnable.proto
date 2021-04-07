@@ -64,18 +64,10 @@ message RunnableInput {
 	string name = 1;
 	// Kind of input (e.g. runnable, dataset, model, parameter, etc.)
 	string kind = 2;
-	string runnable = 3;
-}
-
-message RunnableOutput {
-	// Output name
-	string name = 1;
-	// Kind of output (e.g. runnable, dataset, model, metatada, etc.)
-	string kind = 2;
 	// Runnable reference
 	RunnableRef runnable = 3;
-	// Metadata description
-	InputParameter metadata = 4;
+	// Parameter description
+	InputParameter parameter = 4;
 }
 
 message RunnableRef {
@@ -94,6 +86,17 @@ message InputParameter {
 	bool optional = 2;
 	// Default value
 	string default = 3;
+}
+
+message RunnableOutput {
+	// Output name
+	string name = 1;
+	// Kind of output (e.g. runnable, dataset, model, metatada, etc.)
+	string kind = 2;
+	// Runnable reference
+	RunnableRef runnable = 3;
+	// Metadata description
+	InputParameter metadata = 4;
 }
 
 message RegisterRequest {

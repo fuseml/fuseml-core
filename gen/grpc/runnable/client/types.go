@@ -51,8 +51,11 @@ func NewListResult(message *runnablepb.ListResponse) []*runnable.Runnable {
 				if val.Kind != "" {
 					result[i].Inputs[j].Kind = &val.Kind
 				}
-				if val.Runnable != "" {
-					result[i].Inputs[j].Runnable = &val.Runnable
+				if val.Runnable != nil {
+					result[i].Inputs[j].Runnable = protobufRunnablepbRunnableRefToRunnableRunnableRef(val.Runnable)
+				}
+				if val.Parameter != nil {
+					result[i].Inputs[j].Parameter = protobufRunnablepbInputParameterToRunnableInputParameter(val.Parameter)
 				}
 			}
 		}
@@ -111,7 +114,10 @@ func NewRegisterRequest(payload *runnable.Runnable) *runnablepb.RegisterRequest 
 				message.Inputs[i].Kind = *val.Kind
 			}
 			if val.Runnable != nil {
-				message.Inputs[i].Runnable = *val.Runnable
+				message.Inputs[i].Runnable = svcRunnableRunnableRefToRunnablepbRunnableRef(val.Runnable)
+			}
+			if val.Parameter != nil {
+				message.Inputs[i].Parameter = svcRunnableInputParameterToRunnablepbInputParameter(val.Parameter)
 			}
 		}
 	}
@@ -168,8 +174,11 @@ func NewRegisterResult(message *runnablepb.RegisterResponse) *runnable.Runnable 
 			if val.Kind != "" {
 				result.Inputs[i].Kind = &val.Kind
 			}
-			if val.Runnable != "" {
-				result.Inputs[i].Runnable = &val.Runnable
+			if val.Runnable != nil {
+				result.Inputs[i].Runnable = protobufRunnablepbRunnableRefToRunnableRunnableRef(val.Runnable)
+			}
+			if val.Parameter != nil {
+				result.Inputs[i].Parameter = protobufRunnablepbInputParameterToRunnableInputParameter(val.Parameter)
 			}
 		}
 	}
@@ -235,8 +244,11 @@ func NewGetResult(message *runnablepb.GetResponse) *runnable.Runnable {
 			if val.Kind != "" {
 				result.Inputs[i].Kind = &val.Kind
 			}
-			if val.Runnable != "" {
-				result.Inputs[i].Runnable = &val.Runnable
+			if val.Runnable != nil {
+				result.Inputs[i].Runnable = protobufRunnablepbRunnableRefToRunnableRunnableRef(val.Runnable)
+			}
+			if val.Parameter != nil {
+				result.Inputs[i].Parameter = protobufRunnablepbInputParameterToRunnableInputParameter(val.Parameter)
 			}
 		}
 	}
@@ -293,8 +305,10 @@ func ValidateRunnable2(message *runnablepb.Runnable2) (err error) {
 	if message.Labels == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("labels", "message"))
 	}
-	err = goa.MergeErrors(err, goa.ValidatePattern("message.id", message.Id, "uuid"))
-	err = goa.MergeErrors(err, goa.ValidatePattern("message.created", message.Created, "date-time"))
+	err = goa.MergeErrors(err, goa.ValidateFormat("message.id", message.Id, goa.FormatUUID))
+
+	err = goa.MergeErrors(err, goa.ValidateFormat("message.created", message.Created, goa.FormatDateTime))
+
 	return
 }
 
@@ -310,12 +324,6 @@ func ValidateRunnableInput(message *runnablepb.RunnableInput) (err error) {
 	return
 }
 
-// ValidateRunnableOutput runs the validations defined on RunnableOutput.
-func ValidateRunnableOutput(message *runnablepb.RunnableOutput) (err error) {
-
-	return
-}
-
 // ValidateRunnableRef runs the validations defined on RunnableRef.
 func ValidateRunnableRef(message *runnablepb.RunnableRef) (err error) {
 
@@ -324,6 +332,12 @@ func ValidateRunnableRef(message *runnablepb.RunnableRef) (err error) {
 
 // ValidateInputParameter runs the validations defined on InputParameter.
 func ValidateInputParameter(message *runnablepb.InputParameter) (err error) {
+
+	return
+}
+
+// ValidateRunnableOutput runs the validations defined on RunnableOutput.
+func ValidateRunnableOutput(message *runnablepb.RunnableOutput) (err error) {
 
 	return
 }
@@ -343,10 +357,10 @@ func ValidateRegisterResponse(message *runnablepb.RegisterResponse) (err error) 
 		err = goa.MergeErrors(err, goa.MissingFieldError("labels", "message"))
 	}
 	if message.Id != "" {
-		err = goa.MergeErrors(err, goa.ValidatePattern("message.id", message.Id, "uuid"))
+		err = goa.MergeErrors(err, goa.ValidateFormat("message.id", message.Id, goa.FormatUUID))
 	}
 	if message.Created != "" {
-		err = goa.MergeErrors(err, goa.ValidatePattern("message.created", message.Created, "date-time"))
+		err = goa.MergeErrors(err, goa.ValidateFormat("message.created", message.Created, goa.FormatDateTime))
 	}
 	return
 }
@@ -366,10 +380,10 @@ func ValidateGetResponse(message *runnablepb.GetResponse) (err error) {
 		err = goa.MergeErrors(err, goa.MissingFieldError("labels", "message"))
 	}
 	if message.Id != "" {
-		err = goa.MergeErrors(err, goa.ValidatePattern("message.id", message.Id, "uuid"))
+		err = goa.MergeErrors(err, goa.ValidateFormat("message.id", message.Id, goa.FormatUUID))
 	}
 	if message.Created != "" {
-		err = goa.MergeErrors(err, goa.ValidatePattern("message.created", message.Created, "date-time"))
+		err = goa.MergeErrors(err, goa.ValidateFormat("message.created", message.Created, goa.FormatDateTime))
 	}
 	return
 }
