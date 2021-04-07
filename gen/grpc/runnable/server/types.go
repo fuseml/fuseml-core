@@ -53,7 +53,10 @@ func NewListResponse(result []*runnable.Runnable) *runnablepb.ListResponse {
 					message.Field[i].Inputs[j].Kind = *val.Kind
 				}
 				if val.Runnable != nil {
-					message.Field[i].Inputs[j].Runnable = *val.Runnable
+					message.Field[i].Inputs[j].Runnable = svcRunnableRunnableRefToRunnablepbRunnableRef(val.Runnable)
+				}
+				if val.Parameter != nil {
+					message.Field[i].Inputs[j].Parameter = svcRunnableInputParameterToRunnablepbInputParameter(val.Parameter)
 				}
 			}
 		}
@@ -111,8 +114,11 @@ func NewRegisterPayload(message *runnablepb.RegisterRequest) *runnable.Runnable 
 			if val.Kind != "" {
 				v.Inputs[i].Kind = &val.Kind
 			}
-			if val.Runnable != "" {
-				v.Inputs[i].Runnable = &val.Runnable
+			if val.Runnable != nil {
+				v.Inputs[i].Runnable = protobufRunnablepbRunnableRefToRunnableRunnableRef(val.Runnable)
+			}
+			if val.Parameter != nil {
+				v.Inputs[i].Parameter = protobufRunnablepbInputParameterToRunnableInputParameter(val.Parameter)
 			}
 		}
 	}
@@ -170,7 +176,10 @@ func NewRegisterResponse(result *runnable.Runnable) *runnablepb.RegisterResponse
 				message.Inputs[i].Kind = *val.Kind
 			}
 			if val.Runnable != nil {
-				message.Inputs[i].Runnable = *val.Runnable
+				message.Inputs[i].Runnable = svcRunnableRunnableRefToRunnablepbRunnableRef(val.Runnable)
+			}
+			if val.Parameter != nil {
+				message.Inputs[i].Parameter = svcRunnableInputParameterToRunnablepbInputParameter(val.Parameter)
 			}
 		}
 	}
@@ -237,7 +246,10 @@ func NewGetResponse(result *runnable.Runnable) *runnablepb.GetResponse {
 				message.Inputs[i].Kind = *val.Kind
 			}
 			if val.Runnable != nil {
-				message.Inputs[i].Runnable = *val.Runnable
+				message.Inputs[i].Runnable = svcRunnableRunnableRefToRunnablepbRunnableRef(val.Runnable)
+			}
+			if val.Parameter != nil {
+				message.Inputs[i].Parameter = svcRunnableInputParameterToRunnablepbInputParameter(val.Parameter)
 			}
 		}
 	}
@@ -280,12 +292,6 @@ func ValidateRunnableInput(message *runnablepb.RunnableInput) (err error) {
 	return
 }
 
-// ValidateRunnableOutput runs the validations defined on RunnableOutput.
-func ValidateRunnableOutput(message *runnablepb.RunnableOutput) (err error) {
-
-	return
-}
-
 // ValidateRunnableRef runs the validations defined on RunnableRef.
 func ValidateRunnableRef(message *runnablepb.RunnableRef) (err error) {
 
@@ -294,6 +300,12 @@ func ValidateRunnableRef(message *runnablepb.RunnableRef) (err error) {
 
 // ValidateInputParameter runs the validations defined on InputParameter.
 func ValidateInputParameter(message *runnablepb.InputParameter) (err error) {
+
+	return
+}
+
+// ValidateRunnableOutput runs the validations defined on RunnableOutput.
+func ValidateRunnableOutput(message *runnablepb.RunnableOutput) (err error) {
 
 	return
 }
@@ -313,10 +325,10 @@ func ValidateRegisterRequest(message *runnablepb.RegisterRequest) (err error) {
 		err = goa.MergeErrors(err, goa.MissingFieldError("labels", "message"))
 	}
 	if message.Id != "" {
-		err = goa.MergeErrors(err, goa.ValidatePattern("message.id", message.Id, "uuid"))
+		err = goa.MergeErrors(err, goa.ValidateFormat("message.id", message.Id, goa.FormatUUID))
 	}
 	if message.Created != "" {
-		err = goa.MergeErrors(err, goa.ValidatePattern("message.created", message.Created, "date-time"))
+		err = goa.MergeErrors(err, goa.ValidateFormat("message.created", message.Created, goa.FormatDateTime))
 	}
 	return
 }

@@ -2,22 +2,19 @@
 GO_LDFLAGS:=-ldflags '-s -w'
 GO_GCFLAGS=
 
-all: build
+all: gen build
 
-build: gen_core example tidy lint
+build: tidy lint
 	go build ${GO_GCFLAGS} -o bin/fuseml_core ${GO_LDFLAGS} ./cmd/fuseml_core
 	go build ${GO_GCFLAGS} -o bin/fuseml_core-cli ${GO_LDFLAGS} ./cmd/fuseml_core-cli
 
 test:
 	ginkgo ./gen ./pkg
 
-gen_core:
-	go mod download
-	go get -u google.golang.org/protobuf/cmd/protoc-gen-go
-	go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc
+gen: deps
 	go run goa.design/goa/v3/cmd/goa gen github.com/fuseml/fuseml-core/design
 
-example:
+example: gen
 	go run goa.design/goa/v3/cmd/goa example github.com/fuseml/fuseml-core/design
 
 lint: fmt vet tidy
@@ -30,3 +27,9 @@ tidy:
 
 fmt:
 	go fmt ./...
+deps:
+	go get goa.design/goa/v3/cmd/goa@v3.3.1
+	go get goa.design/goa/v3/http/codegen/openapi/v2@v3.3.1
+	go get -u google.golang.org/protobuf/cmd/protoc-gen-go
+	go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc
+

@@ -187,20 +187,11 @@ type RunnableInputResponse struct {
 	// Input name
 	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
 	// Kind of input (e.g. runnable, dataset, model, parameter, etc.)
-	Kind     *string `form:"kind,omitempty" json:"kind,omitempty" xml:"kind,omitempty"`
-	Runnable *string `form:"runnable,omitempty" json:"runnable,omitempty" xml:"runnable,omitempty"`
-}
-
-// RunnableOutputResponse is used to define fields on response body types.
-type RunnableOutputResponse struct {
-	// Output name
-	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
-	// Kind of output (e.g. runnable, dataset, model, metatada, etc.)
 	Kind *string `form:"kind,omitempty" json:"kind,omitempty" xml:"kind,omitempty"`
 	// Runnable reference
 	Runnable *RunnableRefResponse `form:"runnable,omitempty" json:"runnable,omitempty" xml:"runnable,omitempty"`
-	// Metadata description
-	Metadata *InputParameterResponse `form:"metadata,omitempty" json:"metadata,omitempty" xml:"metadata,omitempty"`
+	// Parameter description
+	Parameter *InputParameterResponse `form:"parameter,omitempty" json:"parameter,omitempty" xml:"parameter,omitempty"`
 }
 
 // RunnableRefResponse is used to define fields on response body types.
@@ -223,6 +214,18 @@ type InputParameterResponse struct {
 	Default *string `form:"default,omitempty" json:"default,omitempty" xml:"default,omitempty"`
 }
 
+// RunnableOutputResponse is used to define fields on response body types.
+type RunnableOutputResponse struct {
+	// Output name
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// Kind of output (e.g. runnable, dataset, model, metatada, etc.)
+	Kind *string `form:"kind,omitempty" json:"kind,omitempty" xml:"kind,omitempty"`
+	// Runnable reference
+	Runnable *RunnableRefResponse `form:"runnable,omitempty" json:"runnable,omitempty" xml:"runnable,omitempty"`
+	// Metadata description
+	Metadata *InputParameterResponse `form:"metadata,omitempty" json:"metadata,omitempty" xml:"metadata,omitempty"`
+}
+
 // RunnableImageRequestBody is used to define fields on request body types.
 type RunnableImageRequestBody struct {
 	// The URL for the external registry where the image is stored (empty for
@@ -239,20 +242,11 @@ type RunnableInputRequestBody struct {
 	// Input name
 	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
 	// Kind of input (e.g. runnable, dataset, model, parameter, etc.)
-	Kind     *string `form:"kind,omitempty" json:"kind,omitempty" xml:"kind,omitempty"`
-	Runnable *string `form:"runnable,omitempty" json:"runnable,omitempty" xml:"runnable,omitempty"`
-}
-
-// RunnableOutputRequestBody is used to define fields on request body types.
-type RunnableOutputRequestBody struct {
-	// Output name
-	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
-	// Kind of output (e.g. runnable, dataset, model, metatada, etc.)
 	Kind *string `form:"kind,omitempty" json:"kind,omitempty" xml:"kind,omitempty"`
 	// Runnable reference
 	Runnable *RunnableRefRequestBody `form:"runnable,omitempty" json:"runnable,omitempty" xml:"runnable,omitempty"`
-	// Metadata description
-	Metadata *InputParameterRequestBody `form:"metadata,omitempty" json:"metadata,omitempty" xml:"metadata,omitempty"`
+	// Parameter description
+	Parameter *InputParameterRequestBody `form:"parameter,omitempty" json:"parameter,omitempty" xml:"parameter,omitempty"`
 }
 
 // RunnableRefRequestBody is used to define fields on request body types.
@@ -275,6 +269,18 @@ type InputParameterRequestBody struct {
 	Default *string `form:"default,omitempty" json:"default,omitempty" xml:"default,omitempty"`
 }
 
+// RunnableOutputRequestBody is used to define fields on request body types.
+type RunnableOutputRequestBody struct {
+	// Output name
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// Kind of output (e.g. runnable, dataset, model, metatada, etc.)
+	Kind *string `form:"kind,omitempty" json:"kind,omitempty" xml:"kind,omitempty"`
+	// Runnable reference
+	Runnable *RunnableRefRequestBody `form:"runnable,omitempty" json:"runnable,omitempty" xml:"runnable,omitempty"`
+	// Metadata description
+	Metadata *InputParameterRequestBody `form:"metadata,omitempty" json:"metadata,omitempty" xml:"metadata,omitempty"`
+}
+
 // RunnableImageResponseBody is used to define fields on response body types.
 type RunnableImageResponseBody struct {
 	// The URL for the external registry where the image is stored (empty for
@@ -291,20 +297,11 @@ type RunnableInputResponseBody struct {
 	// Input name
 	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
 	// Kind of input (e.g. runnable, dataset, model, parameter, etc.)
-	Kind     *string `form:"kind,omitempty" json:"kind,omitempty" xml:"kind,omitempty"`
-	Runnable *string `form:"runnable,omitempty" json:"runnable,omitempty" xml:"runnable,omitempty"`
-}
-
-// RunnableOutputResponseBody is used to define fields on response body types.
-type RunnableOutputResponseBody struct {
-	// Output name
-	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
-	// Kind of output (e.g. runnable, dataset, model, metatada, etc.)
 	Kind *string `form:"kind,omitempty" json:"kind,omitempty" xml:"kind,omitempty"`
 	// Runnable reference
 	Runnable *RunnableRefResponseBody `form:"runnable,omitempty" json:"runnable,omitempty" xml:"runnable,omitempty"`
-	// Metadata description
-	Metadata *InputParameterResponseBody `form:"metadata,omitempty" json:"metadata,omitempty" xml:"metadata,omitempty"`
+	// Parameter description
+	Parameter *InputParameterResponseBody `form:"parameter,omitempty" json:"parameter,omitempty" xml:"parameter,omitempty"`
 }
 
 // RunnableRefResponseBody is used to define fields on response body types.
@@ -325,6 +322,18 @@ type InputParameterResponseBody struct {
 	Optional *bool `form:"optional,omitempty" json:"optional,omitempty" xml:"optional,omitempty"`
 	// Default value
 	Default *string `form:"default,omitempty" json:"default,omitempty" xml:"default,omitempty"`
+}
+
+// RunnableOutputResponseBody is used to define fields on response body types.
+type RunnableOutputResponseBody struct {
+	// Output name
+	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
+	// Kind of output (e.g. runnable, dataset, model, metatada, etc.)
+	Kind *string `form:"kind,omitempty" json:"kind,omitempty" xml:"kind,omitempty"`
+	// Runnable reference
+	Runnable *RunnableRefResponseBody `form:"runnable,omitempty" json:"runnable,omitempty" xml:"runnable,omitempty"`
+	// Metadata description
+	Metadata *InputParameterResponseBody `form:"metadata,omitempty" json:"metadata,omitempty" xml:"metadata,omitempty"`
 }
 
 // NewRegisterRequestBody builds the HTTP request body from the payload of the
@@ -501,10 +510,10 @@ func ValidateRegisterResponseBody(body *RegisterResponseBody) (err error) {
 		err = goa.MergeErrors(err, goa.MissingFieldError("labels", "body"))
 	}
 	if body.ID != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.id", *body.ID, "uuid"))
+		err = goa.MergeErrors(err, goa.ValidateFormat("body.id", *body.ID, goa.FormatUUID))
 	}
 	if body.Created != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.created", *body.Created, "date-time"))
+		err = goa.MergeErrors(err, goa.ValidateFormat("body.created", *body.Created, goa.FormatDateTime))
 	}
 	return
 }
@@ -530,10 +539,10 @@ func ValidateGetResponseBody(body *GetResponseBody) (err error) {
 		err = goa.MergeErrors(err, goa.MissingFieldError("labels", "body"))
 	}
 	if body.ID != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.id", *body.ID, "uuid"))
+		err = goa.MergeErrors(err, goa.ValidateFormat("body.id", *body.ID, goa.FormatUUID))
 	}
 	if body.Created != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.created", *body.Created, "date-time"))
+		err = goa.MergeErrors(err, goa.ValidateFormat("body.created", *body.Created, goa.FormatDateTime))
 	}
 	return
 }
@@ -655,10 +664,10 @@ func ValidateRunnableResponse(body *RunnableResponse) (err error) {
 		err = goa.MergeErrors(err, goa.MissingFieldError("labels", "body"))
 	}
 	if body.ID != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.id", *body.ID, "uuid"))
+		err = goa.MergeErrors(err, goa.ValidateFormat("body.id", *body.ID, goa.FormatUUID))
 	}
 	if body.Created != nil {
-		err = goa.MergeErrors(err, goa.ValidatePattern("body.created", *body.Created, "date-time"))
+		err = goa.MergeErrors(err, goa.ValidateFormat("body.created", *body.Created, goa.FormatDateTime))
 	}
 	return
 }

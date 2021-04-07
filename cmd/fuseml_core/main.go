@@ -12,8 +12,8 @@ import (
 	"sync"
 	"syscall"
 
-	fuseml "github.com/fuseml/fuseml-core"
 	runnable "github.com/fuseml/fuseml-core/gen/runnable"
+	fuseml "github.com/fuseml/fuseml-core/pkg/core"
 )
 
 func main() {

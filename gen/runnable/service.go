@@ -79,19 +79,11 @@ type RunnableInput struct {
 	// Input name
 	Name *string
 	// Kind of input (e.g. runnable, dataset, model, parameter, etc.)
-	Kind     *string
-	Runnable *string
-}
-
-type RunnableOutput struct {
-	// Output name
-	Name *string
-	// Kind of output (e.g. runnable, dataset, model, metatada, etc.)
 	Kind *string
 	// Runnable reference
 	Runnable *RunnableRef
-	// Metadata description
-	Metadata *InputParameter
+	// Parameter description
+	Parameter *InputParameter
 }
 
 type RunnableRef struct {
@@ -110,6 +102,17 @@ type InputParameter struct {
 	Optional *bool
 	// Default value
 	Default *string
+}
+
+type RunnableOutput struct {
+	// Output name
+	Name *string
+	// Kind of output (e.g. runnable, dataset, model, metatada, etc.)
+	Kind *string
+	// Runnable reference
+	Runnable *RunnableRef
+	// Metadata description
+	Metadata *InputParameter
 }
 
 // MakeNotFound builds a goa.ServiceError from an error.

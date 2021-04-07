@@ -60,7 +60,6 @@ func New(
 			{"List", "GET", "/runnables"},
 			{"Register", "POST", "/runnables"},
 			{"Get", "GET", "/runnables/{runnableNameOrId}"},
-			{"./gen/http/openapi.json", "GET", "/openapi.json"},
 		},
 		List:     NewListHandler(e.List, mux, decoder, encoder, errhandler, formatter),
 		Register: NewRegisterHandler(e.Register, mux, decoder, encoder, errhandler, formatter),
@@ -83,9 +82,6 @@ func Mount(mux goahttp.Muxer, h *Server) {
 	MountListHandler(mux, h.List)
 	MountRegisterHandler(mux, h.Register)
 	MountGetHandler(mux, h.Get)
-	MountGenHTTPOpenapiJSON(mux, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./gen/http/openapi.json")
-	}))
 }
 
 // MountListHandler configures the mux to serve the "runnable" service "list"
@@ -239,10 +235,4 @@ func NewGetHandler(
 			errhandler(ctx, w, err)
 		}
 	})
-}
-
-// MountGenHTTPOpenapiJSON configures the mux to serve GET request made to
-// "/openapi.json".
-func MountGenHTTPOpenapiJSON(mux goahttp.Muxer, h http.Handler) {
-	mux.Handle("GET", "/openapi.json", h.ServeHTTP)
 }

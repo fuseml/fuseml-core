@@ -5,7 +5,7 @@ info:
   version: "1.0"
 servers:
 - url: http://localhost:8000
-  description: fuseml-core hosts the core service
+  description: fuseml-core hosts the core services
 paths:
   /api/openapi.json:
     get:
@@ -47,15 +47,6 @@ paths:
       responses:
         "200":
           description: File downloaded
-  /openapi.json:
-    get:
-      tags:
-      - runnable
-      summary: Download ./gen/http/openapi.json
-      operationId: runnable#/openapi.json
-      responses:
-        "200":
-          description: File downloaded
   /runnables:
     get:
       tags:
@@ -84,315 +75,595 @@ paths:
                   $ref: '#/components/schemas/Runnable'
                 description: Return all registered runnables matching the query.
                 example:
-                - created: date-time
-                  id: uuid
+                - created: "2015-11-20T16:33:57Z"
+                  id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
                   image:
-                    registryUrl: Odio omnis et ex beatae.
-                    repository: Quaerat perferendis dolores.
-                    tag: Odit esse repellat cupiditate cupiditate dolorum voluptas.
+                    registryUrl: Sit commodi labore vel voluptatum inventore.
+                    repository: Fugit omnis quo distinctio blanditiis explicabo.
+                    tag: Neque dolorem ullam deserunt excepturi ut.
                   inputs:
-                  - kind: Dolor quas qui eaque ducimus aut.
-                    name: Provident earum.
-                    runnable: Illum quis consequuntur nisi veniam nam ipsam.
-                  - kind: Dolor quas qui eaque ducimus aut.
-                    name: Provident earum.
-                    runnable: Illum quis consequuntur nisi veniam nam ipsam.
-                  kind: Deleniti temporibus doloremque illum.
+                  - kind: Et qui corrupti aliquid voluptatem architecto.
+                    name: Necessitatibus cupiditate voluptatem amet neque.
+                    parameter:
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    runnable:
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      labels:
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  - kind: Et qui corrupti aliquid voluptatem architecto.
+                    name: Necessitatibus cupiditate voluptatem amet neque.
+                    parameter:
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    runnable:
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      labels:
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  - kind: Et qui corrupti aliquid voluptatem architecto.
+                    name: Necessitatibus cupiditate voluptatem amet neque.
+                    parameter:
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    runnable:
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      labels:
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  kind: Veritatis mollitia delectus quibusdam.
                   labels:
-                  - Non harum.
-                  - Praesentium est et incidunt.
-                  - Voluptatem numquam quisquam nesciunt provident aut.
-                  - Sapiente vitae numquam voluptate veritatis.
-                  name: A ratione unde cumque et.
+                  - Perferendis optio.
+                  - Voluptate mollitia enim commodi.
+                  - Tenetur ex sunt earum quis.
+                  name: Aut quia sapiente vitae numquam.
                   outputs:
-                  - kind: Tempora et ea dolorem deserunt quia exercitationem.
+                  - kind: Aut possimus qui libero omnis.
                     metadata:
-                      datatype: Tenetur ut.
-                      default: Et voluptatem occaecati.
-                      optional: true
-                    name: Voluptate nihil cum laboriosam optio officia.
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    name: Nisi nisi quis quas.
                     runnable:
-                      kind: Ea iure quod iste labore ullam.
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
                       labels:
-                      - Accusantium ut.
-                      - Voluptatem vero voluptatem soluta.
-                      - Id possimus ut molestiae vero deleniti qui.
-                      - Voluptate qui iusto accusantium maxime.
-                      name: Quia non qui.
-                  - kind: Tempora et ea dolorem deserunt quia exercitationem.
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  - kind: Aut possimus qui libero omnis.
                     metadata:
-                      datatype: Tenetur ut.
-                      default: Et voluptatem occaecati.
-                      optional: true
-                    name: Voluptate nihil cum laboriosam optio officia.
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    name: Nisi nisi quis quas.
                     runnable:
-                      kind: Ea iure quod iste labore ullam.
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
                       labels:
-                      - Accusantium ut.
-                      - Voluptatem vero voluptatem soluta.
-                      - Id possimus ut molestiae vero deleniti qui.
-                      - Voluptate qui iusto accusantium maxime.
-                      name: Quia non qui.
-                  - kind: Tempora et ea dolorem deserunt quia exercitationem.
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  - kind: Aut possimus qui libero omnis.
                     metadata:
-                      datatype: Tenetur ut.
-                      default: Et voluptatem occaecati.
-                      optional: true
-                    name: Voluptate nihil cum laboriosam optio officia.
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    name: Nisi nisi quis quas.
                     runnable:
-                      kind: Ea iure quod iste labore ullam.
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
                       labels:
-                      - Accusantium ut.
-                      - Voluptatem vero voluptatem soluta.
-                      - Id possimus ut molestiae vero deleniti qui.
-                      - Voluptate qui iusto accusantium maxime.
-                      name: Quia non qui.
-                  - kind: Tempora et ea dolorem deserunt quia exercitationem.
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  - kind: Aut possimus qui libero omnis.
                     metadata:
-                      datatype: Tenetur ut.
-                      default: Et voluptatem occaecati.
-                      optional: true
-                    name: Voluptate nihil cum laboriosam optio officia.
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    name: Nisi nisi quis quas.
                     runnable:
-                      kind: Ea iure quod iste labore ullam.
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
                       labels:
-                      - Accusantium ut.
-                      - Voluptatem vero voluptatem soluta.
-                      - Id possimus ut molestiae vero deleniti qui.
-                      - Voluptate qui iusto accusantium maxime.
-                      name: Quia non qui.
-                - created: date-time
-                  id: uuid
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                - created: "2015-11-20T16:33:57Z"
+                  id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
                   image:
-                    registryUrl: Odio omnis et ex beatae.
-                    repository: Quaerat perferendis dolores.
-                    tag: Odit esse repellat cupiditate cupiditate dolorum voluptas.
+                    registryUrl: Sit commodi labore vel voluptatum inventore.
+                    repository: Fugit omnis quo distinctio blanditiis explicabo.
+                    tag: Neque dolorem ullam deserunt excepturi ut.
                   inputs:
-                  - kind: Dolor quas qui eaque ducimus aut.
-                    name: Provident earum.
-                    runnable: Illum quis consequuntur nisi veniam nam ipsam.
-                  - kind: Dolor quas qui eaque ducimus aut.
-                    name: Provident earum.
-                    runnable: Illum quis consequuntur nisi veniam nam ipsam.
-                  kind: Deleniti temporibus doloremque illum.
+                  - kind: Et qui corrupti aliquid voluptatem architecto.
+                    name: Necessitatibus cupiditate voluptatem amet neque.
+                    parameter:
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    runnable:
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      labels:
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  - kind: Et qui corrupti aliquid voluptatem architecto.
+                    name: Necessitatibus cupiditate voluptatem amet neque.
+                    parameter:
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    runnable:
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      labels:
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  - kind: Et qui corrupti aliquid voluptatem architecto.
+                    name: Necessitatibus cupiditate voluptatem amet neque.
+                    parameter:
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    runnable:
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      labels:
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  kind: Veritatis mollitia delectus quibusdam.
                   labels:
-                  - Non harum.
-                  - Praesentium est et incidunt.
-                  - Voluptatem numquam quisquam nesciunt provident aut.
-                  - Sapiente vitae numquam voluptate veritatis.
-                  name: A ratione unde cumque et.
+                  - Perferendis optio.
+                  - Voluptate mollitia enim commodi.
+                  - Tenetur ex sunt earum quis.
+                  name: Aut quia sapiente vitae numquam.
                   outputs:
-                  - kind: Tempora et ea dolorem deserunt quia exercitationem.
+                  - kind: Aut possimus qui libero omnis.
                     metadata:
-                      datatype: Tenetur ut.
-                      default: Et voluptatem occaecati.
-                      optional: true
-                    name: Voluptate nihil cum laboriosam optio officia.
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    name: Nisi nisi quis quas.
                     runnable:
-                      kind: Ea iure quod iste labore ullam.
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
                       labels:
-                      - Accusantium ut.
-                      - Voluptatem vero voluptatem soluta.
-                      - Id possimus ut molestiae vero deleniti qui.
-                      - Voluptate qui iusto accusantium maxime.
-                      name: Quia non qui.
-                  - kind: Tempora et ea dolorem deserunt quia exercitationem.
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  - kind: Aut possimus qui libero omnis.
                     metadata:
-                      datatype: Tenetur ut.
-                      default: Et voluptatem occaecati.
-                      optional: true
-                    name: Voluptate nihil cum laboriosam optio officia.
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    name: Nisi nisi quis quas.
                     runnable:
-                      kind: Ea iure quod iste labore ullam.
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
                       labels:
-                      - Accusantium ut.
-                      - Voluptatem vero voluptatem soluta.
-                      - Id possimus ut molestiae vero deleniti qui.
-                      - Voluptate qui iusto accusantium maxime.
-                      name: Quia non qui.
-                  - kind: Tempora et ea dolorem deserunt quia exercitationem.
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  - kind: Aut possimus qui libero omnis.
                     metadata:
-                      datatype: Tenetur ut.
-                      default: Et voluptatem occaecati.
-                      optional: true
-                    name: Voluptate nihil cum laboriosam optio officia.
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    name: Nisi nisi quis quas.
                     runnable:
-                      kind: Ea iure quod iste labore ullam.
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
                       labels:
-                      - Accusantium ut.
-                      - Voluptatem vero voluptatem soluta.
-                      - Id possimus ut molestiae vero deleniti qui.
-                      - Voluptate qui iusto accusantium maxime.
-                      name: Quia non qui.
-                  - kind: Tempora et ea dolorem deserunt quia exercitationem.
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  - kind: Aut possimus qui libero omnis.
                     metadata:
-                      datatype: Tenetur ut.
-                      default: Et voluptatem occaecati.
-                      optional: true
-                    name: Voluptate nihil cum laboriosam optio officia.
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    name: Nisi nisi quis quas.
                     runnable:
-                      kind: Ea iure quod iste labore ullam.
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
                       labels:
-                      - Accusantium ut.
-                      - Voluptatem vero voluptatem soluta.
-                      - Id possimus ut molestiae vero deleniti qui.
-                      - Voluptate qui iusto accusantium maxime.
-                      name: Quia non qui.
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                - created: "2015-11-20T16:33:57Z"
+                  id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
+                  image:
+                    registryUrl: Sit commodi labore vel voluptatum inventore.
+                    repository: Fugit omnis quo distinctio blanditiis explicabo.
+                    tag: Neque dolorem ullam deserunt excepturi ut.
+                  inputs:
+                  - kind: Et qui corrupti aliquid voluptatem architecto.
+                    name: Necessitatibus cupiditate voluptatem amet neque.
+                    parameter:
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    runnable:
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      labels:
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  - kind: Et qui corrupti aliquid voluptatem architecto.
+                    name: Necessitatibus cupiditate voluptatem amet neque.
+                    parameter:
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    runnable:
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      labels:
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  - kind: Et qui corrupti aliquid voluptatem architecto.
+                    name: Necessitatibus cupiditate voluptatem amet neque.
+                    parameter:
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    runnable:
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      labels:
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  kind: Veritatis mollitia delectus quibusdam.
+                  labels:
+                  - Perferendis optio.
+                  - Voluptate mollitia enim commodi.
+                  - Tenetur ex sunt earum quis.
+                  name: Aut quia sapiente vitae numquam.
+                  outputs:
+                  - kind: Aut possimus qui libero omnis.
+                    metadata:
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    name: Nisi nisi quis quas.
+                    runnable:
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      labels:
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  - kind: Aut possimus qui libero omnis.
+                    metadata:
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    name: Nisi nisi quis quas.
+                    runnable:
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      labels:
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  - kind: Aut possimus qui libero omnis.
+                    metadata:
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    name: Nisi nisi quis quas.
+                    runnable:
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      labels:
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                  - kind: Aut possimus qui libero omnis.
+                    metadata:
+                      datatype: Molestias accusantium aspernatur totam animi.
+                      default: Natus accusantium qui nostrum et officiis earum.
+                      optional: false
+                    name: Nisi nisi quis quas.
+                    runnable:
+                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      labels:
+                      - Facere dolore eius.
+                      - Maxime et.
+                      name: Laudantium fugit autem ipsa voluptas ut commodi.
               example:
-              - created: date-time
-                id: uuid
+              - created: "2015-11-20T16:33:57Z"
+                id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
                 image:
-                  registryUrl: Odio omnis et ex beatae.
-                  repository: Quaerat perferendis dolores.
-                  tag: Odit esse repellat cupiditate cupiditate dolorum voluptas.
+                  registryUrl: Sit commodi labore vel voluptatum inventore.
+                  repository: Fugit omnis quo distinctio blanditiis explicabo.
+                  tag: Neque dolorem ullam deserunt excepturi ut.
                 inputs:
-                - kind: Dolor quas qui eaque ducimus aut.
-                  name: Provident earum.
-                  runnable: Illum quis consequuntur nisi veniam nam ipsam.
-                - kind: Dolor quas qui eaque ducimus aut.
-                  name: Provident earum.
-                  runnable: Illum quis consequuntur nisi veniam nam ipsam.
-                kind: Deleniti temporibus doloremque illum.
+                - kind: Et qui corrupti aliquid voluptatem architecto.
+                  name: Necessitatibus cupiditate voluptatem amet neque.
+                  parameter:
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  runnable:
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    labels:
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                - kind: Et qui corrupti aliquid voluptatem architecto.
+                  name: Necessitatibus cupiditate voluptatem amet neque.
+                  parameter:
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  runnable:
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    labels:
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                - kind: Et qui corrupti aliquid voluptatem architecto.
+                  name: Necessitatibus cupiditate voluptatem amet neque.
+                  parameter:
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  runnable:
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    labels:
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                kind: Veritatis mollitia delectus quibusdam.
                 labels:
-                - Non harum.
-                - Praesentium est et incidunt.
-                - Voluptatem numquam quisquam nesciunt provident aut.
-                - Sapiente vitae numquam voluptate veritatis.
-                name: A ratione unde cumque et.
+                - Perferendis optio.
+                - Voluptate mollitia enim commodi.
+                - Tenetur ex sunt earum quis.
+                name: Aut quia sapiente vitae numquam.
                 outputs:
-                - kind: Tempora et ea dolorem deserunt quia exercitationem.
+                - kind: Aut possimus qui libero omnis.
                   metadata:
-                    datatype: Tenetur ut.
-                    default: Et voluptatem occaecati.
-                    optional: true
-                  name: Voluptate nihil cum laboriosam optio officia.
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  name: Nisi nisi quis quas.
                   runnable:
-                    kind: Ea iure quod iste labore ullam.
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
                     labels:
-                    - Accusantium ut.
-                    - Voluptatem vero voluptatem soluta.
-                    - Id possimus ut molestiae vero deleniti qui.
-                    - Voluptate qui iusto accusantium maxime.
-                    name: Quia non qui.
-                - kind: Tempora et ea dolorem deserunt quia exercitationem.
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                - kind: Aut possimus qui libero omnis.
                   metadata:
-                    datatype: Tenetur ut.
-                    default: Et voluptatem occaecati.
-                    optional: true
-                  name: Voluptate nihil cum laboriosam optio officia.
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  name: Nisi nisi quis quas.
                   runnable:
-                    kind: Ea iure quod iste labore ullam.
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
                     labels:
-                    - Accusantium ut.
-                    - Voluptatem vero voluptatem soluta.
-                    - Id possimus ut molestiae vero deleniti qui.
-                    - Voluptate qui iusto accusantium maxime.
-                    name: Quia non qui.
-                - kind: Tempora et ea dolorem deserunt quia exercitationem.
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                - kind: Aut possimus qui libero omnis.
                   metadata:
-                    datatype: Tenetur ut.
-                    default: Et voluptatem occaecati.
-                    optional: true
-                  name: Voluptate nihil cum laboriosam optio officia.
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  name: Nisi nisi quis quas.
                   runnable:
-                    kind: Ea iure quod iste labore ullam.
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
                     labels:
-                    - Accusantium ut.
-                    - Voluptatem vero voluptatem soluta.
-                    - Id possimus ut molestiae vero deleniti qui.
-                    - Voluptate qui iusto accusantium maxime.
-                    name: Quia non qui.
-                - kind: Tempora et ea dolorem deserunt quia exercitationem.
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                - kind: Aut possimus qui libero omnis.
                   metadata:
-                    datatype: Tenetur ut.
-                    default: Et voluptatem occaecati.
-                    optional: true
-                  name: Voluptate nihil cum laboriosam optio officia.
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  name: Nisi nisi quis quas.
                   runnable:
-                    kind: Ea iure quod iste labore ullam.
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
                     labels:
-                    - Accusantium ut.
-                    - Voluptatem vero voluptatem soluta.
-                    - Id possimus ut molestiae vero deleniti qui.
-                    - Voluptate qui iusto accusantium maxime.
-                    name: Quia non qui.
-              - created: date-time
-                id: uuid
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+              - created: "2015-11-20T16:33:57Z"
+                id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
                 image:
-                  registryUrl: Odio omnis et ex beatae.
-                  repository: Quaerat perferendis dolores.
-                  tag: Odit esse repellat cupiditate cupiditate dolorum voluptas.
+                  registryUrl: Sit commodi labore vel voluptatum inventore.
+                  repository: Fugit omnis quo distinctio blanditiis explicabo.
+                  tag: Neque dolorem ullam deserunt excepturi ut.
                 inputs:
-                - kind: Dolor quas qui eaque ducimus aut.
-                  name: Provident earum.
-                  runnable: Illum quis consequuntur nisi veniam nam ipsam.
-                - kind: Dolor quas qui eaque ducimus aut.
-                  name: Provident earum.
-                  runnable: Illum quis consequuntur nisi veniam nam ipsam.
-                kind: Deleniti temporibus doloremque illum.
+                - kind: Et qui corrupti aliquid voluptatem architecto.
+                  name: Necessitatibus cupiditate voluptatem amet neque.
+                  parameter:
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  runnable:
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    labels:
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                - kind: Et qui corrupti aliquid voluptatem architecto.
+                  name: Necessitatibus cupiditate voluptatem amet neque.
+                  parameter:
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  runnable:
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    labels:
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                - kind: Et qui corrupti aliquid voluptatem architecto.
+                  name: Necessitatibus cupiditate voluptatem amet neque.
+                  parameter:
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  runnable:
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    labels:
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                kind: Veritatis mollitia delectus quibusdam.
                 labels:
-                - Non harum.
-                - Praesentium est et incidunt.
-                - Voluptatem numquam quisquam nesciunt provident aut.
-                - Sapiente vitae numquam voluptate veritatis.
-                name: A ratione unde cumque et.
+                - Perferendis optio.
+                - Voluptate mollitia enim commodi.
+                - Tenetur ex sunt earum quis.
+                name: Aut quia sapiente vitae numquam.
                 outputs:
-                - kind: Tempora et ea dolorem deserunt quia exercitationem.
+                - kind: Aut possimus qui libero omnis.
                   metadata:
-                    datatype: Tenetur ut.
-                    default: Et voluptatem occaecati.
-                    optional: true
-                  name: Voluptate nihil cum laboriosam optio officia.
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  name: Nisi nisi quis quas.
                   runnable:
-                    kind: Ea iure quod iste labore ullam.
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
                     labels:
-                    - Accusantium ut.
-                    - Voluptatem vero voluptatem soluta.
-                    - Id possimus ut molestiae vero deleniti qui.
-                    - Voluptate qui iusto accusantium maxime.
-                    name: Quia non qui.
-                - kind: Tempora et ea dolorem deserunt quia exercitationem.
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                - kind: Aut possimus qui libero omnis.
                   metadata:
-                    datatype: Tenetur ut.
-                    default: Et voluptatem occaecati.
-                    optional: true
-                  name: Voluptate nihil cum laboriosam optio officia.
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  name: Nisi nisi quis quas.
                   runnable:
-                    kind: Ea iure quod iste labore ullam.
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
                     labels:
-                    - Accusantium ut.
-                    - Voluptatem vero voluptatem soluta.
-                    - Id possimus ut molestiae vero deleniti qui.
-                    - Voluptate qui iusto accusantium maxime.
-                    name: Quia non qui.
-                - kind: Tempora et ea dolorem deserunt quia exercitationem.
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                - kind: Aut possimus qui libero omnis.
                   metadata:
-                    datatype: Tenetur ut.
-                    default: Et voluptatem occaecati.
-                    optional: true
-                  name: Voluptate nihil cum laboriosam optio officia.
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  name: Nisi nisi quis quas.
                   runnable:
-                    kind: Ea iure quod iste labore ullam.
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
                     labels:
-                    - Accusantium ut.
-                    - Voluptatem vero voluptatem soluta.
-                    - Id possimus ut molestiae vero deleniti qui.
-                    - Voluptate qui iusto accusantium maxime.
-                    name: Quia non qui.
-                - kind: Tempora et ea dolorem deserunt quia exercitationem.
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                - kind: Aut possimus qui libero omnis.
                   metadata:
-                    datatype: Tenetur ut.
-                    default: Et voluptatem occaecati.
-                    optional: true
-                  name: Voluptate nihil cum laboriosam optio officia.
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  name: Nisi nisi quis quas.
                   runnable:
-                    kind: Ea iure quod iste labore ullam.
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
                     labels:
-                    - Accusantium ut.
-                    - Voluptatem vero voluptatem soluta.
-                    - Id possimus ut molestiae vero deleniti qui.
-                    - Voluptate qui iusto accusantium maxime.
-                    name: Quia non qui.
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+              - created: "2015-11-20T16:33:57Z"
+                id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
+                image:
+                  registryUrl: Sit commodi labore vel voluptatum inventore.
+                  repository: Fugit omnis quo distinctio blanditiis explicabo.
+                  tag: Neque dolorem ullam deserunt excepturi ut.
+                inputs:
+                - kind: Et qui corrupti aliquid voluptatem architecto.
+                  name: Necessitatibus cupiditate voluptatem amet neque.
+                  parameter:
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  runnable:
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    labels:
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                - kind: Et qui corrupti aliquid voluptatem architecto.
+                  name: Necessitatibus cupiditate voluptatem amet neque.
+                  parameter:
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  runnable:
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    labels:
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                - kind: Et qui corrupti aliquid voluptatem architecto.
+                  name: Necessitatibus cupiditate voluptatem amet neque.
+                  parameter:
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  runnable:
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    labels:
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                kind: Veritatis mollitia delectus quibusdam.
+                labels:
+                - Perferendis optio.
+                - Voluptate mollitia enim commodi.
+                - Tenetur ex sunt earum quis.
+                name: Aut quia sapiente vitae numquam.
+                outputs:
+                - kind: Aut possimus qui libero omnis.
+                  metadata:
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  name: Nisi nisi quis quas.
+                  runnable:
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    labels:
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                - kind: Aut possimus qui libero omnis.
+                  metadata:
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  name: Nisi nisi quis quas.
+                  runnable:
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    labels:
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                - kind: Aut possimus qui libero omnis.
+                  metadata:
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  name: Nisi nisi quis quas.
+                  runnable:
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    labels:
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                - kind: Aut possimus qui libero omnis.
+                  metadata:
+                    datatype: Molestias accusantium aspernatur totam animi.
+                    default: Natus accusantium qui nostrum et officiis earum.
+                    optional: false
+                  name: Nisi nisi quis quas.
+                  runnable:
+                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    labels:
+                    - Facere dolore eius.
+                    - Maxime et.
+                    name: Laudantium fugit autem ipsa voluptas ut commodi.
         "404":
           description: Not Found response.
           content:
@@ -416,59 +687,89 @@ paths:
             schema:
               $ref: '#/components/schemas/Runnable'
             example:
-              created: date-time
-              id: uuid
+              created: "2014-10-25T06:06:51Z"
+              id: FF1D889F-0741-6290-783B-66E606310D86
               image:
-                registryUrl: Neque dolorem ullam deserunt excepturi ut.
-                repository: Corporis necessitatibus cupiditate voluptatem amet neque
-                  dolorem.
-                tag: Qui corrupti aliquid voluptatem architecto inventore.
+                registryUrl: Quidem hic sapiente quasi quia explicabo.
+                repository: Et esse.
+                tag: Consectetur ex doloribus qui.
               inputs:
-              - kind: Distinctio magni quisquam aut temporibus vel accusantium.
-                name: Autem ipsa voluptas ut commodi quidem.
-                runnable: Facere dolore eius.
-              - kind: Distinctio magni quisquam aut temporibus vel accusantium.
-                name: Autem ipsa voluptas ut commodi quidem.
-                runnable: Facere dolore eius.
-              - kind: Distinctio magni quisquam aut temporibus vel accusantium.
-                name: Autem ipsa voluptas ut commodi quidem.
-                runnable: Facere dolore eius.
-              kind: Fugit omnis quo distinctio blanditiis explicabo.
+              - kind: Minus aut.
+                name: Incidunt vitae illum eveniet.
+                parameter:
+                  datatype: Debitis ut provident voluptatibus sit laudantium.
+                  default: Rem eum.
+                  optional: true
+                runnable:
+                  kind: Et mollitia iste libero sapiente sint et.
+                  labels:
+                  - Dolor nulla aut voluptatibus qui nihil.
+                  - Placeat ipsum aut.
+                  - A enim tempora sapiente debitis sint ut.
+                  - Eligendi porro.
+                  name: Enim dolorum.
+              - kind: Minus aut.
+                name: Incidunt vitae illum eveniet.
+                parameter:
+                  datatype: Debitis ut provident voluptatibus sit laudantium.
+                  default: Rem eum.
+                  optional: true
+                runnable:
+                  kind: Et mollitia iste libero sapiente sint et.
+                  labels:
+                  - Dolor nulla aut voluptatibus qui nihil.
+                  - Placeat ipsum aut.
+                  - A enim tempora sapiente debitis sint ut.
+                  - Eligendi porro.
+                  name: Enim dolorum.
+              kind: Aut tempora.
               labels:
-              - Fuga quia.
-              - Eos facere ipsam ducimus repellat vel nam.
-              - Cupiditate nulla dolor qui illum ut non.
-              - Non iusto perferendis optio tempore voluptate.
-              name: Sit commodi labore vel voluptatum inventore.
+              - Atque non in velit sint.
+              - Laborum natus.
+              name: Accusamus in iure possimus sed quod.
               outputs:
-              - kind: Totam animi.
+              - kind: Et similique suscipit laborum porro praesentium.
                 metadata:
-                  datatype: Ea et ea voluptatibus quod.
-                  default: Laboriosam id et rem voluptatem laudantium aliquam.
-                  optional: false
-                name: Et dolores molestias accusantium.
+                  datatype: Debitis ut provident voluptatibus sit laudantium.
+                  default: Rem eum.
+                  optional: true
+                name: Atque blanditiis libero minima.
                 runnable:
-                  kind: Qui nostrum.
+                  kind: Et mollitia iste libero sapiente sint et.
                   labels:
-                  - Earum voluptas dolor.
-                  - Nisi quis quas alias aut possimus.
-                  - Libero omnis eum ea amet suscipit.
-                  - Error itaque sequi.
-                  name: Omnis natus.
-              - kind: Totam animi.
+                  - Dolor nulla aut voluptatibus qui nihil.
+                  - Placeat ipsum aut.
+                  - A enim tempora sapiente debitis sint ut.
+                  - Eligendi porro.
+                  name: Enim dolorum.
+              - kind: Et similique suscipit laborum porro praesentium.
                 metadata:
-                  datatype: Ea et ea voluptatibus quod.
-                  default: Laboriosam id et rem voluptatem laudantium aliquam.
-                  optional: false
-                name: Et dolores molestias accusantium.
+                  datatype: Debitis ut provident voluptatibus sit laudantium.
+                  default: Rem eum.
+                  optional: true
+                name: Atque blanditiis libero minima.
                 runnable:
-                  kind: Qui nostrum.
+                  kind: Et mollitia iste libero sapiente sint et.
                   labels:
-                  - Earum voluptas dolor.
-                  - Nisi quis quas alias aut possimus.
-                  - Libero omnis eum ea amet suscipit.
-                  - Error itaque sequi.
-                  name: Omnis natus.
+                  - Dolor nulla aut voluptatibus qui nihil.
+                  - Placeat ipsum aut.
+                  - A enim tempora sapiente debitis sint ut.
+                  - Eligendi porro.
+                  name: Enim dolorum.
+              - kind: Et similique suscipit laborum porro praesentium.
+                metadata:
+                  datatype: Debitis ut provident voluptatibus sit laudantium.
+                  default: Rem eum.
+                  optional: true
+                name: Atque blanditiis libero minima.
+                runnable:
+                  kind: Et mollitia iste libero sapiente sint et.
+                  labels:
+                  - Dolor nulla aut voluptatibus qui nihil.
+                  - Placeat ipsum aut.
+                  - A enim tempora sapiente debitis sint ut.
+                  - Eligendi porro.
+                  name: Enim dolorum.
       responses:
         "201":
           description: Created response.
@@ -477,57 +778,81 @@ paths:
               schema:
                 $ref: '#/components/schemas/Runnable'
               example:
-                created: date-time
-                id: uuid
+                created: "2004-11-07T03:02:45Z"
+                id: 74C53540-E974-ABFF-2565-6BF99F9017B2
                 image:
-                  registryUrl: Enim commodi id.
-                  repository: Ex sunt earum quis maxime.
-                  tag: Ad dignissimos quo.
+                  registryUrl: Aut quae quia quasi molestiae.
+                  repository: Laboriosam et error ut quam.
+                  tag: Nam sunt et voluptas ipsam neque id.
                 inputs:
-                - kind: Vero et illo sunt molestias.
-                  name: Voluptatum inventore qui fugiat voluptatum rerum.
-                  runnable: Et magni et.
-                - kind: Vero et illo sunt molestias.
-                  name: Voluptatum inventore qui fugiat voluptatum rerum.
-                  runnable: Et magni et.
-                - kind: Vero et illo sunt molestias.
-                  name: Voluptatum inventore qui fugiat voluptatum rerum.
-                  runnable: Et magni et.
-                - kind: Vero et illo sunt molestias.
-                  name: Voluptatum inventore qui fugiat voluptatum rerum.
-                  runnable: Et magni et.
-                kind: Incidunt vitae illum eveniet.
+                - kind: Sed ut qui ipsum adipisci.
+                  name: Tenetur omnis.
+                  parameter:
+                    datatype: Doloribus enim qui harum facere.
+                    default: Eligendi veritatis excepturi quisquam quo a.
+                    optional: true
+                  runnable:
+                    kind: Enim nesciunt est.
+                    labels:
+                    - Vero corrupti.
+                    - Iure consequuntur.
+                    name: Laborum quos voluptatibus.
+                - kind: Sed ut qui ipsum adipisci.
+                  name: Tenetur omnis.
+                  parameter:
+                    datatype: Doloribus enim qui harum facere.
+                    default: Eligendi veritatis excepturi quisquam quo a.
+                    optional: true
+                  runnable:
+                    kind: Enim nesciunt est.
+                    labels:
+                    - Vero corrupti.
+                    - Iure consequuntur.
+                    name: Laborum quos voluptatibus.
+                kind: Animi atque recusandae incidunt quam nobis corporis.
                 labels:
-                - Enim dolorum.
-                - Et mollitia iste libero sapiente sint et.
-                name: Doloribus qui eaque.
+                - Recusandae quis libero.
+                - Odit quia.
+                - Ipsa sed reiciendis consequuntur sit dolorum et.
+                - Voluptas quis.
+                name: Odio nesciunt.
                 outputs:
-                - kind: Eius ut molestiae.
+                - kind: Ut eveniet dolor quos ducimus officiis.
                   metadata:
-                    datatype: Quidem hic sapiente quasi quia explicabo.
-                    default: Esse dignissimos consectetur.
-                    optional: false
-                  name: Beatae eum et iusto sapiente.
+                    datatype: Doloribus enim qui harum facere.
+                    default: Eligendi veritatis excepturi quisquam quo a.
+                    optional: true
+                  name: Ipsa officiis necessitatibus.
                   runnable:
-                    kind: Nostrum sint optio dolores.
+                    kind: Enim nesciunt est.
                     labels:
-                    - Dicta odit veritatis vel.
-                    - Accusamus in iure possimus sed quod.
-                    - Aut tempora.
-                    name: Praesentium id.
-                - kind: Eius ut molestiae.
+                    - Vero corrupti.
+                    - Iure consequuntur.
+                    name: Laborum quos voluptatibus.
+                - kind: Ut eveniet dolor quos ducimus officiis.
                   metadata:
-                    datatype: Quidem hic sapiente quasi quia explicabo.
-                    default: Esse dignissimos consectetur.
-                    optional: false
-                  name: Beatae eum et iusto sapiente.
+                    datatype: Doloribus enim qui harum facere.
+                    default: Eligendi veritatis excepturi quisquam quo a.
+                    optional: true
+                  name: Ipsa officiis necessitatibus.
                   runnable:
-                    kind: Nostrum sint optio dolores.
+                    kind: Enim nesciunt est.
                     labels:
-                    - Dicta odit veritatis vel.
-                    - Accusamus in iure possimus sed quod.
-                    - Aut tempora.
-                    name: Praesentium id.
+                    - Vero corrupti.
+                    - Iure consequuntur.
+                    name: Laborum quos voluptatibus.
+                - kind: Ut eveniet dolor quos ducimus officiis.
+                  metadata:
+                    datatype: Doloribus enim qui harum facere.
+                    default: Eligendi veritatis excepturi quisquam quo a.
+                    optional: true
+                  name: Ipsa officiis necessitatibus.
+                  runnable:
+                    kind: Enim nesciunt est.
+                    labels:
+                    - Vero corrupti.
+                    - Iure consequuntur.
+                    name: Laborum quos voluptatibus.
         "400":
           description: Bad Request response.
           content:
@@ -553,8 +878,8 @@ paths:
         schema:
           type: string
           description: Runnable name or id
-          example: Officiis aliquam quo et natus.
-        example: Ut inventore.
+          example: Quod totam.
+        example: Inventore soluta perferendis nam beatae vel.
       responses:
         "200":
           description: OK response.
@@ -563,52 +888,92 @@ paths:
               schema:
                 $ref: '#/components/schemas/Runnable'
               example:
-                created: date-time
-                id: uuid
+                created: "1971-11-29T08:05:06Z"
+                id: 2C91774A-6D4A-67B6-DC43-6AED849DACC1
                 image:
-                  registryUrl: Enim commodi id.
-                  repository: Ex sunt earum quis maxime.
-                  tag: Ad dignissimos quo.
+                  registryUrl: Aut quae quia quasi molestiae.
+                  repository: Laboriosam et error ut quam.
+                  tag: Nam sunt et voluptas ipsam neque id.
                 inputs:
-                - kind: Vero et illo sunt molestias.
-                  name: Voluptatum inventore qui fugiat voluptatum rerum.
-                  runnable: Et magni et.
-                - kind: Vero et illo sunt molestias.
-                  name: Voluptatum inventore qui fugiat voluptatum rerum.
-                  runnable: Et magni et.
-                kind: Enim tempora sapiente.
+                - kind: Sed ut qui ipsum adipisci.
+                  name: Tenetur omnis.
+                  parameter:
+                    datatype: Doloribus enim qui harum facere.
+                    default: Eligendi veritatis excepturi quisquam quo a.
+                    optional: true
+                  runnable:
+                    kind: Enim nesciunt est.
+                    labels:
+                    - Vero corrupti.
+                    - Iure consequuntur.
+                    name: Laborum quos voluptatibus.
+                - kind: Sed ut qui ipsum adipisci.
+                  name: Tenetur omnis.
+                  parameter:
+                    datatype: Doloribus enim qui harum facere.
+                    default: Eligendi veritatis excepturi quisquam quo a.
+                    optional: true
+                  runnable:
+                    kind: Enim nesciunt est.
+                    labels:
+                    - Vero corrupti.
+                    - Iure consequuntur.
+                    name: Laborum quos voluptatibus.
+                - kind: Sed ut qui ipsum adipisci.
+                  name: Tenetur omnis.
+                  parameter:
+                    datatype: Doloribus enim qui harum facere.
+                    default: Eligendi veritatis excepturi quisquam quo a.
+                    optional: true
+                  runnable:
+                    kind: Enim nesciunt est.
+                    labels:
+                    - Vero corrupti.
+                    - Iure consequuntur.
+                    name: Laborum quos voluptatibus.
+                - kind: Sed ut qui ipsum adipisci.
+                  name: Tenetur omnis.
+                  parameter:
+                    datatype: Doloribus enim qui harum facere.
+                    default: Eligendi veritatis excepturi quisquam quo a.
+                    optional: true
+                  runnable:
+                    kind: Enim nesciunt est.
+                    labels:
+                    - Vero corrupti.
+                    - Iure consequuntur.
+                    name: Laborum quos voluptatibus.
+                kind: Odio dolores beatae vel sit.
                 labels:
-                - Eligendi porro.
-                - Debitis ut provident voluptatibus sit laudantium.
-                - Incidunt rem eum qui quam atque blanditiis.
-                name: Aut quae.
+                - Minus aut.
+                - Tenetur in.
+                - Neque eum non nam earum.
+                name: Voluptatum at dolorum esse.
                 outputs:
-                - kind: Eius ut molestiae.
+                - kind: Ut eveniet dolor quos ducimus officiis.
                   metadata:
-                    datatype: Quidem hic sapiente quasi quia explicabo.
-                    default: Esse dignissimos consectetur.
-                    optional: false
-                  name: Beatae eum et iusto sapiente.
+                    datatype: Doloribus enim qui harum facere.
+                    default: Eligendi veritatis excepturi quisquam quo a.
+                    optional: true
+                  name: Ipsa officiis necessitatibus.
                   runnable:
-                    kind: Nostrum sint optio dolores.
+                    kind: Enim nesciunt est.
                     labels:
-                    - Dicta odit veritatis vel.
-                    - Accusamus in iure possimus sed quod.
-                    - Aut tempora.
-                    name: Praesentium id.
-                - kind: Eius ut molestiae.
+                    - Vero corrupti.
+                    - Iure consequuntur.
+                    name: Laborum quos voluptatibus.
+                - kind: Ut eveniet dolor quos ducimus officiis.
                   metadata:
-                    datatype: Quidem hic sapiente quasi quia explicabo.
-                    default: Esse dignissimos consectetur.
-                    optional: false
-                  name: Beatae eum et iusto sapiente.
+                    datatype: Doloribus enim qui harum facere.
+                    default: Eligendi veritatis excepturi quisquam quo a.
+                    optional: true
+                  name: Ipsa officiis necessitatibus.
                   runnable:
-                    kind: Nostrum sint optio dolores.
+                    kind: Enim nesciunt est.
                     labels:
-                    - Dicta odit veritatis vel.
-                    - Accusamus in iure possimus sed quod.
-                    - Aut tempora.
-                    name: Praesentium id.
+                    - Vero corrupti.
+                    - Iure consequuntur.
+                    name: Laborum quos voluptatibus.
         "400":
           description: Bad Request response.
           content:
@@ -637,7 +1002,7 @@ components:
         fault:
           type: boolean
           description: Is the error a server-side fault?
-          example: false
+          example: true
         id:
           type: string
           description: ID is a unique identifier for this particular occurrence of
@@ -655,11 +1020,11 @@ components:
         temporary:
           type: boolean
           description: Is the error temporary?
-          example: true
+          example: false
         timeout:
           type: boolean
           description: Is the error a timeout?
-          example: true
+          example: false
       description: If the runnable is not found, should return 404 Not Found.
       example:
         id: 3F1FKVRR
@@ -678,18 +1043,18 @@ components:
         datatype:
           type: string
           description: Parameter data type
-          example: Harum est est et officia est magnam.
+          example: Id voluptatibus.
         default:
           type: string
           description: Default value
-          example: Nihil excepturi atque nulla incidunt magni vel.
+          example: Totam porro natus dolores asperiores facilis.
         optional:
           type: boolean
           description: Optional parameter
           example: false
       example:
-        datatype: Veritatis qui dolores voluptas consequatur mollitia.
-        default: Omnis rerum.
+        datatype: Aut excepturi.
+        default: Nesciunt et voluptas harum architecto maiores.
         optional: true
     Runnable:
       type: object
@@ -697,13 +1062,13 @@ components:
         created:
           type: string
           description: The runnable's creation time
-          example: date-time
-          pattern: date-time
+          example: "1981-05-26T07:56:01Z"
+          format: date-time
         id:
           type: string
           description: The ID of the runnable
-          example: uuid
-          pattern: uuid
+          example: E058AD50-5D7F-E9A8-E010-D33044724992
+          format: uuid
         image:
           $ref: '#/components/schemas/RunnableImage'
         inputs:
@@ -712,31 +1077,49 @@ components:
             $ref: '#/components/schemas/RunnableInput'
           description: List of inputs (artifacts, values etc.) accepted by this runnable
           example:
-          - kind: Dolor quas qui eaque ducimus aut.
-            name: Provident earum.
-            runnable: Illum quis consequuntur nisi veniam nam ipsam.
-          - kind: Dolor quas qui eaque ducimus aut.
-            name: Provident earum.
-            runnable: Illum quis consequuntur nisi veniam nam ipsam.
+          - kind: Et qui corrupti aliquid voluptatem architecto.
+            name: Necessitatibus cupiditate voluptatem amet neque.
+            parameter:
+              datatype: Molestias accusantium aspernatur totam animi.
+              default: Natus accusantium qui nostrum et officiis earum.
+              optional: false
+            runnable:
+              kind: Debitis distinctio magni quisquam aut temporibus vel.
+              labels:
+              - Facere dolore eius.
+              - Maxime et.
+              name: Laudantium fugit autem ipsa voluptas ut commodi.
+          - kind: Et qui corrupti aliquid voluptatem architecto.
+            name: Necessitatibus cupiditate voluptatem amet neque.
+            parameter:
+              datatype: Molestias accusantium aspernatur totam animi.
+              default: Natus accusantium qui nostrum et officiis earum.
+              optional: false
+            runnable:
+              kind: Debitis distinctio magni quisquam aut temporibus vel.
+              labels:
+              - Facere dolore eius.
+              - Maxime et.
+              name: Laudantium fugit autem ipsa voluptas ut commodi.
         kind:
           type: string
           description: The kind of runnable (builder, trainer, predictor etc.)
-          example: Animi error enim blanditiis non sit.
+          example: Laboriosam non eaque et.
         labels:
           type: array
           items:
             type: string
-            example: At est sapiente ipsa.
+            example: Aut commodi doloribus est.
           description: Labels associated with the runnable
           example:
-          - Odit eum reiciendis aspernatur aspernatur dicta esse.
-          - Fuga ea odit.
-          - Enim dolorum magni.
-          - Dolor quasi amet et nihil nisi.
+          - Corporis perferendis dolor.
+          - Eveniet qui possimus ipsa ipsam.
+          - Neque ducimus autem qui.
+          - Voluptates sint.
         name:
           type: string
           description: The name of the runnable
-          example: Ullam maxime vel sapiente omnis a sit.
+          example: Inventore quisquam laborum.
         outputs:
           type: array
           items:
@@ -744,112 +1127,153 @@ components:
           description: List of outputs (artifacts, values etc.) generated by this
             runnable
           example:
-          - kind: Tempora et ea dolorem deserunt quia exercitationem.
+          - kind: Aut possimus qui libero omnis.
             metadata:
-              datatype: Tenetur ut.
-              default: Et voluptatem occaecati.
-              optional: true
-            name: Voluptate nihil cum laboriosam optio officia.
+              datatype: Molestias accusantium aspernatur totam animi.
+              default: Natus accusantium qui nostrum et officiis earum.
+              optional: false
+            name: Nisi nisi quis quas.
             runnable:
-              kind: Ea iure quod iste labore ullam.
+              kind: Debitis distinctio magni quisquam aut temporibus vel.
               labels:
-              - Accusantium ut.
-              - Voluptatem vero voluptatem soluta.
-              - Id possimus ut molestiae vero deleniti qui.
-              - Voluptate qui iusto accusantium maxime.
-              name: Quia non qui.
-          - kind: Tempora et ea dolorem deserunt quia exercitationem.
+              - Facere dolore eius.
+              - Maxime et.
+              name: Laudantium fugit autem ipsa voluptas ut commodi.
+          - kind: Aut possimus qui libero omnis.
             metadata:
-              datatype: Tenetur ut.
-              default: Et voluptatem occaecati.
-              optional: true
-            name: Voluptate nihil cum laboriosam optio officia.
+              datatype: Molestias accusantium aspernatur totam animi.
+              default: Natus accusantium qui nostrum et officiis earum.
+              optional: false
+            name: Nisi nisi quis quas.
             runnable:
-              kind: Ea iure quod iste labore ullam.
+              kind: Debitis distinctio magni quisquam aut temporibus vel.
               labels:
-              - Accusantium ut.
-              - Voluptatem vero voluptatem soluta.
-              - Id possimus ut molestiae vero deleniti qui.
-              - Voluptate qui iusto accusantium maxime.
-              name: Quia non qui.
+              - Facere dolore eius.
+              - Maxime et.
+              name: Laudantium fugit autem ipsa voluptas ut commodi.
+          - kind: Aut possimus qui libero omnis.
+            metadata:
+              datatype: Molestias accusantium aspernatur totam animi.
+              default: Natus accusantium qui nostrum et officiis earum.
+              optional: false
+            name: Nisi nisi quis quas.
+            runnable:
+              kind: Debitis distinctio magni quisquam aut temporibus vel.
+              labels:
+              - Facere dolore eius.
+              - Maxime et.
+              name: Laudantium fugit autem ipsa voluptas ut commodi.
       example:
-        created: date-time
-        id: uuid
+        created: "1979-12-21T20:07:04Z"
+        id: EA2D3703-2B9D-E7C0-35B9-DB753C364369
         image:
-          registryUrl: Odio omnis et ex beatae.
-          repository: Quaerat perferendis dolores.
-          tag: Odit esse repellat cupiditate cupiditate dolorum voluptas.
+          registryUrl: Sit commodi labore vel voluptatum inventore.
+          repository: Fugit omnis quo distinctio blanditiis explicabo.
+          tag: Neque dolorem ullam deserunt excepturi ut.
         inputs:
-        - kind: Dolor quas qui eaque ducimus aut.
-          name: Provident earum.
-          runnable: Illum quis consequuntur nisi veniam nam ipsam.
-        - kind: Dolor quas qui eaque ducimus aut.
-          name: Provident earum.
-          runnable: Illum quis consequuntur nisi veniam nam ipsam.
-        kind: Quam officia.
+        - kind: Et qui corrupti aliquid voluptatem architecto.
+          name: Necessitatibus cupiditate voluptatem amet neque.
+          parameter:
+            datatype: Molestias accusantium aspernatur totam animi.
+            default: Natus accusantium qui nostrum et officiis earum.
+            optional: false
+          runnable:
+            kind: Debitis distinctio magni quisquam aut temporibus vel.
+            labels:
+            - Facere dolore eius.
+            - Maxime et.
+            name: Laudantium fugit autem ipsa voluptas ut commodi.
+        - kind: Et qui corrupti aliquid voluptatem architecto.
+          name: Necessitatibus cupiditate voluptatem amet neque.
+          parameter:
+            datatype: Molestias accusantium aspernatur totam animi.
+            default: Natus accusantium qui nostrum et officiis earum.
+            optional: false
+          runnable:
+            kind: Debitis distinctio magni quisquam aut temporibus vel.
+            labels:
+            - Facere dolore eius.
+            - Maxime et.
+            name: Laudantium fugit autem ipsa voluptas ut commodi.
+        - kind: Et qui corrupti aliquid voluptatem architecto.
+          name: Necessitatibus cupiditate voluptatem amet neque.
+          parameter:
+            datatype: Molestias accusantium aspernatur totam animi.
+            default: Natus accusantium qui nostrum et officiis earum.
+            optional: false
+          runnable:
+            kind: Debitis distinctio magni quisquam aut temporibus vel.
+            labels:
+            - Facere dolore eius.
+            - Maxime et.
+            name: Laudantium fugit autem ipsa voluptas ut commodi.
+        - kind: Et qui corrupti aliquid voluptatem architecto.
+          name: Necessitatibus cupiditate voluptatem amet neque.
+          parameter:
+            datatype: Molestias accusantium aspernatur totam animi.
+            default: Natus accusantium qui nostrum et officiis earum.
+            optional: false
+          runnable:
+            kind: Debitis distinctio magni quisquam aut temporibus vel.
+            labels:
+            - Facere dolore eius.
+            - Maxime et.
+            name: Laudantium fugit autem ipsa voluptas ut commodi.
+        kind: Sed rerum totam.
         labels:
-        - Repellat ut delectus ratione sint facilis et.
-        - Velit asperiores velit rerum quidem.
-        - Animi voluptatum.
-        - Enim nulla quo odio.
-        name: Incidunt temporibus reiciendis maxime omnis ea consequatur.
+        - Temporibus voluptas consectetur sit a possimus velit.
+        - Et amet et aperiam dolorem.
+        - Tempore nisi aliquid.
+        name: Eum sit.
         outputs:
-        - kind: Tempora et ea dolorem deserunt quia exercitationem.
+        - kind: Aut possimus qui libero omnis.
           metadata:
-            datatype: Tenetur ut.
-            default: Et voluptatem occaecati.
-            optional: true
-          name: Voluptate nihil cum laboriosam optio officia.
+            datatype: Molestias accusantium aspernatur totam animi.
+            default: Natus accusantium qui nostrum et officiis earum.
+            optional: false
+          name: Nisi nisi quis quas.
           runnable:
-            kind: Ea iure quod iste labore ullam.
+            kind: Debitis distinctio magni quisquam aut temporibus vel.
             labels:
-            - Accusantium ut.
-            - Voluptatem vero voluptatem soluta.
-            - Id possimus ut molestiae vero deleniti qui.
-            - Voluptate qui iusto accusantium maxime.
-            name: Quia non qui.
-        - kind: Tempora et ea dolorem deserunt quia exercitationem.
+            - Facere dolore eius.
+            - Maxime et.
+            name: Laudantium fugit autem ipsa voluptas ut commodi.
+        - kind: Aut possimus qui libero omnis.
           metadata:
-            datatype: Tenetur ut.
-            default: Et voluptatem occaecati.
-            optional: true
-          name: Voluptate nihil cum laboriosam optio officia.
+            datatype: Molestias accusantium aspernatur totam animi.
+            default: Natus accusantium qui nostrum et officiis earum.
+            optional: false
+          name: Nisi nisi quis quas.
           runnable:
-            kind: Ea iure quod iste labore ullam.
+            kind: Debitis distinctio magni quisquam aut temporibus vel.
             labels:
-            - Accusantium ut.
-            - Voluptatem vero voluptatem soluta.
-            - Id possimus ut molestiae vero deleniti qui.
-            - Voluptate qui iusto accusantium maxime.
-            name: Quia non qui.
-        - kind: Tempora et ea dolorem deserunt quia exercitationem.
+            - Facere dolore eius.
+            - Maxime et.
+            name: Laudantium fugit autem ipsa voluptas ut commodi.
+        - kind: Aut possimus qui libero omnis.
           metadata:
-            datatype: Tenetur ut.
-            default: Et voluptatem occaecati.
-            optional: true
-          name: Voluptate nihil cum laboriosam optio officia.
+            datatype: Molestias accusantium aspernatur totam animi.
+            default: Natus accusantium qui nostrum et officiis earum.
+            optional: false
+          name: Nisi nisi quis quas.
           runnable:
-            kind: Ea iure quod iste labore ullam.
+            kind: Debitis distinctio magni quisquam aut temporibus vel.
             labels:
-            - Accusantium ut.
-            - Voluptatem vero voluptatem soluta.
-            - Id possimus ut molestiae vero deleniti qui.
-            - Voluptate qui iusto accusantium maxime.
-            name: Quia non qui.
-        - kind: Tempora et ea dolorem deserunt quia exercitationem.
+            - Facere dolore eius.
+            - Maxime et.
+            name: Laudantium fugit autem ipsa voluptas ut commodi.
+        - kind: Aut possimus qui libero omnis.
           metadata:
-            datatype: Tenetur ut.
-            default: Et voluptatem occaecati.
-            optional: true
-          name: Voluptate nihil cum laboriosam optio officia.
+            datatype: Molestias accusantium aspernatur totam animi.
+            default: Natus accusantium qui nostrum et officiis earum.
+            optional: false
+          name: Nisi nisi quis quas.
           runnable:
-            kind: Ea iure quod iste labore ullam.
+            kind: Debitis distinctio magni quisquam aut temporibus vel.
             labels:
-            - Accusantium ut.
-            - Voluptatem vero voluptatem soluta.
-            - Id possimus ut molestiae vero deleniti qui.
-            - Voluptate qui iusto accusantium maxime.
-            name: Quia non qui.
+            - Facere dolore eius.
+            - Maxime et.
+            name: Laudantium fugit autem ipsa voluptas ut commodi.
       required:
       - name
       - kind
@@ -864,91 +1288,101 @@ components:
           type: string
           description: The URL for the external registry where the image is stored
             (empty for internal images)
-          example: Nulla magni ea eaque fuga.
+          example: Totam ipsum illo neque dolore aut.
         repository:
           type: string
           description: The image repository
-          example: Error error.
+          example: Ea sed aut eveniet molestiae dicta.
         tag:
           type: string
           description: The image tag
-          example: Non quam est dolorem et.
+          example: Cum qui nobis optio ipsum at consequatur.
       example:
-        registryUrl: Illum ratione ab possimus ut.
-        repository: Voluptatem sit.
-        tag: Modi aut tempore odio enim qui aut.
+        registryUrl: Quis sint sit qui aut eum.
+        repository: Porro ut doloribus dicta.
+        tag: Sit quibusdam excepturi numquam rem ullam.
     RunnableInput:
       type: object
       properties:
         kind:
           type: string
           description: Kind of input (e.g. runnable, dataset, model, parameter, etc.)
-          example: Libero accusantium veritatis et animi consequuntur.
+          example: Labore officiis non temporibus mollitia.
         name:
           type: string
           description: Input name
-          example: Aliquid cumque quaerat dolorem.
+          example: Delectus ipsam corrupti dolores eum aut.
+        parameter:
+          $ref: '#/components/schemas/InputParameter'
         runnable:
-          type: string
-          example: Vel a enim officia harum.
+          $ref: '#/components/schemas/RunnableRef'
       example:
-        kind: Nisi dolor modi aliquid.
-        name: Id ullam quibusdam.
-        runnable: Et exercitationem eum delectus ad.
+        kind: Sed et fugiat vel officiis.
+        name: Totam illo.
+        parameter:
+          datatype: Molestias accusantium aspernatur totam animi.
+          default: Natus accusantium qui nostrum et officiis earum.
+          optional: false
+        runnable:
+          kind: Debitis distinctio magni quisquam aut temporibus vel.
+          labels:
+          - Facere dolore eius.
+          - Maxime et.
+          name: Laudantium fugit autem ipsa voluptas ut commodi.
     RunnableOutput:
       type: object
       properties:
         kind:
           type: string
           description: Kind of output (e.g. runnable, dataset, model, metatada, etc.)
-          example: Incidunt rerum architecto et unde iusto.
+          example: Dolores voluptatem dolores.
         metadata:
           $ref: '#/components/schemas/InputParameter'
         name:
           type: string
           description: Output name
-          example: Ea voluptatem odit officia soluta nam dolores.
+          example: Optio totam sint quaerat ipsam incidunt et.
         runnable:
           $ref: '#/components/schemas/RunnableRef'
       example:
-        kind: Distinctio qui sed.
+        kind: Doloremque eaque.
         metadata:
-          datatype: Tenetur ut.
-          default: Et voluptatem occaecati.
-          optional: true
-        name: Qui sint ut et qui.
+          datatype: Molestias accusantium aspernatur totam animi.
+          default: Natus accusantium qui nostrum et officiis earum.
+          optional: false
+        name: Labore saepe quia ea vitae aut.
         runnable:
-          kind: Ea iure quod iste labore ullam.
+          kind: Debitis distinctio magni quisquam aut temporibus vel.
           labels:
-          - Accusantium ut.
-          - Voluptatem vero voluptatem soluta.
-          - Id possimus ut molestiae vero deleniti qui.
-          - Voluptate qui iusto accusantium maxime.
-          name: Quia non qui.
+          - Facere dolore eius.
+          - Maxime et.
+          name: Laudantium fugit autem ipsa voluptas ut commodi.
     RunnableRef:
       type: object
       properties:
         kind:
           type: string
           description: Runnable kind
-          example: Non deserunt aut.
+          example: Aut temporibus.
         labels:
           type: array
           items:
             type: string
-            example: Porro et enim provident.
+            example: Qui dolor asperiores nobis sapiente.
           description: Runnable labels
           example:
-          - Aut reprehenderit aut.
-          - Corrupti sint vitae quia debitis ex incidunt.
+          - Ipsam saepe.
+          - Delectus et aut.
+          - Iure nobis et.
         name:
           type: string
           description: Runnable name
-          example: Impedit at modi in modi.
+          example: Et ea esse sint eveniet fuga.
       example:
-        kind: Unde laboriosam expedita aut.
+        kind: Non quis expedita quo.
         labels:
-        - Vitae magnam dolor itaque eligendi.
-        - Voluptatem consequatur qui distinctio non.
-        - Debitis non quos ut recusandae.
-        name: Aut fuga velit minus esse.
+        - Dolor sit rerum id.
+        - Velit qui expedita sapiente consequatur laudantium velit.
+        - Quisquam cumque dolores numquam.
+        - Debitis sint deserunt quia.
+        name: Ut nemo ea culpa.
