@@ -14,7 +14,7 @@ Code structure:
 
 How to build and run:
 * install build prerequisites:
-  * `go get github.com/go-swagger/go-swagger`
+  * `go get github.com/go-swagger/go-swagger/cmd/swagger`
 * run `make` to generate server and client code and build the `bin/fuseml_core` binary
 * run the binary (NOTE: use the `--help` flag to get the command line options that you can supply. It's recommended to configure at least the `--port`, otherwise you get a random HTTP port value)
 

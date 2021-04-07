@@ -5,6 +5,9 @@ GO_GCFLAGS=
 
 all: fuseml_core fuseml_client
 
+deps:
+	go get github.com/go-swagger/go-swagger/cmd/swagger
+
 fuseml_core: gen_server lint
 	go build ${GO_GCFLAGS} -o bin/fuseml_core ${GO_LDFLAGS} ./cmd/fuseml_core
 
