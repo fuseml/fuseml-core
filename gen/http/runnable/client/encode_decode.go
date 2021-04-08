@@ -43,8 +43,8 @@ func EncodeListRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.R
 			return goahttp.ErrInvalidType("runnable", "list", "*runnable.ListPayload", v)
 		}
 		values := req.URL.Query()
-		if p.ID != nil {
-			values.Add("id", *p.ID)
+		if p.Kind != nil {
+			values.Add("kind", *p.Kind)
 		}
 		req.URL.RawQuery = values.Encode()
 		return nil

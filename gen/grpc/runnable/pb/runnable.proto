@@ -22,8 +22,8 @@ service Runnable {
 }
 
 message ListRequest {
-	// The runnable's id
-	string id = 1;
+	// The kind of runnables to list
+	string kind = 1;
 }
 
 message ListResponse {

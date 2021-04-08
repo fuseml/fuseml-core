@@ -55,15 +55,15 @@ paths:
       description: Retrieve information about runnables registered in FuseML.
       operationId: runnable#list
       parameters:
-      - name: id
+      - name: kind
         in: query
-        description: ID of a registered runnable
+        description: Kind of a registered runnables
         allowEmptyValue: true
         schema:
           type: string
-          description: ID of a registered runnable
-          example: "123"
-        example: "123"
+          description: Kind of a registered runnables
+          example: builder
+        example: builder
       responses:
         "200":
           description: OK response.

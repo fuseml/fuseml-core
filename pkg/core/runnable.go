@@ -24,7 +24,12 @@ func NewRunnable(logger *log.Logger) runnable.Service {
 // Retrieve information about runnables registered in FuseML.
 func (s *runnablesrvc) List(ctx context.Context, p *runnable.ListPayload) (res []*runnable.Runnable, err error) {
 	s.logger.Print("runnable.list")
-	return store.GetAllRunnables(), nil
+	kind := "all"
+	if p.Kind != nil {
+		kind = *p.Kind
+	}
+
+	return store.GetAllRunnables(kind), nil
 }
 
 // Register a runnable with the FuseML runnable store.

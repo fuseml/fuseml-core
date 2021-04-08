@@ -29,7 +29,7 @@ func UsageCommands() string {
 
 // UsageExamples produces an example of a valid invocation of the CLI tool.
 func UsageExamples() string {
-	return os.Args[0] + ` runnable list --id "123"` + "\n" +
+	return os.Args[0] + ` runnable list --kind "builder"` + "\n" +
 		""
 }
 
@@ -45,8 +45,8 @@ func ParseEndpoint(
 	var (
 		runnableFlags = flag.NewFlagSet("runnable", flag.ContinueOnError)
 
-		runnableListFlags  = flag.NewFlagSet("list", flag.ExitOnError)
-		runnableListIDFlag = runnableListFlags.String("id", "", "")
+		runnableListFlags    = flag.NewFlagSet("list", flag.ExitOnError)
+		runnableListKindFlag = runnableListFlags.String("kind", "", "")
 
 		runnableRegisterFlags    = flag.NewFlagSet("register", flag.ExitOnError)
 		runnableRegisterBodyFlag = runnableRegisterFlags.String("body", "REQUIRED", "")
@@ -129,7 +129,7 @@ func ParseEndpoint(
 			switch epn {
 			case "list":
 				endpoint = c.List()
-				data, err = runnablec.BuildListPayload(*runnableListIDFlag)
+				data, err = runnablec.BuildListPayload(*runnableListKindFlag)
 			case "register":
 				endpoint = c.Register()
 				data, err = runnablec.BuildRegisterPayload(*runnableRegisterBodyFlag)
@@ -162,13 +162,13 @@ Additional help:
 `, os.Args[0], os.Args[0])
 }
 func runnableListUsage() {
-	fmt.Fprintf(os.Stderr, `%s [flags] runnable list -id STRING
+	fmt.Fprintf(os.Stderr, `%s [flags] runnable list -kind STRING
 
 Retrieve information about runnables registered in FuseML.
-    -id STRING: 
+    -kind STRING: 
 
 Example:
-    `+os.Args[0]+` runnable list --id "123"
+    `+os.Args[0]+` runnable list --kind "builder"
 `, os.Args[0])
 }
 

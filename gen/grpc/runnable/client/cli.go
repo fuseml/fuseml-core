@@ -24,13 +24,13 @@ func BuildListPayload(runnableListMessage string) (*runnable.ListPayload, error)
 		if runnableListMessage != "" {
 			err = json.Unmarshal([]byte(runnableListMessage), &message)
 			if err != nil {
-				return nil, fmt.Errorf("invalid JSON for message, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"id\": \"Id reprehenderit aut.\"\n   }'")
+				return nil, fmt.Errorf("invalid JSON for message, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"kind\": \"Id reprehenderit aut.\"\n   }'")
 			}
 		}
 	}
 	v := &runnable.ListPayload{}
-	if message.Id != "" {
-		v.ID = &message.Id
+	if message.Kind != "" {
+		v.Kind = &message.Kind
 	}
 
 	return v, nil

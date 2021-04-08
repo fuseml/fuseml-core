@@ -35,8 +35,8 @@ var MethodNames = [3]string{"list", "register", "get"}
 
 // ListPayload is the payload type of the runnable service list method.
 type ListPayload struct {
-	// The runnable's id
-	ID *string
+	// The kind of runnables to list
+	Kind *string
 }
 
 // Runnable descriptor

@@ -17,15 +17,15 @@ import (
 
 // BuildListPayload builds the payload for the runnable list endpoint from CLI
 // flags.
-func BuildListPayload(runnableListID string) (*runnable.ListPayload, error) {
-	var id *string
+func BuildListPayload(runnableListKind string) (*runnable.ListPayload, error) {
+	var kind *string
 	{
-		if runnableListID != "" {
-			id = &runnableListID
+		if runnableListKind != "" {
+			kind = &runnableListKind
 		}
 	}
 	v := &runnable.ListPayload{}
-	v.ID = id
+	v.Kind = kind
 
 	return v, nil
 }

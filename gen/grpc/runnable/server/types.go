@@ -17,8 +17,8 @@ import (
 // service from the gRPC request type.
 func NewListPayload(message *runnablepb.ListRequest) *runnable.ListPayload {
 	v := &runnable.ListPayload{}
-	if message.Id != "" {
-		v.ID = &message.Id
+	if message.Kind != "" {
+		v.Kind = &message.Kind
 	}
 	return v
 }

@@ -17,8 +17,8 @@ import (
 // endpoint of the "runnable" service.
 func NewListRequest(payload *runnable.ListPayload) *runnablepb.ListRequest {
 	message := &runnablepb.ListRequest{}
-	if payload.ID != nil {
-		message.Id = *payload.ID
+	if payload.Kind != nil {
+		message.Kind = *payload.Kind
 	}
 	return message
 }
