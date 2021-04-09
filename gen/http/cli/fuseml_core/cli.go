@@ -180,115 +180,138 @@ Register a runnable with the FuseML runnable store.
 
 Example:
     `+os.Args[0]+` runnable register --body '{
-      "created": "2014-10-25T06:06:51Z",
-      "id": "FF1D889F-0741-6290-783B-66E606310D86",
+      "created": "2021-04-09T06:17:25Z",
+      "id": "288BFD74-D973-18B5-FAA5-29ADF4569AC7",
       "image": {
-         "registryUrl": "Quidem hic sapiente quasi quia explicabo.",
-         "repository": "Et esse.",
-         "tag": "Consectetur ex doloribus qui."
+         "registryUrl": "myregistry.io",
+         "repository": "example/builder",
+         "tag": "1.0"
       },
       "inputs": [
          {
-            "kind": "Minus aut.",
-            "name": "Incidunt vitae illum eveniet.",
+            "kind": "parameter",
+            "name": "Input1",
             "parameter": {
-               "datatype": "Debitis ut provident voluptatibus sit laudantium.",
-               "default": "Rem eum.",
+               "datatype": "file",
+               "default": "mydata.csv",
                "optional": true
             },
             "runnable": {
-               "kind": "Et mollitia iste libero sapiente sint et.",
+               "kind": "builder",
                "labels": [
-                  "Dolor nulla aut voluptatibus qui nihil.",
-                  "Placeat ipsum aut.",
-                  "A enim tempora sapiente debitis sint ut.",
-                  "Eligendi porro."
+                  "label1",
+                  "label2"
                ],
-               "name": "Enim dolorum."
+               "name": "BuilderRun1"
             }
          },
          {
-            "kind": "Minus aut.",
-            "name": "Incidunt vitae illum eveniet.",
+            "kind": "parameter",
+            "name": "Input1",
             "parameter": {
-               "datatype": "Debitis ut provident voluptatibus sit laudantium.",
-               "default": "Rem eum.",
+               "datatype": "file",
+               "default": "mydata.csv",
                "optional": true
             },
             "runnable": {
-               "kind": "Et mollitia iste libero sapiente sint et.",
+               "kind": "builder",
                "labels": [
-                  "Dolor nulla aut voluptatibus qui nihil.",
-                  "Placeat ipsum aut.",
-                  "A enim tempora sapiente debitis sint ut.",
-                  "Eligendi porro."
+                  "label1",
+                  "label2"
                ],
-               "name": "Enim dolorum."
+               "name": "BuilderRun1"
+            }
+         },
+         {
+            "kind": "parameter",
+            "name": "Input1",
+            "parameter": {
+               "datatype": "file",
+               "default": "mydata.csv",
+               "optional": true
+            },
+            "runnable": {
+               "kind": "builder",
+               "labels": [
+                  "label1",
+                  "label2"
+               ],
+               "name": "BuilderRun1"
             }
          }
       ],
-      "kind": "Aut tempora.",
+      "kind": "trainer",
       "labels": [
-         "Atque non in velit sint.",
-         "Laborum natus."
+         "trainer"
       ],
-      "name": "Accusamus in iure possimus sed quod.",
+      "name": "MyTrainer",
       "outputs": [
          {
-            "kind": "Et similique suscipit laborum porro praesentium.",
+            "kind": "model",
             "metadata": {
-               "datatype": "Debitis ut provident voluptatibus sit laudantium.",
-               "default": "Rem eum.",
+               "datatype": "file",
+               "default": "mydata.csv",
                "optional": true
             },
-            "name": "Atque blanditiis libero minima.",
+            "name": "Output1",
             "runnable": {
-               "kind": "Et mollitia iste libero sapiente sint et.",
+               "kind": "builder",
                "labels": [
-                  "Dolor nulla aut voluptatibus qui nihil.",
-                  "Placeat ipsum aut.",
-                  "A enim tempora sapiente debitis sint ut.",
-                  "Eligendi porro."
+                  "label1",
+                  "label2"
                ],
-               "name": "Enim dolorum."
+               "name": "BuilderRun1"
             }
          },
          {
-            "kind": "Et similique suscipit laborum porro praesentium.",
+            "kind": "model",
             "metadata": {
-               "datatype": "Debitis ut provident voluptatibus sit laudantium.",
-               "default": "Rem eum.",
+               "datatype": "file",
+               "default": "mydata.csv",
                "optional": true
             },
-            "name": "Atque blanditiis libero minima.",
+            "name": "Output1",
             "runnable": {
-               "kind": "Et mollitia iste libero sapiente sint et.",
+               "kind": "builder",
                "labels": [
-                  "Dolor nulla aut voluptatibus qui nihil.",
-                  "Placeat ipsum aut.",
-                  "A enim tempora sapiente debitis sint ut.",
-                  "Eligendi porro."
+                  "label1",
+                  "label2"
                ],
-               "name": "Enim dolorum."
+               "name": "BuilderRun1"
             }
          },
          {
-            "kind": "Et similique suscipit laborum porro praesentium.",
+            "kind": "model",
             "metadata": {
-               "datatype": "Debitis ut provident voluptatibus sit laudantium.",
-               "default": "Rem eum.",
+               "datatype": "file",
+               "default": "mydata.csv",
                "optional": true
             },
-            "name": "Atque blanditiis libero minima.",
+            "name": "Output1",
             "runnable": {
-               "kind": "Et mollitia iste libero sapiente sint et.",
+               "kind": "builder",
                "labels": [
-                  "Dolor nulla aut voluptatibus qui nihil.",
-                  "Placeat ipsum aut.",
-                  "A enim tempora sapiente debitis sint ut.",
-                  "Eligendi porro."
+                  "label1",
+                  "label2"
                ],
-               "name": "Enim dolorum."
+               "name": "BuilderRun1"
+            }
+         },
+         {
+            "kind": "model",
+            "metadata": {
+               "datatype": "file",
+               "default": "mydata.csv",
+               "optional": true
+            },
+            "name": "Output1",
+            "runnable": {
+               "kind": "builder",
+               "labels": [
+                  "label1",
+                  "label2"
+               ],
+               "name": "BuilderRun1"
             }
          }
       ]
@@ -303,6 +326,6 @@ Retrieve an Runnable from FuseML.
     -runnable-name-or-id STRING: Runnable name or id
 
 Example:
-    `+os.Args[0]+` runnable get --runnable-name-or-id "Aut omnis similique eum."
+    `+os.Args[0]+` runnable get --runnable-name-or-id "288BFD74-D973-18B5-FAA5-29ADF4569AC7"
 `, os.Args[0])
 }
