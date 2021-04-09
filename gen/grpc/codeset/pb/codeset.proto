@@ -1,0 +1,92 @@
+// Code generated with goa v3.3.1, DO NOT EDIT.
+//
+// codeset protocol buffer definition
+//
+// Command:
+// $ goa gen github.com/fuseml/fuseml-core/design
+
+syntax = "proto3";
+
+package codeset;
+
+option go_package = "/codesetpb";
+
+// The codeset service performs operations on Codesets.
+service Codeset {
+	// Retrieve information about Codesets registered in FuseML.
+	rpc List (ListRequest) returns (ListResponse);
+	// Register a Codeset with the FuseML codeset store.
+	rpc Register (RegisterRequest) returns (RegisterResponse);
+	// Retrieve an Codeset from FuseML.
+	rpc Get (GetRequest) returns (GetResponse);
+}
+
+message ListRequest {
+	// List only Codesets that belong to given project
+	string project = 1;
+	// List only Codesets with matching label
+	string label = 2;
+}
+
+message ListResponse {
+	repeated Codeset2 field = 1;
+}
+
+message Codeset2 {
+	// The name of the Codeset
+	string name = 1;
+	// The project this Codeset belongs to
+	string project = 2;
+	// Path to the code that should be registered as Codeset
+	string location = 3;
+	// Codeset description
+	string description = 4;
+	// Additional Codeset label that helps with identifying the type
+	string label = 5;
+}
+
+message RegisterRequest {
+	// The name of the Codeset
+	string name = 1;
+	// The project this Codeset belongs to
+	string project = 2;
+	// Path to the code that should be registered as Codeset
+	string location = 3;
+	// Codeset description
+	string description = 4;
+	// Additional Codeset label that helps with identifying the type
+	string label = 5;
+}
+
+message RegisterResponse {
+	// The name of the Codeset
+	string name = 1;
+	// The project this Codeset belongs to
+	string project = 2;
+	// Path to the code that should be registered as Codeset
+	string location = 3;
+	// Codeset description
+	string description = 4;
+	// Additional Codeset label that helps with identifying the type
+	string label = 5;
+}
+
+message GetRequest {
+	// Project name
+	string project = 1;
+	// Codeset name
+	string name = 2;
+}
+
+message GetResponse {
+	// The name of the Codeset
+	string name = 1;
+	// The project this Codeset belongs to
+	string project = 2;
+	// Path to the code that should be registered as Codeset
+	string location = 3;
+	// Codeset description
+	string description = 4;
+	// Additional Codeset label that helps with identifying the type
+	string label = 5;
+}
