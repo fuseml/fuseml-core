@@ -29,13 +29,13 @@ func (s *runnablesrvc) List(ctx context.Context, p *runnable.ListPayload) (res [
 		kind = *p.Kind
 	}
 
-	return store.GetAllRunnables(kind), nil
+	return runnableStore.GetAllRunnables(kind), nil
 }
 
-// Register a runnable with the FuseML runnable store.
+// Register a runnable with the FuseML runnable runnableStore.
 func (s *runnablesrvc) Register(ctx context.Context, p *runnable.Runnable) (res *runnable.Runnable, err error) {
 	s.logger.Print("runnable.register")
-	return store.AddRunnable(p)
+	return runnableStore.AddRunnable(p)
 }
 
 // Retrieve an Runnable from FuseML.
@@ -45,7 +45,7 @@ func (s *runnablesrvc) Get(ctx context.Context, p *runnable.GetPayload) (res *ru
 	if err != nil {
 		return nil, runnable.MakeBadRequest(err)
 	}
-	r := store.FindRunnable(id)
+	r := runnableStore.FindRunnable(id)
 	if r == nil {
 		return nil, runnable.MakeNotFound(errors.New("could not find a runnable with the specified ID"))
 	}
