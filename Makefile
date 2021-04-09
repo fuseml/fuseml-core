@@ -2,7 +2,7 @@
 GO_LDFLAGS:=-ldflags '-s -w'
 GO_GCFLAGS=
 
-all: gen build
+all: gen-core build
 
 build: tidy lint
 	go build ${GO_GCFLAGS} -o bin/fuseml_core ${GO_LDFLAGS} ./cmd/fuseml_core
@@ -11,7 +11,8 @@ build: tidy lint
 test:
 	ginkgo ./gen ./pkg
 
-gen: deps
+gen-core:
+	go mod download
 	go run goa.design/goa/v3/cmd/goa gen github.com/fuseml/fuseml-core/design
 
 example: gen
@@ -27,6 +28,7 @@ tidy:
 
 fmt:
 	go fmt ./...
+
 deps:
 	go get goa.design/goa/v3/cmd/goa@v3.3.1
 	go get goa.design/goa/v3/http/codegen/openapi/v2@v3.3.1

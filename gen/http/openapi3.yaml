@@ -75,595 +75,427 @@ paths:
                   $ref: '#/components/schemas/Runnable'
                 description: Return all registered runnables matching the query.
                 example:
-                - created: "2015-11-20T16:33:57Z"
-                  id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
+                - created: "2021-04-09T06:17:25Z"
+                  id: 3F59C655-AFF8-EAB8-FA17-44E154EF0557
                   image:
-                    registryUrl: Sit commodi labore vel voluptatum inventore.
-                    repository: Fugit omnis quo distinctio blanditiis explicabo.
-                    tag: Neque dolorem ullam deserunt excepturi ut.
+                    registryUrl: myregistry.io
+                    repository: example/builder
+                    tag: "1.0"
                   inputs:
-                  - kind: Et qui corrupti aliquid voluptatem architecto.
-                    name: Necessitatibus cupiditate voluptatem amet neque.
+                  - kind: parameter
+                    name: Input1
                     parameter:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
                     runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      kind: builder
                       labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  - kind: Et qui corrupti aliquid voluptatem architecto.
-                    name: Necessitatibus cupiditate voluptatem amet neque.
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  - kind: parameter
+                    name: Input1
                     parameter:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
                     runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      kind: builder
                       labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  - kind: Et qui corrupti aliquid voluptatem architecto.
-                    name: Necessitatibus cupiditate voluptatem amet neque.
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  - kind: parameter
+                    name: Input1
                     parameter:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
                     runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      kind: builder
                       labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  kind: Veritatis mollitia delectus quibusdam.
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  - kind: parameter
+                    name: Input1
+                    parameter:
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    runnable:
+                      kind: builder
+                      labels:
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  kind: trainer
                   labels:
-                  - Perferendis optio.
-                  - Voluptate mollitia enim commodi.
-                  - Tenetur ex sunt earum quis.
-                  name: Aut quia sapiente vitae numquam.
+                  - trainer
+                  name: MyTrainer
                   outputs:
-                  - kind: Aut possimus qui libero omnis.
+                  - kind: model
                     metadata:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
-                    name: Nisi nisi quis quas.
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    name: Output1
                     runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      kind: builder
                       labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  - kind: Aut possimus qui libero omnis.
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  - kind: model
                     metadata:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
-                    name: Nisi nisi quis quas.
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    name: Output1
                     runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      kind: builder
                       labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  - kind: Aut possimus qui libero omnis.
-                    metadata:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
-                    name: Nisi nisi quis quas.
-                    runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
-                      labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  - kind: Aut possimus qui libero omnis.
-                    metadata:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
-                    name: Nisi nisi quis quas.
-                    runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
-                      labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                - created: "2015-11-20T16:33:57Z"
-                  id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                - created: "2021-04-09T06:17:25Z"
+                  id: 3F59C655-AFF8-EAB8-FA17-44E154EF0557
                   image:
-                    registryUrl: Sit commodi labore vel voluptatum inventore.
-                    repository: Fugit omnis quo distinctio blanditiis explicabo.
-                    tag: Neque dolorem ullam deserunt excepturi ut.
+                    registryUrl: myregistry.io
+                    repository: example/builder
+                    tag: "1.0"
                   inputs:
-                  - kind: Et qui corrupti aliquid voluptatem architecto.
-                    name: Necessitatibus cupiditate voluptatem amet neque.
+                  - kind: parameter
+                    name: Input1
                     parameter:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
                     runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      kind: builder
                       labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  - kind: Et qui corrupti aliquid voluptatem architecto.
-                    name: Necessitatibus cupiditate voluptatem amet neque.
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  - kind: parameter
+                    name: Input1
                     parameter:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
                     runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      kind: builder
                       labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  - kind: Et qui corrupti aliquid voluptatem architecto.
-                    name: Necessitatibus cupiditate voluptatem amet neque.
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  - kind: parameter
+                    name: Input1
                     parameter:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
                     runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      kind: builder
                       labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  kind: Veritatis mollitia delectus quibusdam.
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  - kind: parameter
+                    name: Input1
+                    parameter:
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    runnable:
+                      kind: builder
+                      labels:
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  kind: trainer
                   labels:
-                  - Perferendis optio.
-                  - Voluptate mollitia enim commodi.
-                  - Tenetur ex sunt earum quis.
-                  name: Aut quia sapiente vitae numquam.
+                  - trainer
+                  name: MyTrainer
                   outputs:
-                  - kind: Aut possimus qui libero omnis.
+                  - kind: model
                     metadata:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
-                    name: Nisi nisi quis quas.
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    name: Output1
                     runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      kind: builder
                       labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  - kind: Aut possimus qui libero omnis.
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  - kind: model
                     metadata:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
-                    name: Nisi nisi quis quas.
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    name: Output1
                     runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
+                      kind: builder
                       labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  - kind: Aut possimus qui libero omnis.
-                    metadata:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
-                    name: Nisi nisi quis quas.
-                    runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
-                      labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  - kind: Aut possimus qui libero omnis.
-                    metadata:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
-                    name: Nisi nisi quis quas.
-                    runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
-                      labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                - created: "2015-11-20T16:33:57Z"
-                  id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
-                  image:
-                    registryUrl: Sit commodi labore vel voluptatum inventore.
-                    repository: Fugit omnis quo distinctio blanditiis explicabo.
-                    tag: Neque dolorem ullam deserunt excepturi ut.
-                  inputs:
-                  - kind: Et qui corrupti aliquid voluptatem architecto.
-                    name: Necessitatibus cupiditate voluptatem amet neque.
-                    parameter:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
-                    runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
-                      labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  - kind: Et qui corrupti aliquid voluptatem architecto.
-                    name: Necessitatibus cupiditate voluptatem amet neque.
-                    parameter:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
-                    runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
-                      labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  - kind: Et qui corrupti aliquid voluptatem architecto.
-                    name: Necessitatibus cupiditate voluptatem amet neque.
-                    parameter:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
-                    runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
-                      labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  kind: Veritatis mollitia delectus quibusdam.
-                  labels:
-                  - Perferendis optio.
-                  - Voluptate mollitia enim commodi.
-                  - Tenetur ex sunt earum quis.
-                  name: Aut quia sapiente vitae numquam.
-                  outputs:
-                  - kind: Aut possimus qui libero omnis.
-                    metadata:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
-                    name: Nisi nisi quis quas.
-                    runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
-                      labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  - kind: Aut possimus qui libero omnis.
-                    metadata:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
-                    name: Nisi nisi quis quas.
-                    runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
-                      labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  - kind: Aut possimus qui libero omnis.
-                    metadata:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
-                    name: Nisi nisi quis quas.
-                    runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
-                      labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
-                  - kind: Aut possimus qui libero omnis.
-                    metadata:
-                      datatype: Molestias accusantium aspernatur totam animi.
-                      default: Natus accusantium qui nostrum et officiis earum.
-                      optional: false
-                    name: Nisi nisi quis quas.
-                    runnable:
-                      kind: Debitis distinctio magni quisquam aut temporibus vel.
-                      labels:
-                      - Facere dolore eius.
-                      - Maxime et.
-                      name: Laudantium fugit autem ipsa voluptas ut commodi.
+                      - label1
+                      - label2
+                      name: BuilderRun1
               example:
-              - created: "2015-11-20T16:33:57Z"
-                id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
+              - created: "2021-04-09T06:17:25Z"
+                id: 3F59C655-AFF8-EAB8-FA17-44E154EF0557
                 image:
-                  registryUrl: Sit commodi labore vel voluptatum inventore.
-                  repository: Fugit omnis quo distinctio blanditiis explicabo.
-                  tag: Neque dolorem ullam deserunt excepturi ut.
+                  registryUrl: myregistry.io
+                  repository: example/builder
+                  tag: "1.0"
                 inputs:
-                - kind: Et qui corrupti aliquid voluptatem architecto.
-                  name: Necessitatibus cupiditate voluptatem amet neque.
+                - kind: parameter
+                  name: Input1
                   parameter:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
                   runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    kind: builder
                     labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                - kind: Et qui corrupti aliquid voluptatem architecto.
-                  name: Necessitatibus cupiditate voluptatem amet neque.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: parameter
+                  name: Input1
                   parameter:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
                   runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    kind: builder
                     labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                - kind: Et qui corrupti aliquid voluptatem architecto.
-                  name: Necessitatibus cupiditate voluptatem amet neque.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: parameter
+                  name: Input1
                   parameter:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
                   runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    kind: builder
                     labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                kind: Veritatis mollitia delectus quibusdam.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: parameter
+                  name: Input1
+                  parameter:
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  runnable:
+                    kind: builder
+                    labels:
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                kind: trainer
                 labels:
-                - Perferendis optio.
-                - Voluptate mollitia enim commodi.
-                - Tenetur ex sunt earum quis.
-                name: Aut quia sapiente vitae numquam.
+                - trainer
+                name: MyTrainer
                 outputs:
-                - kind: Aut possimus qui libero omnis.
+                - kind: model
                   metadata:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
-                  name: Nisi nisi quis quas.
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  name: Output1
                   runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    kind: builder
                     labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                - kind: Aut possimus qui libero omnis.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: model
                   metadata:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
-                  name: Nisi nisi quis quas.
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  name: Output1
                   runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    kind: builder
                     labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                - kind: Aut possimus qui libero omnis.
-                  metadata:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
-                  name: Nisi nisi quis quas.
-                  runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
-                    labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                - kind: Aut possimus qui libero omnis.
-                  metadata:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
-                  name: Nisi nisi quis quas.
-                  runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
-                    labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-              - created: "2015-11-20T16:33:57Z"
-                id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
+                    - label1
+                    - label2
+                    name: BuilderRun1
+              - created: "2021-04-09T06:17:25Z"
+                id: 3F59C655-AFF8-EAB8-FA17-44E154EF0557
                 image:
-                  registryUrl: Sit commodi labore vel voluptatum inventore.
-                  repository: Fugit omnis quo distinctio blanditiis explicabo.
-                  tag: Neque dolorem ullam deserunt excepturi ut.
+                  registryUrl: myregistry.io
+                  repository: example/builder
+                  tag: "1.0"
                 inputs:
-                - kind: Et qui corrupti aliquid voluptatem architecto.
-                  name: Necessitatibus cupiditate voluptatem amet neque.
+                - kind: parameter
+                  name: Input1
                   parameter:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
                   runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    kind: builder
                     labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                - kind: Et qui corrupti aliquid voluptatem architecto.
-                  name: Necessitatibus cupiditate voluptatem amet neque.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: parameter
+                  name: Input1
                   parameter:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
                   runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    kind: builder
                     labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                - kind: Et qui corrupti aliquid voluptatem architecto.
-                  name: Necessitatibus cupiditate voluptatem amet neque.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: parameter
+                  name: Input1
                   parameter:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
                   runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    kind: builder
                     labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                kind: Veritatis mollitia delectus quibusdam.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: parameter
+                  name: Input1
+                  parameter:
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  runnable:
+                    kind: builder
+                    labels:
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                kind: trainer
                 labels:
-                - Perferendis optio.
-                - Voluptate mollitia enim commodi.
-                - Tenetur ex sunt earum quis.
-                name: Aut quia sapiente vitae numquam.
+                - trainer
+                name: MyTrainer
                 outputs:
-                - kind: Aut possimus qui libero omnis.
+                - kind: model
                   metadata:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
-                  name: Nisi nisi quis quas.
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  name: Output1
                   runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    kind: builder
                     labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                - kind: Aut possimus qui libero omnis.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: model
                   metadata:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
-                  name: Nisi nisi quis quas.
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  name: Output1
                   runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    kind: builder
                     labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                - kind: Aut possimus qui libero omnis.
-                  metadata:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
-                  name: Nisi nisi quis quas.
-                  runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
-                    labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                - kind: Aut possimus qui libero omnis.
-                  metadata:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
-                  name: Nisi nisi quis quas.
-                  runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
-                    labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-              - created: "2015-11-20T16:33:57Z"
-                id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
+                    - label1
+                    - label2
+                    name: BuilderRun1
+              - created: "2021-04-09T06:17:25Z"
+                id: 3F59C655-AFF8-EAB8-FA17-44E154EF0557
                 image:
-                  registryUrl: Sit commodi labore vel voluptatum inventore.
-                  repository: Fugit omnis quo distinctio blanditiis explicabo.
-                  tag: Neque dolorem ullam deserunt excepturi ut.
+                  registryUrl: myregistry.io
+                  repository: example/builder
+                  tag: "1.0"
                 inputs:
-                - kind: Et qui corrupti aliquid voluptatem architecto.
-                  name: Necessitatibus cupiditate voluptatem amet neque.
+                - kind: parameter
+                  name: Input1
                   parameter:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
                   runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    kind: builder
                     labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                - kind: Et qui corrupti aliquid voluptatem architecto.
-                  name: Necessitatibus cupiditate voluptatem amet neque.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: parameter
+                  name: Input1
                   parameter:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
                   runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    kind: builder
                     labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                - kind: Et qui corrupti aliquid voluptatem architecto.
-                  name: Necessitatibus cupiditate voluptatem amet neque.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: parameter
+                  name: Input1
                   parameter:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
                   runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    kind: builder
                     labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                kind: Veritatis mollitia delectus quibusdam.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: parameter
+                  name: Input1
+                  parameter:
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  runnable:
+                    kind: builder
+                    labels:
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                kind: trainer
                 labels:
-                - Perferendis optio.
-                - Voluptate mollitia enim commodi.
-                - Tenetur ex sunt earum quis.
-                name: Aut quia sapiente vitae numquam.
+                - trainer
+                name: MyTrainer
                 outputs:
-                - kind: Aut possimus qui libero omnis.
+                - kind: model
                   metadata:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
-                  name: Nisi nisi quis quas.
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  name: Output1
                   runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    kind: builder
                     labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                - kind: Aut possimus qui libero omnis.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: model
                   metadata:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
-                  name: Nisi nisi quis quas.
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  name: Output1
                   runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
+                    kind: builder
                     labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                - kind: Aut possimus qui libero omnis.
-                  metadata:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
-                  name: Nisi nisi quis quas.
-                  runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
-                    labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
-                - kind: Aut possimus qui libero omnis.
-                  metadata:
-                    datatype: Molestias accusantium aspernatur totam animi.
-                    default: Natus accusantium qui nostrum et officiis earum.
-                    optional: false
-                  name: Nisi nisi quis quas.
-                  runnable:
-                    kind: Debitis distinctio magni quisquam aut temporibus vel.
-                    labels:
-                    - Facere dolore eius.
-                    - Maxime et.
-                    name: Laudantium fugit autem ipsa voluptas ut commodi.
+                    - label1
+                    - label2
+                    name: BuilderRun1
         "404":
           description: Not Found response.
           content:
@@ -687,89 +519,102 @@ paths:
             schema:
               $ref: '#/components/schemas/Runnable'
             example:
-              created: "2014-10-25T06:06:51Z"
-              id: FF1D889F-0741-6290-783B-66E606310D86
+              created: "2021-04-09T06:17:25Z"
+              id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
               image:
-                registryUrl: Quidem hic sapiente quasi quia explicabo.
-                repository: Et esse.
-                tag: Consectetur ex doloribus qui.
+                registryUrl: myregistry.io
+                repository: example/builder
+                tag: "1.0"
               inputs:
-              - kind: Minus aut.
-                name: Incidunt vitae illum eveniet.
+              - kind: parameter
+                name: Input1
                 parameter:
-                  datatype: Debitis ut provident voluptatibus sit laudantium.
-                  default: Rem eum.
+                  datatype: file
+                  default: mydata.csv
                   optional: true
                 runnable:
-                  kind: Et mollitia iste libero sapiente sint et.
+                  kind: builder
                   labels:
-                  - Dolor nulla aut voluptatibus qui nihil.
-                  - Placeat ipsum aut.
-                  - A enim tempora sapiente debitis sint ut.
-                  - Eligendi porro.
-                  name: Enim dolorum.
-              - kind: Minus aut.
-                name: Incidunt vitae illum eveniet.
+                  - label1
+                  - label2
+                  name: BuilderRun1
+              - kind: parameter
+                name: Input1
                 parameter:
-                  datatype: Debitis ut provident voluptatibus sit laudantium.
-                  default: Rem eum.
+                  datatype: file
+                  default: mydata.csv
                   optional: true
                 runnable:
-                  kind: Et mollitia iste libero sapiente sint et.
+                  kind: builder
                   labels:
-                  - Dolor nulla aut voluptatibus qui nihil.
-                  - Placeat ipsum aut.
-                  - A enim tempora sapiente debitis sint ut.
-                  - Eligendi porro.
-                  name: Enim dolorum.
-              kind: Aut tempora.
+                  - label1
+                  - label2
+                  name: BuilderRun1
+              - kind: parameter
+                name: Input1
+                parameter:
+                  datatype: file
+                  default: mydata.csv
+                  optional: true
+                runnable:
+                  kind: builder
+                  labels:
+                  - label1
+                  - label2
+                  name: BuilderRun1
+              kind: trainer
               labels:
-              - Atque non in velit sint.
-              - Laborum natus.
-              name: Accusamus in iure possimus sed quod.
+              - trainer
+              name: MyTrainer
               outputs:
-              - kind: Et similique suscipit laborum porro praesentium.
+              - kind: model
                 metadata:
-                  datatype: Debitis ut provident voluptatibus sit laudantium.
-                  default: Rem eum.
+                  datatype: file
+                  default: mydata.csv
                   optional: true
-                name: Atque blanditiis libero minima.
+                name: Output1
                 runnable:
-                  kind: Et mollitia iste libero sapiente sint et.
+                  kind: builder
                   labels:
-                  - Dolor nulla aut voluptatibus qui nihil.
-                  - Placeat ipsum aut.
-                  - A enim tempora sapiente debitis sint ut.
-                  - Eligendi porro.
-                  name: Enim dolorum.
-              - kind: Et similique suscipit laborum porro praesentium.
+                  - label1
+                  - label2
+                  name: BuilderRun1
+              - kind: model
                 metadata:
-                  datatype: Debitis ut provident voluptatibus sit laudantium.
-                  default: Rem eum.
+                  datatype: file
+                  default: mydata.csv
                   optional: true
-                name: Atque blanditiis libero minima.
+                name: Output1
                 runnable:
-                  kind: Et mollitia iste libero sapiente sint et.
+                  kind: builder
                   labels:
-                  - Dolor nulla aut voluptatibus qui nihil.
-                  - Placeat ipsum aut.
-                  - A enim tempora sapiente debitis sint ut.
-                  - Eligendi porro.
-                  name: Enim dolorum.
-              - kind: Et similique suscipit laborum porro praesentium.
+                  - label1
+                  - label2
+                  name: BuilderRun1
+              - kind: model
                 metadata:
-                  datatype: Debitis ut provident voluptatibus sit laudantium.
-                  default: Rem eum.
+                  datatype: file
+                  default: mydata.csv
                   optional: true
-                name: Atque blanditiis libero minima.
+                name: Output1
                 runnable:
-                  kind: Et mollitia iste libero sapiente sint et.
+                  kind: builder
                   labels:
-                  - Dolor nulla aut voluptatibus qui nihil.
-                  - Placeat ipsum aut.
-                  - A enim tempora sapiente debitis sint ut.
-                  - Eligendi porro.
-                  name: Enim dolorum.
+                  - label1
+                  - label2
+                  name: BuilderRun1
+              - kind: model
+                metadata:
+                  datatype: file
+                  default: mydata.csv
+                  optional: true
+                name: Output1
+                runnable:
+                  kind: builder
+                  labels:
+                  - label1
+                  - label2
+                  name: BuilderRun1
       responses:
         "201":
           description: Created response.
@@ -778,81 +623,66 @@ paths:
               schema:
                 $ref: '#/components/schemas/Runnable'
               example:
-                created: "2004-11-07T03:02:45Z"
-                id: 74C53540-E974-ABFF-2565-6BF99F9017B2
+                created: "2021-04-09T06:17:25Z"
+                id: E330131A-4516-F39A-1E98-7CBF64E7E788
                 image:
-                  registryUrl: Aut quae quia quasi molestiae.
-                  repository: Laboriosam et error ut quam.
-                  tag: Nam sunt et voluptas ipsam neque id.
+                  registryUrl: myregistry.io
+                  repository: example/builder
+                  tag: "1.0"
                 inputs:
-                - kind: Sed ut qui ipsum adipisci.
-                  name: Tenetur omnis.
+                - kind: parameter
+                  name: Input1
                   parameter:
-                    datatype: Doloribus enim qui harum facere.
-                    default: Eligendi veritatis excepturi quisquam quo a.
+                    datatype: file
+                    default: mydata.csv
                     optional: true
                   runnable:
-                    kind: Enim nesciunt est.
+                    kind: builder
                     labels:
-                    - Vero corrupti.
-                    - Iure consequuntur.
-                    name: Laborum quos voluptatibus.
-                - kind: Sed ut qui ipsum adipisci.
-                  name: Tenetur omnis.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: parameter
+                  name: Input1
                   parameter:
-                    datatype: Doloribus enim qui harum facere.
-                    default: Eligendi veritatis excepturi quisquam quo a.
+                    datatype: file
+                    default: mydata.csv
                     optional: true
                   runnable:
-                    kind: Enim nesciunt est.
+                    kind: builder
                     labels:
-                    - Vero corrupti.
-                    - Iure consequuntur.
-                    name: Laborum quos voluptatibus.
-                kind: Animi atque recusandae incidunt quam nobis corporis.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                kind: trainer
                 labels:
-                - Recusandae quis libero.
-                - Odit quia.
-                - Ipsa sed reiciendis consequuntur sit dolorum et.
-                - Voluptas quis.
-                name: Odio nesciunt.
+                - trainer
+                name: MyTrainer
                 outputs:
-                - kind: Ut eveniet dolor quos ducimus officiis.
+                - kind: model
                   metadata:
-                    datatype: Doloribus enim qui harum facere.
-                    default: Eligendi veritatis excepturi quisquam quo a.
+                    datatype: file
+                    default: mydata.csv
                     optional: true
-                  name: Ipsa officiis necessitatibus.
+                  name: Output1
                   runnable:
-                    kind: Enim nesciunt est.
+                    kind: builder
                     labels:
-                    - Vero corrupti.
-                    - Iure consequuntur.
-                    name: Laborum quos voluptatibus.
-                - kind: Ut eveniet dolor quos ducimus officiis.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: model
                   metadata:
-                    datatype: Doloribus enim qui harum facere.
-                    default: Eligendi veritatis excepturi quisquam quo a.
+                    datatype: file
+                    default: mydata.csv
                     optional: true
-                  name: Ipsa officiis necessitatibus.
+                  name: Output1
                   runnable:
-                    kind: Enim nesciunt est.
+                    kind: builder
                     labels:
-                    - Vero corrupti.
-                    - Iure consequuntur.
-                    name: Laborum quos voluptatibus.
-                - kind: Ut eveniet dolor quos ducimus officiis.
-                  metadata:
-                    datatype: Doloribus enim qui harum facere.
-                    default: Eligendi veritatis excepturi quisquam quo a.
-                    optional: true
-                  name: Ipsa officiis necessitatibus.
-                  runnable:
-                    kind: Enim nesciunt est.
-                    labels:
-                    - Vero corrupti.
-                    - Iure consequuntur.
-                    name: Laborum quos voluptatibus.
+                    - label1
+                    - label2
+                    name: BuilderRun1
         "400":
           description: Bad Request response.
           content:
@@ -878,8 +708,8 @@ paths:
         schema:
           type: string
           description: Runnable name or id
-          example: Quod totam.
-        example: Inventore soluta perferendis nam beatae vel.
+          example: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
+        example: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
       responses:
         "200":
           description: OK response.
@@ -888,92 +718,114 @@ paths:
               schema:
                 $ref: '#/components/schemas/Runnable'
               example:
-                created: "1971-11-29T08:05:06Z"
-                id: 2C91774A-6D4A-67B6-DC43-6AED849DACC1
+                created: "2021-04-09T06:17:25Z"
+                id: FF1D889F-0741-6290-783B-66E606310D86
                 image:
-                  registryUrl: Aut quae quia quasi molestiae.
-                  repository: Laboriosam et error ut quam.
-                  tag: Nam sunt et voluptas ipsam neque id.
+                  registryUrl: myregistry.io
+                  repository: example/builder
+                  tag: "1.0"
                 inputs:
-                - kind: Sed ut qui ipsum adipisci.
-                  name: Tenetur omnis.
+                - kind: parameter
+                  name: Input1
                   parameter:
-                    datatype: Doloribus enim qui harum facere.
-                    default: Eligendi veritatis excepturi quisquam quo a.
+                    datatype: file
+                    default: mydata.csv
                     optional: true
                   runnable:
-                    kind: Enim nesciunt est.
+                    kind: builder
                     labels:
-                    - Vero corrupti.
-                    - Iure consequuntur.
-                    name: Laborum quos voluptatibus.
-                - kind: Sed ut qui ipsum adipisci.
-                  name: Tenetur omnis.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: parameter
+                  name: Input1
                   parameter:
-                    datatype: Doloribus enim qui harum facere.
-                    default: Eligendi veritatis excepturi quisquam quo a.
+                    datatype: file
+                    default: mydata.csv
                     optional: true
                   runnable:
-                    kind: Enim nesciunt est.
+                    kind: builder
                     labels:
-                    - Vero corrupti.
-                    - Iure consequuntur.
-                    name: Laborum quos voluptatibus.
-                - kind: Sed ut qui ipsum adipisci.
-                  name: Tenetur omnis.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: parameter
+                  name: Input1
                   parameter:
-                    datatype: Doloribus enim qui harum facere.
-                    default: Eligendi veritatis excepturi quisquam quo a.
+                    datatype: file
+                    default: mydata.csv
                     optional: true
                   runnable:
-                    kind: Enim nesciunt est.
+                    kind: builder
                     labels:
-                    - Vero corrupti.
-                    - Iure consequuntur.
-                    name: Laborum quos voluptatibus.
-                - kind: Sed ut qui ipsum adipisci.
-                  name: Tenetur omnis.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: parameter
+                  name: Input1
                   parameter:
-                    datatype: Doloribus enim qui harum facere.
-                    default: Eligendi veritatis excepturi quisquam quo a.
+                    datatype: file
+                    default: mydata.csv
                     optional: true
                   runnable:
-                    kind: Enim nesciunt est.
+                    kind: builder
                     labels:
-                    - Vero corrupti.
-                    - Iure consequuntur.
-                    name: Laborum quos voluptatibus.
-                kind: Odio dolores beatae vel sit.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                kind: trainer
                 labels:
-                - Minus aut.
-                - Tenetur in.
-                - Neque eum non nam earum.
-                name: Voluptatum at dolorum esse.
+                - trainer
+                name: MyTrainer
                 outputs:
-                - kind: Ut eveniet dolor quos ducimus officiis.
+                - kind: model
                   metadata:
-                    datatype: Doloribus enim qui harum facere.
-                    default: Eligendi veritatis excepturi quisquam quo a.
+                    datatype: file
+                    default: mydata.csv
                     optional: true
-                  name: Ipsa officiis necessitatibus.
+                  name: Output1
                   runnable:
-                    kind: Enim nesciunt est.
+                    kind: builder
                     labels:
-                    - Vero corrupti.
-                    - Iure consequuntur.
-                    name: Laborum quos voluptatibus.
-                - kind: Ut eveniet dolor quos ducimus officiis.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: model
                   metadata:
-                    datatype: Doloribus enim qui harum facere.
-                    default: Eligendi veritatis excepturi quisquam quo a.
+                    datatype: file
+                    default: mydata.csv
                     optional: true
-                  name: Ipsa officiis necessitatibus.
+                  name: Output1
                   runnable:
-                    kind: Enim nesciunt est.
+                    kind: builder
                     labels:
-                    - Vero corrupti.
-                    - Iure consequuntur.
-                    name: Laborum quos voluptatibus.
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: model
+                  metadata:
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  name: Output1
+                  runnable:
+                    kind: builder
+                    labels:
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: model
+                  metadata:
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  name: Output1
+                  runnable:
+                    kind: builder
+                    labels:
+                    - label1
+                    - label2
+                    name: BuilderRun1
         "400":
           description: Bad Request response.
           content:
@@ -1002,7 +854,7 @@ components:
         fault:
           type: boolean
           description: Is the error a server-side fault?
-          example: true
+          example: false
         id:
           type: string
           description: ID is a unique identifier for this particular occurrence of
@@ -1043,18 +895,18 @@ components:
         datatype:
           type: string
           description: Parameter data type
-          example: Id voluptatibus.
+          example: file
         default:
           type: string
           description: Default value
-          example: Totam porro natus dolores asperiores facilis.
+          example: mydata.csv
         optional:
           type: boolean
           description: Optional parameter
-          example: false
+          example: true
       example:
-        datatype: Aut excepturi.
-        default: Nesciunt et voluptas harum architecto maiores.
+        datatype: file
+        default: mydata.csv
         optional: true
     Runnable:
       type: object
@@ -1062,12 +914,12 @@ components:
         created:
           type: string
           description: The runnable's creation time
-          example: "1981-05-26T07:56:01Z"
+          example: "2021-04-09T06:17:25Z"
           format: date-time
         id:
           type: string
           description: The ID of the runnable
-          example: E058AD50-5D7F-E9A8-E010-D33044724992
+          example: AC77D914-0A36-9917-2BA7-F519556A50B8
           format: uuid
         image:
           $ref: '#/components/schemas/RunnableImage'
@@ -1077,49 +929,58 @@ components:
             $ref: '#/components/schemas/RunnableInput'
           description: List of inputs (artifacts, values etc.) accepted by this runnable
           example:
-          - kind: Et qui corrupti aliquid voluptatem architecto.
-            name: Necessitatibus cupiditate voluptatem amet neque.
+          - kind: parameter
+            name: Input1
             parameter:
-              datatype: Molestias accusantium aspernatur totam animi.
-              default: Natus accusantium qui nostrum et officiis earum.
-              optional: false
+              datatype: file
+              default: mydata.csv
+              optional: true
             runnable:
-              kind: Debitis distinctio magni quisquam aut temporibus vel.
+              kind: builder
               labels:
-              - Facere dolore eius.
-              - Maxime et.
-              name: Laudantium fugit autem ipsa voluptas ut commodi.
-          - kind: Et qui corrupti aliquid voluptatem architecto.
-            name: Necessitatibus cupiditate voluptatem amet neque.
+              - label1
+              - label2
+              name: BuilderRun1
+          - kind: parameter
+            name: Input1
             parameter:
-              datatype: Molestias accusantium aspernatur totam animi.
-              default: Natus accusantium qui nostrum et officiis earum.
-              optional: false
+              datatype: file
+              default: mydata.csv
+              optional: true
             runnable:
-              kind: Debitis distinctio magni quisquam aut temporibus vel.
+              kind: builder
               labels:
-              - Facere dolore eius.
-              - Maxime et.
-              name: Laudantium fugit autem ipsa voluptas ut commodi.
+              - label1
+              - label2
+              name: BuilderRun1
+          - kind: parameter
+            name: Input1
+            parameter:
+              datatype: file
+              default: mydata.csv
+              optional: true
+            runnable:
+              kind: builder
+              labels:
+              - label1
+              - label2
+              name: BuilderRun1
         kind:
           type: string
           description: The kind of runnable (builder, trainer, predictor etc.)
-          example: Laboriosam non eaque et.
+          example: trainer
         labels:
           type: array
           items:
             type: string
-            example: Aut commodi doloribus est.
+            example: Voluptatum atque sunt adipisci maxime possimus.
           description: Labels associated with the runnable
           example:
-          - Corporis perferendis dolor.
-          - Eveniet qui possimus ipsa ipsam.
-          - Neque ducimus autem qui.
-          - Voluptates sint.
+          - trainer
         name:
           type: string
           description: The name of the runnable
-          example: Inventore quisquam laborum.
+          example: MyTrainer
         outputs:
           type: array
           items:
@@ -1127,153 +988,115 @@ components:
           description: List of outputs (artifacts, values etc.) generated by this
             runnable
           example:
-          - kind: Aut possimus qui libero omnis.
+          - kind: model
             metadata:
-              datatype: Molestias accusantium aspernatur totam animi.
-              default: Natus accusantium qui nostrum et officiis earum.
-              optional: false
-            name: Nisi nisi quis quas.
+              datatype: file
+              default: mydata.csv
+              optional: true
+            name: Output1
             runnable:
-              kind: Debitis distinctio magni quisquam aut temporibus vel.
+              kind: builder
               labels:
-              - Facere dolore eius.
-              - Maxime et.
-              name: Laudantium fugit autem ipsa voluptas ut commodi.
-          - kind: Aut possimus qui libero omnis.
+              - label1
+              - label2
+              name: BuilderRun1
+          - kind: model
             metadata:
-              datatype: Molestias accusantium aspernatur totam animi.
-              default: Natus accusantium qui nostrum et officiis earum.
-              optional: false
-            name: Nisi nisi quis quas.
+              datatype: file
+              default: mydata.csv
+              optional: true
+            name: Output1
             runnable:
-              kind: Debitis distinctio magni quisquam aut temporibus vel.
+              kind: builder
               labels:
-              - Facere dolore eius.
-              - Maxime et.
-              name: Laudantium fugit autem ipsa voluptas ut commodi.
-          - kind: Aut possimus qui libero omnis.
-            metadata:
-              datatype: Molestias accusantium aspernatur totam animi.
-              default: Natus accusantium qui nostrum et officiis earum.
-              optional: false
-            name: Nisi nisi quis quas.
-            runnable:
-              kind: Debitis distinctio magni quisquam aut temporibus vel.
-              labels:
-              - Facere dolore eius.
-              - Maxime et.
-              name: Laudantium fugit autem ipsa voluptas ut commodi.
+              - label1
+              - label2
+              name: BuilderRun1
       example:
-        created: "1979-12-21T20:07:04Z"
-        id: EA2D3703-2B9D-E7C0-35B9-DB753C364369
+        created: "2021-04-09T06:17:25Z"
+        id: A129B534-C1FC-F09D-BF29-3DA5781E0ECB
         image:
-          registryUrl: Sit commodi labore vel voluptatum inventore.
-          repository: Fugit omnis quo distinctio blanditiis explicabo.
-          tag: Neque dolorem ullam deserunt excepturi ut.
+          registryUrl: myregistry.io
+          repository: example/builder
+          tag: "1.0"
         inputs:
-        - kind: Et qui corrupti aliquid voluptatem architecto.
-          name: Necessitatibus cupiditate voluptatem amet neque.
+        - kind: parameter
+          name: Input1
           parameter:
-            datatype: Molestias accusantium aspernatur totam animi.
-            default: Natus accusantium qui nostrum et officiis earum.
-            optional: false
+            datatype: file
+            default: mydata.csv
+            optional: true
           runnable:
-            kind: Debitis distinctio magni quisquam aut temporibus vel.
+            kind: builder
             labels:
-            - Facere dolore eius.
-            - Maxime et.
-            name: Laudantium fugit autem ipsa voluptas ut commodi.
-        - kind: Et qui corrupti aliquid voluptatem architecto.
-          name: Necessitatibus cupiditate voluptatem amet neque.
+            - label1
+            - label2
+            name: BuilderRun1
+        - kind: parameter
+          name: Input1
           parameter:
-            datatype: Molestias accusantium aspernatur totam animi.
-            default: Natus accusantium qui nostrum et officiis earum.
-            optional: false
+            datatype: file
+            default: mydata.csv
+            optional: true
           runnable:
-            kind: Debitis distinctio magni quisquam aut temporibus vel.
+            kind: builder
             labels:
-            - Facere dolore eius.
-            - Maxime et.
-            name: Laudantium fugit autem ipsa voluptas ut commodi.
-        - kind: Et qui corrupti aliquid voluptatem architecto.
-          name: Necessitatibus cupiditate voluptatem amet neque.
-          parameter:
-            datatype: Molestias accusantium aspernatur totam animi.
-            default: Natus accusantium qui nostrum et officiis earum.
-            optional: false
-          runnable:
-            kind: Debitis distinctio magni quisquam aut temporibus vel.
-            labels:
-            - Facere dolore eius.
-            - Maxime et.
-            name: Laudantium fugit autem ipsa voluptas ut commodi.
-        - kind: Et qui corrupti aliquid voluptatem architecto.
-          name: Necessitatibus cupiditate voluptatem amet neque.
-          parameter:
-            datatype: Molestias accusantium aspernatur totam animi.
-            default: Natus accusantium qui nostrum et officiis earum.
-            optional: false
-          runnable:
-            kind: Debitis distinctio magni quisquam aut temporibus vel.
-            labels:
-            - Facere dolore eius.
-            - Maxime et.
-            name: Laudantium fugit autem ipsa voluptas ut commodi.
-        kind: Sed rerum totam.
+            - label1
+            - label2
+            name: BuilderRun1
+        kind: trainer
         labels:
-        - Temporibus voluptas consectetur sit a possimus velit.
-        - Et amet et aperiam dolorem.
-        - Tempore nisi aliquid.
-        name: Eum sit.
+        - trainer
+        name: MyTrainer
         outputs:
-        - kind: Aut possimus qui libero omnis.
+        - kind: model
           metadata:
-            datatype: Molestias accusantium aspernatur totam animi.
-            default: Natus accusantium qui nostrum et officiis earum.
-            optional: false
-          name: Nisi nisi quis quas.
+            datatype: file
+            default: mydata.csv
+            optional: true
+          name: Output1
           runnable:
-            kind: Debitis distinctio magni quisquam aut temporibus vel.
+            kind: builder
             labels:
-            - Facere dolore eius.
-            - Maxime et.
-            name: Laudantium fugit autem ipsa voluptas ut commodi.
-        - kind: Aut possimus qui libero omnis.
+            - label1
+            - label2
+            name: BuilderRun1
+        - kind: model
           metadata:
-            datatype: Molestias accusantium aspernatur totam animi.
-            default: Natus accusantium qui nostrum et officiis earum.
-            optional: false
-          name: Nisi nisi quis quas.
+            datatype: file
+            default: mydata.csv
+            optional: true
+          name: Output1
           runnable:
-            kind: Debitis distinctio magni quisquam aut temporibus vel.
+            kind: builder
             labels:
-            - Facere dolore eius.
-            - Maxime et.
-            name: Laudantium fugit autem ipsa voluptas ut commodi.
-        - kind: Aut possimus qui libero omnis.
+            - label1
+            - label2
+            name: BuilderRun1
+        - kind: model
           metadata:
-            datatype: Molestias accusantium aspernatur totam animi.
-            default: Natus accusantium qui nostrum et officiis earum.
-            optional: false
-          name: Nisi nisi quis quas.
+            datatype: file
+            default: mydata.csv
+            optional: true
+          name: Output1
           runnable:
-            kind: Debitis distinctio magni quisquam aut temporibus vel.
+            kind: builder
             labels:
-            - Facere dolore eius.
-            - Maxime et.
-            name: Laudantium fugit autem ipsa voluptas ut commodi.
-        - kind: Aut possimus qui libero omnis.
+            - label1
+            - label2
+            name: BuilderRun1
+        - kind: model
           metadata:
-            datatype: Molestias accusantium aspernatur totam animi.
-            default: Natus accusantium qui nostrum et officiis earum.
-            optional: false
-          name: Nisi nisi quis quas.
+            datatype: file
+            default: mydata.csv
+            optional: true
+          name: Output1
           runnable:
-            kind: Debitis distinctio magni quisquam aut temporibus vel.
+            kind: builder
             labels:
-            - Facere dolore eius.
-            - Maxime et.
-            name: Laudantium fugit autem ipsa voluptas ut commodi.
+            - label1
+            - label2
+            name: BuilderRun1
       required:
       - name
       - kind
@@ -1288,101 +1111,98 @@ components:
           type: string
           description: The URL for the external registry where the image is stored
             (empty for internal images)
-          example: Totam ipsum illo neque dolore aut.
+          example: myregistry.io
         repository:
           type: string
           description: The image repository
-          example: Ea sed aut eveniet molestiae dicta.
+          example: example/builder
         tag:
           type: string
           description: The image tag
-          example: Cum qui nobis optio ipsum at consequatur.
+          example: "1.0"
       example:
-        registryUrl: Quis sint sit qui aut eum.
-        repository: Porro ut doloribus dicta.
-        tag: Sit quibusdam excepturi numquam rem ullam.
+        registryUrl: myregistry.io
+        repository: example/builder
+        tag: "1.0"
     RunnableInput:
       type: object
       properties:
         kind:
           type: string
           description: Kind of input (e.g. runnable, dataset, model, parameter, etc.)
-          example: Labore officiis non temporibus mollitia.
+          example: parameter
         name:
           type: string
           description: Input name
-          example: Delectus ipsam corrupti dolores eum aut.
+          example: Input1
         parameter:
           $ref: '#/components/schemas/InputParameter'
         runnable:
           $ref: '#/components/schemas/RunnableRef'
       example:
-        kind: Sed et fugiat vel officiis.
-        name: Totam illo.
+        kind: parameter
+        name: Input1
         parameter:
-          datatype: Molestias accusantium aspernatur totam animi.
-          default: Natus accusantium qui nostrum et officiis earum.
-          optional: false
+          datatype: file
+          default: mydata.csv
+          optional: true
         runnable:
-          kind: Debitis distinctio magni quisquam aut temporibus vel.
+          kind: builder
           labels:
-          - Facere dolore eius.
-          - Maxime et.
-          name: Laudantium fugit autem ipsa voluptas ut commodi.
+          - label1
+          - label2
+          name: BuilderRun1
     RunnableOutput:
       type: object
       properties:
         kind:
           type: string
           description: Kind of output (e.g. runnable, dataset, model, metatada, etc.)
-          example: Dolores voluptatem dolores.
+          example: model
         metadata:
           $ref: '#/components/schemas/InputParameter'
         name:
           type: string
           description: Output name
-          example: Optio totam sint quaerat ipsam incidunt et.
+          example: Output1
         runnable:
           $ref: '#/components/schemas/RunnableRef'
       example:
-        kind: Doloremque eaque.
+        kind: model
         metadata:
-          datatype: Molestias accusantium aspernatur totam animi.
-          default: Natus accusantium qui nostrum et officiis earum.
-          optional: false
-        name: Labore saepe quia ea vitae aut.
+          datatype: file
+          default: mydata.csv
+          optional: true
+        name: Output1
         runnable:
-          kind: Debitis distinctio magni quisquam aut temporibus vel.
+          kind: builder
           labels:
-          - Facere dolore eius.
-          - Maxime et.
-          name: Laudantium fugit autem ipsa voluptas ut commodi.
+          - label1
+          - label2
+          name: BuilderRun1
     RunnableRef:
       type: object
       properties:
         kind:
           type: string
           description: Runnable kind
-          example: Aut temporibus.
+          example: builder
         labels:
           type: array
           items:
             type: string
-            example: Qui dolor asperiores nobis sapiente.
+            example: Provident quia qui assumenda magnam iusto praesentium.
           description: Runnable labels
           example:
-          - Ipsam saepe.
-          - Delectus et aut.
-          - Iure nobis et.
+          - label1
+          - label2
         name:
           type: string
           description: Runnable name
-          example: Et ea esse sint eveniet fuga.
+          example: BuilderRun1
       example:
-        kind: Non quis expedita quo.
+        kind: builder
         labels:
-        - Dolor sit rerum id.
-        - Velit qui expedita sapiente consequatur laudantium velit.
-        - Quisquam cumque dolores numquam.
-        - Debitis sint deserunt quia.
-        name: Ut nemo ea culpa.
+        - label1
+        - label2
+        name: BuilderRun1

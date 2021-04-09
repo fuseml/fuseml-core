@@ -29,7 +29,7 @@ func UsageCommands() string {
 // UsageExamples produces an example of a valid invocation of the CLI tool.
 func UsageExamples() string {
 	return os.Args[0] + ` runnable list --message '{
-      "kind": "Id reprehenderit aut."
+      "kind": "builder"
    }'` + "\n" +
 		""
 }
@@ -164,7 +164,7 @@ Retrieve information about runnables registered in FuseML.
 
 Example:
     `+os.Args[0]+` runnable list --message '{
-      "kind": "Id reprehenderit aut."
+      "kind": "builder"
    }'
 `, os.Args[0])
 }
@@ -177,107 +177,138 @@ Register a runnable with the FuseML runnable store.
 
 Example:
     `+os.Args[0]+` runnable register --message '{
-      "created": "1971-11-06T07:17:04Z",
-      "id": "5E3B665E-1239-9C12-9643-FFC1E6C04697",
+      "created": "2021-04-09T06:17:25Z",
+      "id": "77EB7E77-465C-FCC6-CEC6-11F6C8938D24",
       "image": {
-         "registryUrl": "Autem voluptatem qui molestiae debitis aliquam et.",
-         "repository": "Nihil ab similique.",
-         "tag": "Adipisci temporibus assumenda necessitatibus quos."
+         "registryUrl": "myregistry.io",
+         "repository": "example/builder",
+         "tag": "1.0"
       },
       "inputs": [
          {
-            "kind": "Earum corrupti.",
-            "name": "Odit possimus consequatur minus consequuntur exercitationem.",
+            "kind": "parameter",
+            "name": "Input1",
             "parameter": {
-               "datatype": "Sint dolor.",
-               "default": "Dolor pariatur et a ratione unde.",
+               "datatype": "file",
+               "default": "mydata.csv",
                "optional": true
             },
             "runnable": {
-               "kind": "Enim et error labore.",
+               "kind": "builder",
                "labels": [
-                  "Officiis ut.",
-                  "Dicta saepe officiis qui labore temporibus illo."
+                  "label1",
+                  "label2"
                ],
-               "name": "Nihil beatae cum consectetur corporis."
+               "name": "BuilderRun1"
             }
          },
          {
-            "kind": "Earum corrupti.",
-            "name": "Odit possimus consequatur minus consequuntur exercitationem.",
+            "kind": "parameter",
+            "name": "Input1",
             "parameter": {
-               "datatype": "Sint dolor.",
-               "default": "Dolor pariatur et a ratione unde.",
+               "datatype": "file",
+               "default": "mydata.csv",
                "optional": true
             },
             "runnable": {
-               "kind": "Enim et error labore.",
+               "kind": "builder",
                "labels": [
-                  "Officiis ut.",
-                  "Dicta saepe officiis qui labore temporibus illo."
+                  "label1",
+                  "label2"
                ],
-               "name": "Nihil beatae cum consectetur corporis."
+               "name": "BuilderRun1"
             }
          },
          {
-            "kind": "Earum corrupti.",
-            "name": "Odit possimus consequatur minus consequuntur exercitationem.",
+            "kind": "parameter",
+            "name": "Input1",
             "parameter": {
-               "datatype": "Sint dolor.",
-               "default": "Dolor pariatur et a ratione unde.",
+               "datatype": "file",
+               "default": "mydata.csv",
                "optional": true
             },
             "runnable": {
-               "kind": "Enim et error labore.",
+               "kind": "builder",
                "labels": [
-                  "Officiis ut.",
-                  "Dicta saepe officiis qui labore temporibus illo."
+                  "label1",
+                  "label2"
                ],
-               "name": "Nihil beatae cum consectetur corporis."
+               "name": "BuilderRun1"
             }
          }
       ],
-      "kind": "Quia corrupti nihil quidem ut.",
+      "kind": "trainer",
       "labels": [
-         "Error sint sit velit rerum rerum autem.",
-         "Voluptatem ipsum sed odit totam minima in.",
-         "Id molestiae possimus nostrum vero distinctio aut.",
-         "Accusamus totam ea."
+         "trainer"
       ],
-      "name": "Ab ex commodi illo exercitationem.",
+      "name": "MyTrainer",
       "outputs": [
          {
-            "kind": "Et ex beatae omnis.",
+            "kind": "model",
             "metadata": {
-               "datatype": "Sint dolor.",
-               "default": "Dolor pariatur et a ratione unde.",
+               "datatype": "file",
+               "default": "mydata.csv",
                "optional": true
             },
-            "name": "Omnis deleniti temporibus doloremque illum quia odio.",
+            "name": "Output1",
             "runnable": {
-               "kind": "Enim et error labore.",
+               "kind": "builder",
                "labels": [
-                  "Officiis ut.",
-                  "Dicta saepe officiis qui labore temporibus illo."
+                  "label1",
+                  "label2"
                ],
-               "name": "Nihil beatae cum consectetur corporis."
+               "name": "BuilderRun1"
             }
          },
          {
-            "kind": "Et ex beatae omnis.",
+            "kind": "model",
             "metadata": {
-               "datatype": "Sint dolor.",
-               "default": "Dolor pariatur et a ratione unde.",
+               "datatype": "file",
+               "default": "mydata.csv",
                "optional": true
             },
-            "name": "Omnis deleniti temporibus doloremque illum quia odio.",
+            "name": "Output1",
             "runnable": {
-               "kind": "Enim et error labore.",
+               "kind": "builder",
                "labels": [
-                  "Officiis ut.",
-                  "Dicta saepe officiis qui labore temporibus illo."
+                  "label1",
+                  "label2"
                ],
-               "name": "Nihil beatae cum consectetur corporis."
+               "name": "BuilderRun1"
+            }
+         },
+         {
+            "kind": "model",
+            "metadata": {
+               "datatype": "file",
+               "default": "mydata.csv",
+               "optional": true
+            },
+            "name": "Output1",
+            "runnable": {
+               "kind": "builder",
+               "labels": [
+                  "label1",
+                  "label2"
+               ],
+               "name": "BuilderRun1"
+            }
+         },
+         {
+            "kind": "model",
+            "metadata": {
+               "datatype": "file",
+               "default": "mydata.csv",
+               "optional": true
+            },
+            "name": "Output1",
+            "runnable": {
+               "kind": "builder",
+               "labels": [
+                  "label1",
+                  "label2"
+               ],
+               "name": "BuilderRun1"
             }
          }
       ]
@@ -293,7 +324,7 @@ Retrieve an Runnable from FuseML.
 
 Example:
     `+os.Args[0]+` runnable get --message '{
-      "runnableNameOrId": "Quae quaerat autem quia."
+      "runnableNameOrId": "288BFD74-D973-18B5-FAA5-29ADF4569AC7"
    }'
 `, os.Args[0])
 }
