@@ -34,13 +34,13 @@ func EncodeListResponse(encoder func(context.Context, http.ResponseWriter) goaht
 func DecodeListRequest(mux goahttp.Muxer, decoder func(*http.Request) goahttp.Decoder) func(*http.Request) (interface{}, error) {
 	return func(r *http.Request) (interface{}, error) {
 		var (
-			id *string
+			kind *string
 		)
-		idRaw := r.URL.Query().Get("id")
-		if idRaw != "" {
-			id = &idRaw
+		kindRaw := r.URL.Query().Get("kind")
+		if kindRaw != "" {
+			kind = &kindRaw
 		}
-		payload := NewListPayload(id)
+		payload := NewListPayload(kind)
 
 		return payload, nil
 	}

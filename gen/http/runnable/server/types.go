@@ -469,9 +469,9 @@ func NewGetNotFoundResponseBody(res *goa.ServiceError) *GetNotFoundResponseBody 
 }
 
 // NewListPayload builds a runnable service list endpoint payload.
-func NewListPayload(id *string) *runnable.ListPayload {
+func NewListPayload(kind *string) *runnable.ListPayload {
 	v := &runnable.ListPayload{}
-	v.ID = id
+	v.Kind = kind
 
 	return v
 }

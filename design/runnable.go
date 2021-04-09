@@ -15,7 +15,7 @@ var _ = Service("runnable", func() {
 		Payload(func() {
 			// Field describes an object field given a field index, a field
 			// name, a type and a description.
-			Field(1, "id", String, "The runnable's id")
+			Field(1, "kind", String, "The kind of runnables to list")
 		})
 
 		// Result describes the method result.
@@ -31,8 +31,8 @@ var _ = Service("runnable", func() {
 			// Requests to the service consist of HTTP GET requests.
 			// The payload fields are encoded as path parameters.
 			GET("/runnables")
-			Param("id", String, "ID of a registered runnable", func() {
-				Example("List runnable with ID=123", "123")
+			Param("kind", String, "Kind of a registered runnables", func() {
+				Example("List runnable with kind=builder", "builder")
 			})
 			// Responses use a "200 OK" HTTP status.
 			// The result is encoded in the response body (default).

@@ -19,10 +19,12 @@ func (s *Store) FindRunnable(id uuid.UUID) *runnable.Runnable {
 	return s.items[id]
 }
 
-func (s *Store) GetAllRunnables() (result []*runnable.Runnable) {
+func (s *Store) GetAllRunnables(kind string) (result []*runnable.Runnable) {
 	result = make([]*runnable.Runnable, 0, len(s.items))
 	for _, r := range s.items {
-		result = append(result, r)
+		if kind == "all" || r.Kind == kind {
+			result = append(result, r)
+		}
 	}
 	return
 }

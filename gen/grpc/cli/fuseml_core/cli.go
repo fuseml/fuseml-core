@@ -29,7 +29,7 @@ func UsageCommands() string {
 // UsageExamples produces an example of a valid invocation of the CLI tool.
 func UsageExamples() string {
 	return os.Args[0] + ` runnable list --message '{
-      "id": "Id reprehenderit aut."
+      "kind": "Id reprehenderit aut."
    }'` + "\n" +
 		""
 }
@@ -164,7 +164,7 @@ Retrieve information about runnables registered in FuseML.
 
 Example:
     `+os.Args[0]+` runnable list --message '{
-      "id": "Id reprehenderit aut."
+      "kind": "Id reprehenderit aut."
    }'
 `, os.Args[0])
 }
