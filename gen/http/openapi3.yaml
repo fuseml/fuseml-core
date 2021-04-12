@@ -6,6 +6,8 @@ info:
 servers:
 - url: http://localhost:8000
   description: fuseml-core hosts the core services
+- url: http://0.0.0.0
+  description: fuseml-core hosts the core services
 paths:
   /api/openapi.json:
     get:

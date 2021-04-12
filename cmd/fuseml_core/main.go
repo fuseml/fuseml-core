@@ -22,7 +22,7 @@ func main() {
 	// Define command line flags, add any other flag required to configure the
 	// service.
 	var (
-		hostF     = flag.String("host", "localhost", "Server host (valid values: localhost)")
+		hostF     = flag.String("host", "dev", "Server host (valid values: dev, prod)")
 		domainF   = flag.String("domain", "", "Host domain name (overrides host domain specified in service design)")
 		httpPortF = flag.String("http-port", "", "HTTP port (overrides host HTTP port specified in service design)")
 		grpcPortF = flag.String("grpc-port", "", "gRPC port (overrides host gRPC port specified in service design)")
@@ -83,7 +83,7 @@ func main() {
 
 	// Start the servers and send errors (if any) to the error channel.
 	switch *hostF {
-	case "localhost":
+	case "dev":
 		{
 			addr := "http://localhost:8000"
 			u, err := url.Parse(addr)
@@ -105,7 +105,7 @@ func main() {
 				}
 				u.Host = net.JoinHostPort(h, *httpPortF)
 			} else if u.Port() == "" {
-				u.Host = net.JoinHostPort(u.Host, ":80")
+				u.Host = net.JoinHostPort(u.Host, "80")
 			}
 			handleHTTPServer(ctx, u, runnableEndpoints, codesetEndpoints, &wg, errc, logger, *dbgF)
 		}
@@ -131,13 +131,66 @@ func main() {
 				}
 				u.Host = net.JoinHostPort(h, *grpcPortF)
 			} else if u.Port() == "" {
-				u.Host = net.JoinHostPort(u.Host, ":8080")
+				u.Host = net.JoinHostPort(u.Host, "8080")
+			}
+			handleGRPCServer(ctx, u, runnableEndpoints, &wg, errc, logger, *dbgF)
+		}
+
+	case "prod":
+		{
+			addr := "http://0.0.0.0"
+			u, err := url.Parse(addr)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "invalid URL %#v: %s\n", addr, err)
+				os.Exit(1)
+			}
+			if *secureF {
+				u.Scheme = "https"
+			}
+			if *domainF != "" {
+				u.Host = *domainF
+			}
+			if *httpPortF != "" {
+				h, _, err := net.SplitHostPort(u.Host)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "invalid URL %#v: %s\n", u.Host, err)
+					os.Exit(1)
+				}
+				u.Host = net.JoinHostPort(h, *httpPortF)
+			} else if u.Port() == "" {
+				u.Host = net.JoinHostPort(u.Host, "80")
+			}
+			handleHTTPServer(ctx, u, runnableEndpoints, &wg, errc, logger, *dbgF)
+		}
+
+		{
+			addr := "grpc://0.0.0.0"
+			u, err := url.Parse(addr)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "invalid URL %#v: %s\n", addr, err)
+				os.Exit(1)
+			}
+			if *secureF {
+				u.Scheme = "grpcs"
+			}
+			if *domainF != "" {
+				u.Host = *domainF
+			}
+			if *grpcPortF != "" {
+				h, _, err := net.SplitHostPort(u.Host)
+				if err != nil {
+					fmt.Fprintf(os.Stderr, "invalid URL %#v: %s\n", u.Host, err)
+					os.Exit(1)
+				}
+				u.Host = net.JoinHostPort(h, *grpcPortF)
+			} else if u.Port() == "" {
+				u.Host = net.JoinHostPort(u.Host, "8080")
 			}
 			handleGRPCServer(ctx, u, runnableEndpoints, codesetEndpoints, &wg, errc, logger, *dbgF)
 		}
 
 	default:
-		fmt.Fprintf(os.Stderr, "invalid host argument: %q (valid hosts: localhost)\n", *hostF)
+		fmt.Fprintf(os.Stderr, "invalid host argument: %q (valid hosts: dev|prod)\n", *hostF)
 	}
 
 	// Wait for signal.
