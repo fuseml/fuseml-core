@@ -46,7 +46,7 @@ func (c *Client) List(ctx context.Context, p *ListPayload) (res []*Codeset, err 
 // Register may return the following errors:
 //	- "BadRequest" (type *goa.ServiceError): If the Codeset does not have the required fields, should return 400 Bad Request.
 //	- error: internal error
-func (c *Client) Register(ctx context.Context, p *Codeset) (res *Codeset, err error) {
+func (c *Client) Register(ctx context.Context, p *RegisterPayload) (res *Codeset, err error) {
 	var ires interface{}
 	ires, err = c.RegisterEndpoint(ctx, p)
 	if err != nil {

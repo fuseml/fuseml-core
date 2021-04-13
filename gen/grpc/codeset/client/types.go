@@ -31,9 +31,8 @@ func NewListResult(message *codesetpb.ListResponse) []*codeset.Codeset {
 	result := make([]*codeset.Codeset, len(message.Field))
 	for i, val := range message.Field {
 		result[i] = &codeset.Codeset{
-			Name:     val.Name,
-			Project:  val.Project,
-			Location: val.Location,
+			Name:    val.Name,
+			Project: val.Project,
 		}
 		if val.Description != "" {
 			result[i].Description = &val.Description
@@ -47,17 +46,12 @@ func NewListResult(message *codesetpb.ListResponse) []*codeset.Codeset {
 
 // NewRegisterRequest builds the gRPC request type from the payload of the
 // "register" endpoint of the "codeset" service.
-func NewRegisterRequest(payload *codeset.Codeset) *codesetpb.RegisterRequest {
+func NewRegisterRequest(payload *codeset.RegisterPayload) *codesetpb.RegisterRequest {
 	message := &codesetpb.RegisterRequest{
-		Name:     payload.Name,
-		Project:  payload.Project,
 		Location: payload.Location,
 	}
-	if payload.Description != nil {
-		message.Description = *payload.Description
-	}
-	if payload.Label != nil {
-		message.Label = *payload.Label
+	if payload.Codeset != nil {
+		message.Codeset = svcCodesetCodesetToCodesetpbCodeset2(payload.Codeset)
 	}
 	return message
 }
@@ -66,9 +60,8 @@ func NewRegisterRequest(payload *codeset.Codeset) *codesetpb.RegisterRequest {
 // "codeset" service from the gRPC response type.
 func NewRegisterResult(message *codesetpb.RegisterResponse) *codeset.Codeset {
 	result := &codeset.Codeset{
-		Name:     message.Name,
-		Project:  message.Project,
-		Location: message.Location,
+		Name:    message.Name,
+		Project: message.Project,
 	}
 	if message.Description != "" {
 		result.Description = &message.Description
@@ -93,9 +86,8 @@ func NewGetRequest(payload *codeset.GetPayload) *codesetpb.GetRequest {
 // service from the gRPC response type.
 func NewGetResult(message *codesetpb.GetResponse) *codeset.Codeset {
 	result := &codeset.Codeset{
-		Name:     message.Name,
-		Project:  message.Project,
-		Location: message.Location,
+		Name:    message.Name,
+		Project: message.Project,
 	}
 	if message.Description != "" {
 		result.Description = &message.Description
@@ -104,4 +96,38 @@ func NewGetResult(message *codesetpb.GetResponse) *codeset.Codeset {
 		result.Label = &message.Label
 	}
 	return result
+}
+
+// protobufCodesetpbCodeset2ToCodesetCodeset builds a value of type
+// *codeset.Codeset from a value of type *codesetpb.Codeset2.
+func protobufCodesetpbCodeset2ToCodesetCodeset(v *codesetpb.Codeset2) *codeset.Codeset {
+	res := &codeset.Codeset{
+		Name:    v.Name,
+		Project: v.Project,
+	}
+	if v.Description != "" {
+		res.Description = &v.Description
+	}
+	if v.Label != "" {
+		res.Label = &v.Label
+	}
+
+	return res
+}
+
+// svcCodesetCodesetToCodesetpbCodeset2 builds a value of type
+// *codesetpb.Codeset2 from a value of type *codeset.Codeset.
+func svcCodesetCodesetToCodesetpbCodeset2(v *codeset.Codeset) *codesetpb.Codeset2 {
+	res := &codesetpb.Codeset2{
+		Name:    v.Name,
+		Project: v.Project,
+	}
+	if v.Description != nil {
+		res.Description = *v.Description
+	}
+	if v.Label != nil {
+		res.Label = *v.Label
+	}
+
+	return res
 }

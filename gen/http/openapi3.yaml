@@ -86,23 +86,19 @@ paths:
                 example:
                 - description: My first MLFlow application with FuseML
                   label: mlflow
-                  location: work/ml/mlflow-code
                   name: mlflow-app-01
                   project: mlflow-project-01
                 - description: My first MLFlow application with FuseML
                   label: mlflow
-                  location: work/ml/mlflow-code
                   name: mlflow-app-01
                   project: mlflow-project-01
               example:
               - description: My first MLFlow application with FuseML
                 label: mlflow
-                location: work/ml/mlflow-code
                 name: mlflow-app-01
                 project: mlflow-project-01
               - description: My first MLFlow application with FuseML
                 label: mlflow
-                location: work/ml/mlflow-code
                 name: mlflow-app-01
                 project: mlflow-project-01
         "404":
@@ -121,18 +117,29 @@ paths:
       summary: register codeset
       description: Register a Codeset with the FuseML codeset store.
       operationId: codeset#register
+      parameters:
+      - name: location
+        in: query
+        description: Path to the code that should be registered as Codeset
+        allowEmptyValue: true
+        required: true
+        schema:
+          type: string
+          description: Path to the code that should be registered as Codeset
+          example: work/ml/mlflow-code
+        example: work/ml/mlflow-code
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Codeset'
+              $ref: '#/components/schemas/RegisterRequestBody'
             example:
-              description: My first MLFlow application with FuseML
-              label: mlflow
-              location: work/ml/mlflow-code
-              name: mlflow-app-01
-              project: mlflow-project-01
+              codeset:
+                description: My first MLFlow application with FuseML
+                label: mlflow
+                name: mlflow-app-01
+                project: mlflow-project-01
       responses:
         "201":
           description: Created response.
@@ -143,7 +150,6 @@ paths:
               example:
                 description: My first MLFlow application with FuseML
                 label: mlflow
-                location: work/ml/mlflow-code
                 name: mlflow-app-01
                 project: mlflow-project-01
         "400":
@@ -192,7 +198,6 @@ paths:
               example:
                 description: My first MLFlow application with FuseML
                 label: mlflow
-                location: work/ml/mlflow-code
                 name: mlflow-app-01
                 project: mlflow-project-01
         "400":
@@ -991,10 +996,6 @@ components:
           type: string
           description: Additional Codeset label that helps with identifying the type
           example: mlflow
-        location:
-          type: string
-          description: Path to the code that should be registered as Codeset
-          example: work/ml/mlflow-code
         name:
           type: string
           description: The name of the Codeset
@@ -1006,13 +1007,11 @@ components:
       example:
         description: My first MLFlow application with FuseML
         label: mlflow
-        location: work/ml/mlflow-code
         name: mlflow-app-01
         project: mlflow-project-01
       required:
       - name
       - project
-      - location
     Error:
       type: object
       properties:
@@ -1073,6 +1072,19 @@ components:
         datatype: file
         default: mydata.csv
         optional: true
+    RegisterRequestBody:
+      type: object
+      properties:
+        codeset:
+          $ref: '#/components/schemas/Codeset'
+      example:
+        codeset:
+          description: My first MLFlow application with FuseML
+          label: mlflow
+          name: mlflow-app-01
+          project: mlflow-project-01
+      required:
+      - codeset
     Runnable:
       type: object
       properties:

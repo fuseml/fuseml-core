@@ -61,9 +61,13 @@ var _ = Service("codeset", func() {
 	Method("register", func() {
 		Description("Register a Codeset with the FuseML codeset store.")
 
-		// Payload also accepts a Type object where you can list its attribute
-		// as well as its required fields
-		Payload(Codeset, "Codeset descriptor")
+		Payload(func() {
+			Field(1, "codeset", Codeset, "Codeset descriptor")
+			Field(2, "location", String, "Path to the code that should be registered as Codeset", func() {
+				Example("mlflow-project-01")
+			})
+			Required("codeset", "location")
+		})
 
 		Error("BadRequest", func() {
 			Description("If the Codeset does not have the required fields, should return 400 Bad Request.")
@@ -73,10 +77,12 @@ var _ = Service("codeset", func() {
 
 		HTTP(func() {
 			POST("/codesets")
+			Param("location", String, "Path to the code that should be registered as Codeset", func() {
+				Example("work/ml/mlflow-code")
+			})
 			Response(StatusCreated)
 			Response("BadRequest", StatusBadRequest)
 		})
-
 		GRPC(func() {
 			Response(CodeOK)
 			Response("BadRequest", CodeInvalidArgument)
@@ -128,14 +134,11 @@ var Codeset = Type("Codeset", func() {
 	Field(2, "project", String, "The project this Codeset belongs to", func() {
 		Example("mlflow-project-01")
 	})
-	Field(3, "location", String, "Path to the code that should be registered as Codeset", func() {
-		Example("work/ml/mlflow-code")
-	})
-	Field(4, "description", String, "Codeset description", func() {
+	Field(3, "description", String, "Codeset description", func() {
 		Example("My first MLFlow application with FuseML")
 	})
-	Field(5, "label", String, "Additional Codeset label that helps with identifying the type", func() {
+	Field(4, "label", String, "Additional Codeset label that helps with identifying the type", func() {
 		Example("mlflow")
 	})
-	Required("name", "project", "location")
+	Required("name", "project")
 })

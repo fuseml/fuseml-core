@@ -228,11 +228,13 @@ Register a Codeset with the FuseML codeset store.
 
 Example:
     `+os.Args[0]+` codeset register --message '{
-      "description": "My first MLFlow application with FuseML",
-      "label": "mlflow",
-      "location": "work/ml/mlflow-code",
-      "name": "mlflow-app-01",
-      "project": "mlflow-project-01"
+      "codeset": {
+         "description": "My first MLFlow application with FuseML",
+         "label": "mlflow",
+         "name": "mlflow-app-01",
+         "project": "mlflow-project-01"
+      },
+      "location": "mlflow-project-01"
    }'
 `, os.Args[0])
 }

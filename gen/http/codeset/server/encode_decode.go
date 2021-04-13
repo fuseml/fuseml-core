@@ -110,7 +110,18 @@ func DecodeRegisterRequest(mux goahttp.Muxer, decoder func(*http.Request) goahtt
 		if err != nil {
 			return nil, err
 		}
-		payload := NewRegisterCodeset(&body)
+
+		var (
+			location string
+		)
+		location = r.URL.Query().Get("location")
+		if location == "" {
+			err = goa.MergeErrors(err, goa.MissingFieldError("location", "query string"))
+		}
+		if err != nil {
+			return nil, err
+		}
+		payload := NewRegisterPayload(&body, location)
 
 		return payload, nil
 	}
@@ -220,7 +231,19 @@ func marshalCodesetCodesetToCodesetResponse(v *codeset.Codeset) *CodesetResponse
 	res := &CodesetResponse{
 		Name:        v.Name,
 		Project:     v.Project,
-		Location:    v.Location,
+		Description: v.Description,
+		Label:       v.Label,
+	}
+
+	return res
+}
+
+// unmarshalCodesetRequestBodyToCodesetCodeset builds a value of type
+// *codeset.Codeset from a value of type *CodesetRequestBody.
+func unmarshalCodesetRequestBodyToCodesetCodeset(v *CodesetRequestBody) *codeset.Codeset {
+	res := &codeset.Codeset{
+		Name:        *v.Name,
+		Project:     *v.Project,
 		Description: v.Description,
 		Label:       v.Label,
 	}

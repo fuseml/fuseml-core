@@ -67,8 +67,11 @@ func DecodeRegisterRequest(ctx context.Context, v interface{}, md metadata.MD) (
 		if message, ok = v.(*codesetpb.RegisterRequest); !ok {
 			return nil, goagrpc.ErrInvalidType("codeset", "register", "*codesetpb.RegisterRequest", v)
 		}
+		if err := ValidateRegisterRequest(message); err != nil {
+			return nil, err
+		}
 	}
-	var payload *codeset.Codeset
+	var payload *codeset.RegisterPayload
 	{
 		payload = NewRegisterPayload(message)
 	}

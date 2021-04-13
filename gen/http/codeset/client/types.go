@@ -15,16 +15,8 @@ import (
 // RegisterRequestBody is the type of the "codeset" service "register" endpoint
 // HTTP request body.
 type RegisterRequestBody struct {
-	// The name of the Codeset
-	Name string `form:"name" json:"name" xml:"name"`
-	// The project this Codeset belongs to
-	Project string `form:"project" json:"project" xml:"project"`
-	// Path to the code that should be registered as Codeset
-	Location string `form:"location" json:"location" xml:"location"`
-	// Codeset description
-	Description *string `form:"description,omitempty" json:"description,omitempty" xml:"description,omitempty"`
-	// Additional Codeset label that helps with identifying the type
-	Label *string `form:"label,omitempty" json:"label,omitempty" xml:"label,omitempty"`
+	// Codeset descriptor
+	Codeset *CodesetRequestBody `form:"codeset" json:"codeset" xml:"codeset"`
 }
 
 // ListResponseBody is the type of the "codeset" service "list" endpoint HTTP
@@ -38,8 +30,6 @@ type RegisterResponseBody struct {
 	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
 	// The project this Codeset belongs to
 	Project *string `form:"project,omitempty" json:"project,omitempty" xml:"project,omitempty"`
-	// Path to the code that should be registered as Codeset
-	Location *string `form:"location,omitempty" json:"location,omitempty" xml:"location,omitempty"`
 	// Codeset description
 	Description *string `form:"description,omitempty" json:"description,omitempty" xml:"description,omitempty"`
 	// Additional Codeset label that helps with identifying the type
@@ -53,8 +43,6 @@ type GetResponseBody struct {
 	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
 	// The project this Codeset belongs to
 	Project *string `form:"project,omitempty" json:"project,omitempty" xml:"project,omitempty"`
-	// Path to the code that should be registered as Codeset
-	Location *string `form:"location,omitempty" json:"location,omitempty" xml:"location,omitempty"`
 	// Codeset description
 	Description *string `form:"description,omitempty" json:"description,omitempty" xml:"description,omitempty"`
 	// Additional Codeset label that helps with identifying the type
@@ -139,8 +127,18 @@ type CodesetResponse struct {
 	Name *string `form:"name,omitempty" json:"name,omitempty" xml:"name,omitempty"`
 	// The project this Codeset belongs to
 	Project *string `form:"project,omitempty" json:"project,omitempty" xml:"project,omitempty"`
-	// Path to the code that should be registered as Codeset
-	Location *string `form:"location,omitempty" json:"location,omitempty" xml:"location,omitempty"`
+	// Codeset description
+	Description *string `form:"description,omitempty" json:"description,omitempty" xml:"description,omitempty"`
+	// Additional Codeset label that helps with identifying the type
+	Label *string `form:"label,omitempty" json:"label,omitempty" xml:"label,omitempty"`
+}
+
+// CodesetRequestBody is used to define fields on request body types.
+type CodesetRequestBody struct {
+	// The name of the Codeset
+	Name string `form:"name" json:"name" xml:"name"`
+	// The project this Codeset belongs to
+	Project string `form:"project" json:"project" xml:"project"`
 	// Codeset description
 	Description *string `form:"description,omitempty" json:"description,omitempty" xml:"description,omitempty"`
 	// Additional Codeset label that helps with identifying the type
@@ -149,13 +147,10 @@ type CodesetResponse struct {
 
 // NewRegisterRequestBody builds the HTTP request body from the payload of the
 // "register" endpoint of the "codeset" service.
-func NewRegisterRequestBody(p *codeset.Codeset) *RegisterRequestBody {
-	body := &RegisterRequestBody{
-		Name:        p.Name,
-		Project:     p.Project,
-		Location:    p.Location,
-		Description: p.Description,
-		Label:       p.Label,
+func NewRegisterRequestBody(p *codeset.RegisterPayload) *RegisterRequestBody {
+	body := &RegisterRequestBody{}
+	if p.Codeset != nil {
+		body.Codeset = marshalCodesetCodesetToCodesetRequestBody(p.Codeset)
 	}
 	return body
 }
@@ -190,7 +185,6 @@ func NewRegisterCodesetCreated(body *RegisterResponseBody) *codeset.Codeset {
 	v := &codeset.Codeset{
 		Name:        *body.Name,
 		Project:     *body.Project,
-		Location:    *body.Location,
 		Description: body.Description,
 		Label:       body.Label,
 	}
@@ -219,7 +213,6 @@ func NewGetCodesetOK(body *GetResponseBody) *codeset.Codeset {
 	v := &codeset.Codeset{
 		Name:        *body.Name,
 		Project:     *body.Project,
-		Location:    *body.Location,
 		Description: body.Description,
 		Label:       body.Label,
 	}
@@ -264,9 +257,6 @@ func ValidateRegisterResponseBody(body *RegisterResponseBody) (err error) {
 	if body.Project == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("project", "body"))
 	}
-	if body.Location == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("location", "body"))
-	}
 	return
 }
 
@@ -277,9 +267,6 @@ func ValidateGetResponseBody(body *GetResponseBody) (err error) {
 	}
 	if body.Project == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("project", "body"))
-	}
-	if body.Location == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("location", "body"))
 	}
 	return
 }
@@ -387,9 +374,6 @@ func ValidateCodesetResponse(body *CodesetResponse) (err error) {
 	}
 	if body.Project == nil {
 		err = goa.MergeErrors(err, goa.MissingFieldError("project", "body"))
-	}
-	if body.Location == nil {
-		err = goa.MergeErrors(err, goa.MissingFieldError("location", "body"))
 	}
 	return
 }

@@ -49,7 +49,7 @@ func NewListEndpoint(s Service) goa.Endpoint {
 // "register" of service "codeset".
 func NewRegisterEndpoint(s Service) goa.Endpoint {
 	return func(ctx context.Context, req interface{}) (interface{}, error) {
-		p := req.(*Codeset)
+		p := req.(*RegisterPayload)
 		return s.Register(ctx, p)
 	}
 }

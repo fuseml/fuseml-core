@@ -12,6 +12,7 @@ import (
 	"fmt"
 
 	codeset "github.com/fuseml/fuseml-core/gen/codeset"
+	goa "goa.design/goa/v3/pkg"
 )
 
 // BuildListPayload builds the payload for the codeset list endpoint from CLI
@@ -38,22 +39,30 @@ func BuildListPayload(codesetListProject string, codesetListLabel string) (*code
 
 // BuildRegisterPayload builds the payload for the codeset register endpoint
 // from CLI flags.
-func BuildRegisterPayload(codesetRegisterBody string) (*codeset.Codeset, error) {
+func BuildRegisterPayload(codesetRegisterBody string, codesetRegisterLocation string) (*codeset.RegisterPayload, error) {
 	var err error
 	var body RegisterRequestBody
 	{
 		err = json.Unmarshal([]byte(codesetRegisterBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"description\": \"My first MLFlow application with FuseML\",\n      \"label\": \"mlflow\",\n      \"location\": \"work/ml/mlflow-code\",\n      \"name\": \"mlflow-app-01\",\n      \"project\": \"mlflow-project-01\"\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"codeset\": {\n         \"description\": \"My first MLFlow application with FuseML\",\n         \"label\": \"mlflow\",\n         \"name\": \"mlflow-app-01\",\n         \"project\": \"mlflow-project-01\"\n      }\n   }'")
+		}
+		if body.Codeset == nil {
+			err = goa.MergeErrors(err, goa.MissingFieldError("codeset", "body"))
+		}
+		if err != nil {
+			return nil, err
 		}
 	}
-	v := &codeset.Codeset{
-		Name:        body.Name,
-		Project:     body.Project,
-		Location:    body.Location,
-		Description: body.Description,
-		Label:       body.Label,
+	var location string
+	{
+		location = codesetRegisterLocation
 	}
+	v := &codeset.RegisterPayload{}
+	if body.Codeset != nil {
+		v.Codeset = marshalCodesetRequestBodyToCodesetCodeset(body.Codeset)
+	}
+	v.Location = location
 
 	return v, nil
 }

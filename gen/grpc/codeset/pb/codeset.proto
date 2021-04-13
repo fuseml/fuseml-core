@@ -37,25 +37,17 @@ message Codeset2 {
 	string name = 1;
 	// The project this Codeset belongs to
 	string project = 2;
-	// Path to the code that should be registered as Codeset
-	string location = 3;
 	// Codeset description
-	string description = 4;
+	string description = 3;
 	// Additional Codeset label that helps with identifying the type
-	string label = 5;
+	string label = 4;
 }
 
 message RegisterRequest {
-	// The name of the Codeset
-	string name = 1;
-	// The project this Codeset belongs to
-	string project = 2;
+	// Codeset descriptor
+	Codeset2 codeset = 1;
 	// Path to the code that should be registered as Codeset
-	string location = 3;
-	// Codeset description
-	string description = 4;
-	// Additional Codeset label that helps with identifying the type
-	string label = 5;
+	string location = 2;
 }
 
 message RegisterResponse {
@@ -63,12 +55,10 @@ message RegisterResponse {
 	string name = 1;
 	// The project this Codeset belongs to
 	string project = 2;
-	// Path to the code that should be registered as Codeset
-	string location = 3;
 	// Codeset description
-	string description = 4;
+	string description = 3;
 	// Additional Codeset label that helps with identifying the type
-	string label = 5;
+	string label = 4;
 }
 
 message GetRequest {
@@ -83,10 +73,8 @@ message GetResponse {
 	string name = 1;
 	// The project this Codeset belongs to
 	string project = 2;
-	// Path to the code that should be registered as Codeset
-	string location = 3;
 	// Codeset description
-	string description = 4;
+	string description = 3;
 	// Additional Codeset label that helps with identifying the type
-	string label = 5;
+	string label = 4;
 }

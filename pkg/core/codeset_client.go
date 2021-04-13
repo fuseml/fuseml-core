@@ -173,7 +173,7 @@ git push fuseml master:main
 }
 
 // Prepare the repository and push the code from local path to remote repo
-func (cc *CodesetClient) Push(code *codeset.Codeset) error {
+func (cc *CodesetClient) Push(code *codeset.Codeset, location string) error {
 
 	err := cc.CreateOrg(code.Project)
 	if err != nil {
@@ -190,7 +190,7 @@ func (cc *CodesetClient) Push(code *codeset.Codeset) error {
 		return errors.Wrap(err, "webhook configuration failed")
 	}
 
-	err = cc.GitPush(code.Project, code.Name, code.Location)
+	err = cc.GitPush(code.Project, code.Name, location)
 	if err != nil {
 		return errors.Wrap(err, "failed to git push code")
 	}

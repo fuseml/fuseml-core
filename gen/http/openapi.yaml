@@ -107,15 +107,18 @@ paths:
       description: Register a Codeset with the FuseML codeset store.
       operationId: codeset#register
       parameters:
+      - name: location
+        in: query
+        description: Path to the code that should be registered as Codeset
+        required: true
+        type: string
       - name: RegisterRequestBody
         in: body
         required: true
         schema:
           $ref: '#/definitions/CodesetRegisterRequestBody'
           required:
-          - name
-          - project
-          - location
+          - codeset
       responses:
         "201":
           description: Created response.
@@ -124,7 +127,6 @@ paths:
             required:
             - name
             - project
-            - location
         "400":
           description: Bad Request response.
           schema:
@@ -157,7 +159,6 @@ paths:
             required:
             - name
             - project
-            - location
         "400":
           description: Bad Request response.
           schema:
@@ -371,10 +372,6 @@ definitions:
         type: string
         description: Additional Codeset label that helps with identifying the type
         example: mlflow
-      location:
-        type: string
-        description: Path to the code that should be registered as Codeset
-        example: work/ml/mlflow-code
       name:
         type: string
         description: The name of the Codeset
@@ -386,13 +383,11 @@ definitions:
     example:
       description: My first MLFlow application with FuseML
       label: mlflow
-      location: work/ml/mlflow-code
       name: mlflow-app-01
       project: mlflow-project-01
     required:
     - name
     - project
-    - location
   CodesetListNotFoundResponseBody:
     title: 'Mediatype identifier: application/vnd.goa.error; view=default'
     type: object
@@ -489,37 +484,16 @@ definitions:
     title: CodesetRegisterRequestBody
     type: object
     properties:
-      description:
-        type: string
-        description: Codeset description
-        example: My first MLFlow application with FuseML
-      label:
-        type: string
-        description: Additional Codeset label that helps with identifying the type
-        example: mlflow
-      location:
-        type: string
-        description: Path to the code that should be registered as Codeset
-        example: work/ml/mlflow-code
-      name:
-        type: string
-        description: The name of the Codeset
-        example: mlflow-app-01
-      project:
-        type: string
-        description: The project this Codeset belongs to
-        example: mlflow-project-01
-    description: Codeset descriptor
+      codeset:
+        $ref: '#/definitions/CodesetRequestBody'
     example:
-      description: My first MLFlow application with FuseML
-      label: mlflow
-      location: work/ml/mlflow-code
-      name: mlflow-app-01
-      project: mlflow-project-01
+      codeset:
+        description: My first MLFlow application with FuseML
+        label: mlflow
+        name: mlflow-app-01
+        project: mlflow-project-01
     required:
-    - name
-    - project
-    - location
+    - codeset
   CodesetRegisterResponseBody:
     title: CodesetRegisterResponseBody
     type: object
@@ -532,10 +506,6 @@ definitions:
         type: string
         description: Additional Codeset label that helps with identifying the type
         example: mlflow
-      location:
-        type: string
-        description: Path to the code that should be registered as Codeset
-        example: work/ml/mlflow-code
       name:
         type: string
         description: The name of the Codeset
@@ -547,13 +517,39 @@ definitions:
     example:
       description: My first MLFlow application with FuseML
       label: mlflow
-      location: work/ml/mlflow-code
       name: mlflow-app-01
       project: mlflow-project-01
     required:
     - name
     - project
-    - location
+  CodesetRequestBody:
+    title: CodesetRequestBody
+    type: object
+    properties:
+      description:
+        type: string
+        description: Codeset description
+        example: My first MLFlow application with FuseML
+      label:
+        type: string
+        description: Additional Codeset label that helps with identifying the type
+        example: mlflow
+      name:
+        type: string
+        description: The name of the Codeset
+        example: mlflow-app-01
+      project:
+        type: string
+        description: The project this Codeset belongs to
+        example: mlflow-project-01
+    example:
+      description: My first MLFlow application with FuseML
+      label: mlflow
+      name: mlflow-app-01
+      project: mlflow-project-01
+    required:
+    - name
+    - project
   CodesetResponse:
     title: CodesetResponse
     type: object
@@ -566,10 +562,6 @@ definitions:
         type: string
         description: Additional Codeset label that helps with identifying the type
         example: mlflow
-      location:
-        type: string
-        description: Path to the code that should be registered as Codeset
-        example: work/ml/mlflow-code
       name:
         type: string
         description: The name of the Codeset
@@ -581,13 +573,11 @@ definitions:
     example:
       description: My first MLFlow application with FuseML
       label: mlflow
-      location: work/ml/mlflow-code
       name: mlflow-app-01
       project: mlflow-project-01
     required:
     - name
     - project
-    - location
   InputParameterRequestBody:
     title: InputParameterRequestBody
     type: object

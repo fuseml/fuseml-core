@@ -52,8 +52,9 @@ func ParseEndpoint(
 		codesetListProjectFlag = codesetListFlags.String("project", "", "")
 		codesetListLabelFlag   = codesetListFlags.String("label", "", "")
 
-		codesetRegisterFlags    = flag.NewFlagSet("register", flag.ExitOnError)
-		codesetRegisterBodyFlag = codesetRegisterFlags.String("body", "REQUIRED", "")
+		codesetRegisterFlags        = flag.NewFlagSet("register", flag.ExitOnError)
+		codesetRegisterBodyFlag     = codesetRegisterFlags.String("body", "REQUIRED", "")
+		codesetRegisterLocationFlag = codesetRegisterFlags.String("location", "REQUIRED", "")
 
 		codesetGetFlags       = flag.NewFlagSet("get", flag.ExitOnError)
 		codesetGetProjectFlag = codesetGetFlags.String("project", "REQUIRED", "Project name")
@@ -168,7 +169,7 @@ func ParseEndpoint(
 				data, err = codesetc.BuildListPayload(*codesetListProjectFlag, *codesetListLabelFlag)
 			case "register":
 				endpoint = c.Register()
-				data, err = codesetc.BuildRegisterPayload(*codesetRegisterBodyFlag)
+				data, err = codesetc.BuildRegisterPayload(*codesetRegisterBodyFlag, *codesetRegisterLocationFlag)
 			case "get":
 				endpoint = c.Get()
 				data, err = codesetc.BuildGetPayload(*codesetGetProjectFlag, *codesetGetNameFlag)
@@ -223,19 +224,21 @@ Example:
 }
 
 func codesetRegisterUsage() {
-	fmt.Fprintf(os.Stderr, `%s [flags] codeset register -body JSON
+	fmt.Fprintf(os.Stderr, `%s [flags] codeset register -body JSON -location STRING
 
 Register a Codeset with the FuseML codeset store.
     -body JSON: 
+    -location STRING: 
 
 Example:
     `+os.Args[0]+` codeset register --body '{
-      "description": "My first MLFlow application with FuseML",
-      "label": "mlflow",
-      "location": "work/ml/mlflow-code",
-      "name": "mlflow-app-01",
-      "project": "mlflow-project-01"
-   }'
+      "codeset": {
+         "description": "My first MLFlow application with FuseML",
+         "label": "mlflow",
+         "name": "mlflow-app-01",
+         "project": "mlflow-project-01"
+      }
+   }' --location "work/ml/mlflow-code"
 `, os.Args[0])
 }
 

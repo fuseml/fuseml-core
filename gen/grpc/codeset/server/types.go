@@ -10,6 +10,7 @@ package server
 import (
 	codeset "github.com/fuseml/fuseml-core/gen/codeset"
 	codesetpb "github.com/fuseml/fuseml-core/gen/grpc/codeset/pb"
+	goa "goa.design/goa/v3/pkg"
 )
 
 // NewListPayload builds the payload of the "list" endpoint of the "codeset"
@@ -32,9 +33,8 @@ func NewListResponse(result []*codeset.Codeset) *codesetpb.ListResponse {
 	message.Field = make([]*codesetpb.Codeset2, len(result))
 	for i, val := range result {
 		message.Field[i] = &codesetpb.Codeset2{
-			Name:     val.Name,
-			Project:  val.Project,
-			Location: val.Location,
+			Name:    val.Name,
+			Project: val.Project,
 		}
 		if val.Description != nil {
 			message.Field[i].Description = *val.Description
@@ -48,17 +48,12 @@ func NewListResponse(result []*codeset.Codeset) *codesetpb.ListResponse {
 
 // NewRegisterPayload builds the payload of the "register" endpoint of the
 // "codeset" service from the gRPC request type.
-func NewRegisterPayload(message *codesetpb.RegisterRequest) *codeset.Codeset {
-	v := &codeset.Codeset{
-		Name:     message.Name,
-		Project:  message.Project,
+func NewRegisterPayload(message *codesetpb.RegisterRequest) *codeset.RegisterPayload {
+	v := &codeset.RegisterPayload{
 		Location: message.Location,
 	}
-	if message.Description != "" {
-		v.Description = &message.Description
-	}
-	if message.Label != "" {
-		v.Label = &message.Label
+	if message.Codeset != nil {
+		v.Codeset = protobufCodesetpbCodeset2ToCodesetCodeset(message.Codeset)
 	}
 	return v
 }
@@ -67,9 +62,8 @@ func NewRegisterPayload(message *codesetpb.RegisterRequest) *codeset.Codeset {
 // "register" endpoint of the "codeset" service.
 func NewRegisterResponse(result *codeset.Codeset) *codesetpb.RegisterResponse {
 	message := &codesetpb.RegisterResponse{
-		Name:     result.Name,
-		Project:  result.Project,
-		Location: result.Location,
+		Name:    result.Name,
+		Project: result.Project,
 	}
 	if result.Description != nil {
 		message.Description = *result.Description
@@ -94,9 +88,8 @@ func NewGetPayload(message *codesetpb.GetRequest) *codeset.GetPayload {
 // endpoint of the "codeset" service.
 func NewGetResponse(result *codeset.Codeset) *codesetpb.GetResponse {
 	message := &codesetpb.GetResponse{
-		Name:     result.Name,
-		Project:  result.Project,
-		Location: result.Location,
+		Name:    result.Name,
+		Project: result.Project,
 	}
 	if result.Description != nil {
 		message.Description = *result.Description
@@ -105,4 +98,52 @@ func NewGetResponse(result *codeset.Codeset) *codesetpb.GetResponse {
 		message.Label = *result.Label
 	}
 	return message
+}
+
+// ValidateRegisterRequest runs the validations defined on RegisterRequest.
+func ValidateRegisterRequest(message *codesetpb.RegisterRequest) (err error) {
+	if message.Codeset == nil {
+		err = goa.MergeErrors(err, goa.MissingFieldError("codeset", "message"))
+	}
+	return
+}
+
+// ValidateCodeset2 runs the validations defined on Codeset2.
+func ValidateCodeset2(message *codesetpb.Codeset2) (err error) {
+
+	return
+}
+
+// protobufCodesetpbCodeset2ToCodesetCodeset builds a value of type
+// *codeset.Codeset from a value of type *codesetpb.Codeset2.
+func protobufCodesetpbCodeset2ToCodesetCodeset(v *codesetpb.Codeset2) *codeset.Codeset {
+	res := &codeset.Codeset{
+		Name:    v.Name,
+		Project: v.Project,
+	}
+	if v.Description != "" {
+		res.Description = &v.Description
+	}
+	if v.Label != "" {
+		res.Label = &v.Label
+	}
+
+	return res
+}
+
+// svcCodesetCodesetToCodesetpbCodeset2 builds a value of type
+// *codesetpb.Codeset2 from a value of type *codeset.Codeset.
+func svcCodesetCodesetToCodesetpbCodeset2(v *codeset.Codeset) *codesetpb.Codeset2 {
+	res := &codesetpb.Codeset2{
+		Name:    v.Name,
+		Project: v.Project,
+	}
+	if v.Description != nil {
+		res.Description = *v.Description
+	}
+	if v.Label != nil {
+		res.Label = *v.Label
+	}
+
+	return res
 }

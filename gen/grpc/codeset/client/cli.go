@@ -41,27 +41,22 @@ func BuildListPayload(codesetListMessage string) (*codeset.ListPayload, error) {
 
 // BuildRegisterPayload builds the payload for the codeset register endpoint
 // from CLI flags.
-func BuildRegisterPayload(codesetRegisterMessage string) (*codeset.Codeset, error) {
+func BuildRegisterPayload(codesetRegisterMessage string) (*codeset.RegisterPayload, error) {
 	var err error
 	var message codesetpb.RegisterRequest
 	{
 		if codesetRegisterMessage != "" {
 			err = json.Unmarshal([]byte(codesetRegisterMessage), &message)
 			if err != nil {
-				return nil, fmt.Errorf("invalid JSON for message, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"description\": \"My first MLFlow application with FuseML\",\n      \"label\": \"mlflow\",\n      \"location\": \"work/ml/mlflow-code\",\n      \"name\": \"mlflow-app-01\",\n      \"project\": \"mlflow-project-01\"\n   }'")
+				return nil, fmt.Errorf("invalid JSON for message, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"codeset\": {\n         \"description\": \"My first MLFlow application with FuseML\",\n         \"label\": \"mlflow\",\n         \"name\": \"mlflow-app-01\",\n         \"project\": \"mlflow-project-01\"\n      },\n      \"location\": \"mlflow-project-01\"\n   }'")
 			}
 		}
 	}
-	v := &codeset.Codeset{
-		Name:     message.Name,
-		Project:  message.Project,
+	v := &codeset.RegisterPayload{
 		Location: message.Location,
 	}
-	if message.Description != "" {
-		v.Description = &message.Description
-	}
-	if message.Label != "" {
-		v.Label = &message.Label
+	if message.Codeset != nil {
+		v.Codeset = protobufCodesetpbCodeset2ToCodesetCodeset(message.Codeset)
 	}
 
 	return v, nil

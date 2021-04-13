@@ -136,10 +136,13 @@ func (c *Client) BuildRegisterRequest(ctx context.Context, v interface{}) (*http
 // register server.
 func EncodeRegisterRequest(encoder func(*http.Request) goahttp.Encoder) func(*http.Request, interface{}) error {
 	return func(req *http.Request, v interface{}) error {
-		p, ok := v.(*codeset.Codeset)
+		p, ok := v.(*codeset.RegisterPayload)
 		if !ok {
-			return goahttp.ErrInvalidType("codeset", "register", "*codeset.Codeset", v)
+			return goahttp.ErrInvalidType("codeset", "register", "*codeset.RegisterPayload", v)
 		}
+		values := req.URL.Query()
+		values.Add("location", p.Location)
+		req.URL.RawQuery = values.Encode()
 		body := NewRegisterRequestBody(p)
 		if err := encoder(req).Encode(&body); err != nil {
 			return goahttp.ErrEncodingError("codeset", "register", err)
@@ -310,7 +313,32 @@ func unmarshalCodesetResponseToCodesetCodeset(v *CodesetResponse) *codeset.Codes
 	res := &codeset.Codeset{
 		Name:        *v.Name,
 		Project:     *v.Project,
-		Location:    *v.Location,
+		Description: v.Description,
+		Label:       v.Label,
+	}
+
+	return res
+}
+
+// marshalCodesetCodesetToCodesetRequestBody builds a value of type
+// *CodesetRequestBody from a value of type *codeset.Codeset.
+func marshalCodesetCodesetToCodesetRequestBody(v *codeset.Codeset) *CodesetRequestBody {
+	res := &CodesetRequestBody{
+		Name:        v.Name,
+		Project:     v.Project,
+		Description: v.Description,
+		Label:       v.Label,
+	}
+
+	return res
+}
+
+// marshalCodesetRequestBodyToCodesetCodeset builds a value of type
+// *codeset.Codeset from a value of type *CodesetRequestBody.
+func marshalCodesetRequestBodyToCodesetCodeset(v *CodesetRequestBody) *codeset.Codeset {
+	res := &codeset.Codeset{
+		Name:        v.Name,
+		Project:     v.Project,
 		Description: v.Description,
 		Label:       v.Label,
 	}

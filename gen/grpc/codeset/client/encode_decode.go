@@ -66,9 +66,9 @@ func BuildRegisterFunc(grpccli codesetpb.CodesetClient, cliopts ...grpc.CallOpti
 
 // EncodeRegisterRequest encodes requests sent to codeset register endpoint.
 func EncodeRegisterRequest(ctx context.Context, v interface{}, md *metadata.MD) (interface{}, error) {
-	payload, ok := v.(*codeset.Codeset)
+	payload, ok := v.(*codeset.RegisterPayload)
 	if !ok {
-		return nil, goagrpc.ErrInvalidType("codeset", "register", "*codeset.Codeset", v)
+		return nil, goagrpc.ErrInvalidType("codeset", "register", "*codeset.RegisterPayload", v)
 	}
 	return NewRegisterRequest(payload), nil
 }

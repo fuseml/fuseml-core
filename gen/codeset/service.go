@@ -18,7 +18,7 @@ type Service interface {
 	// Retrieve information about Codesets registered in FuseML.
 	List(context.Context, *ListPayload) (res []*Codeset, err error)
 	// Register a Codeset with the FuseML codeset store.
-	Register(context.Context, *Codeset) (res *Codeset, err error)
+	Register(context.Context, *RegisterPayload) (res *Codeset, err error)
 	// Retrieve an Codeset from FuseML.
 	Get(context.Context, *GetPayload) (res *Codeset, err error)
 }
@@ -41,14 +41,20 @@ type ListPayload struct {
 	Label *string
 }
 
-// Codeset descriptor
+// RegisterPayload is the payload type of the codeset service register method.
+type RegisterPayload struct {
+	// Codeset descriptor
+	Codeset *Codeset
+	// Path to the code that should be registered as Codeset
+	Location string
+}
+
+// Codeset is the result type of the codeset service register method.
 type Codeset struct {
 	// The name of the Codeset
 	Name string
 	// The project this Codeset belongs to
 	Project string
-	// Path to the code that should be registered as Codeset
-	Location string
 	// Codeset description
 	Description *string
 	// Additional Codeset label that helps with identifying the type

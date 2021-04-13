@@ -30,9 +30,9 @@ func (s *codesetsrvc) List(ctx context.Context, p *codeset.ListPayload) (res []*
 }
 
 // Register a codeset with the FuseML codeset codesetStore.
-func (s *codesetsrvc) Register(ctx context.Context, p *codeset.Codeset) (res *codeset.Codeset, err error) {
+func (s *codesetsrvc) Register(ctx context.Context, p *codeset.RegisterPayload) (res *codeset.Codeset, err error) {
 	s.logger.Print("codeset.register")
-	return codesetStore.AddCodeset(p)
+	return codesetStore.AddCodeset(p.Codeset)
 }
 
 // Retrieve an Codeset from FuseML.

@@ -87,13 +87,13 @@ func main() {
 	// for additional processing.
 	// (Number and validity of args was already checked when creating payload)
 	if flag.Arg(0) == "codeset" && flag.Arg(1) == "register" {
-		var c *codeset.Codeset = payload.(*codeset.Codeset)
+		rp := payload.(*codeset.RegisterPayload)
 		csc, err := fuseml.NewCodesetClient()
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)
 		}
-		err = csc.Push(c)
+		err = csc.Push(rp.Codeset, rp.Location)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)
