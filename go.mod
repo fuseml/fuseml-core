@@ -8,4 +8,5 @@ require (
 	goa.design/goa/v3 v3.3.1
 	google.golang.org/grpc v1.36.1
 	google.golang.org/protobuf v1.26.0
+	gopkg.in/yaml.v2 v2.4.0
 )
