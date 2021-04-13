@@ -3,9 +3,11 @@ module github.com/fuseml/fuseml-core
 go 1.16
 
 require (
+	code.gitea.io/sdk/gitea v0.14.0
 	github.com/dimfeld/httptreemux/v5 v5.3.0 // indirect
 	github.com/google/uuid v1.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
+	github.com/pkg/errors v0.9.1
 	github.com/sergi/go-diff v1.2.0 // indirect
 	goa.design/goa/v3 v3.3.1
 	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect

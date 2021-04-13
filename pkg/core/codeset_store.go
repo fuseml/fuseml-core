@@ -1,13 +1,11 @@
 package fuseml
 
 import (
-	//	"time"
-
 	codeset "github.com/fuseml/fuseml-core/gen/codeset"
-	//	"github.com/google/uuid"
 )
 
 type CodesetStore struct {
+	// FIXME this is just internal representation, it should go away
 	items map[string]*codeset.Codeset
 }
 
@@ -15,11 +13,12 @@ var (
 	codesetStore = CodesetStore{items: make(map[string]*codeset.Codeset)}
 )
 
+// FIXME check git content, not internal map
 func (cs *CodesetStore) FindCodeset(project, name string) *codeset.Codeset {
-	// FIXME use project
 	return cs.items[name]
 }
 
+// FIXME for all projects and labels, return codeset element
 func (cs *CodesetStore) GetAllCodesets(project string, label *string) (result []*codeset.Codeset) {
 	result = make([]*codeset.Codeset, 0, len(cs.items))
 	for _, r := range cs.items {
@@ -34,11 +33,10 @@ func (cs *CodesetStore) GetAllCodesets(project string, label *string) (result []
 	return
 }
 
-func (cs *CodesetStore) AddCodeset(r *codeset.Codeset) (*codeset.Codeset, error) {
-	/*
-		codesetCreated := time.Now().Format(time.RFC3339)
-		r.Created = &codesetCreated
-	*/
-	cs.items[r.Name] = r
-	return r, nil
+// 1. push into new repo
+// 2. register in some other store ???
+func (cs *CodesetStore) AddCodeset(c *codeset.Codeset) (*codeset.Codeset, error) {
+	// Code itself was pushed from client, here we could do some additional registration
+	cs.items[c.Name] = c
+	return c, nil
 }

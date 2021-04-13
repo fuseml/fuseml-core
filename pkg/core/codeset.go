@@ -38,11 +38,6 @@ func (s *codesetsrvc) Register(ctx context.Context, p *codeset.Codeset) (res *co
 // Retrieve an Codeset from FuseML.
 func (s *codesetsrvc) Get(ctx context.Context, p *codeset.GetPayload) (res *codeset.Codeset, err error) {
 	s.logger.Print("codeset.get")
-	/*
-		if name == nil {
-			return nil, codeset.MakeBadRequest(err)
-		}
-	*/
 	r := codesetStore.FindCodeset(p.Project, p.Name)
 	if r == nil {
 		return nil, codeset.MakeNotFound(errors.New("could not find a codeset with the specified ID"))

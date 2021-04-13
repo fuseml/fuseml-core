@@ -9,6 +9,8 @@ import (
 	"os"
 	"strings"
 
+	codeset "github.com/fuseml/fuseml-core/gen/codeset"
+	fuseml "github.com/fuseml/fuseml-core/pkg/core"
 	goa "goa.design/goa/v3/pkg"
 )
 
@@ -79,6 +81,23 @@ func main() {
 		fmt.Fprintln(os.Stderr, err.Error())
 		fmt.Fprintln(os.Stderr, "run '"+os.Args[0]+" --help' for detailed usage.")
 		os.Exit(1)
+	}
+
+	// Pushing the code must be done from client, before passing the request to the server
+	// for additional processing.
+	// (Number and validity of args was already checked when creating payload)
+	if flag.Arg(0) == "codeset" && flag.Arg(1) == "register" {
+		var c *codeset.Codeset = payload.(*codeset.Codeset)
+		csc, err := fuseml.NewCodesetClient()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
+		err = csc.Push(c)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
 	}
 
 	data, err := endpoint(context.Background(), payload)
