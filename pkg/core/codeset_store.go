@@ -1,6 +1,8 @@
 package fuseml
 
 import (
+	"github.com/pkg/errors"
+
 	codeset "github.com/fuseml/fuseml-core/gen/codeset"
 )
 
@@ -33,10 +35,18 @@ func (cs *CodesetStore) GetAllCodesets(project string, label *string) (result []
 	return
 }
 
-// 1. push into new repo
+// 1. create org + new repo
 // 2. register in some other store ???
 func (cs *CodesetStore) AddCodeset(c *codeset.Codeset) (*codeset.Codeset, error) {
-	// Code itself was pushed from client, here we could do some additional registration
+	csc, err := NewCodesetClient()
+	if err != nil {
+		return nil, errors.Wrap(err, "Creating codeset client failed")
+	}
+	err = csc.PrepareRepo(c)
+	if err != nil {
+		return nil, errors.Wrap(err, "Preparing Repository failed")
+	}
+	// Code itself needs to be pushed from client, here we could do some additional registration
 	cs.items[c.Name] = c
 	return c, nil
 }

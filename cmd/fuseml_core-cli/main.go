@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	codeset "github.com/fuseml/fuseml-core/gen/codeset"
-	fuseml "github.com/fuseml/fuseml-core/pkg/core"
+	gitc "github.com/fuseml/fuseml-core/pkg/client"
 	goa "goa.design/goa/v3/pkg"
 )
 
@@ -83,23 +83,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Pushing the code must be done from client, before passing the request to the server
-	// for additional processing.
-	// (Number and validity of args was already checked when creating payload)
-	if flag.Arg(0) == "codeset" && flag.Arg(1) == "register" {
-		rp := payload.(*codeset.RegisterPayload)
-		csc, err := fuseml.NewCodesetClient()
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-			os.Exit(1)
-		}
-		err = csc.Push(rp.Codeset, rp.Location)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, err.Error())
-			os.Exit(1)
-		}
-	}
-
 	data, err := endpoint(context.Background(), payload)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
@@ -109,6 +92,18 @@ func main() {
 	if data != nil {
 		m, _ := json.MarshalIndent(data, "", "    ")
 		fmt.Println(string(m))
+	}
+	// Pushing the code must be done from client, before passing the request to the server
+	// for additional processing.
+	// (Number and validity of args was already checked when creating payload)
+	if data != nil && flag.Arg(0) == "codeset" && flag.Arg(1) == "register" {
+		rp := payload.(*codeset.RegisterPayload)
+		codeset := rp.Codeset
+		err := gitc.Push(codeset.Project, codeset.Name, rp.Location)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err.Error())
+			os.Exit(1)
+		}
 	}
 }
 

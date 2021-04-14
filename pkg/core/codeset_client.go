@@ -1,30 +1,17 @@
 package fuseml
 
 import (
-	"fmt"
 	"log"
-	"net/url"
-	"os/exec"
-	"path"
-	"time"
 
 	"code.gitea.io/sdk/gitea"
 	"github.com/pkg/errors"
 
 	codeset "github.com/fuseml/fuseml-core/gen/codeset"
+	config "github.com/fuseml/fuseml-core/pkg/core/config"
 	giteac "github.com/fuseml/fuseml-core/pkg/core/gitea"
 )
 
-var (
-	// FIXME: generate this and put it in a secret
-	HookSecret = "generatedsecret"
-
-	// StagingEventListenerURL should not exist
-	// FIXME: detect this based on namespaces and services
-	StagingEventListenerURL = "http://el-mlflow-listener.fuseml-workloads:8080"
-
-	DefaultOrg = "workspace"
-)
+var ()
 
 // CodesetClient provides functionality for talking to a
 // Fuseml installation on Kubernetes
@@ -67,8 +54,53 @@ func (cc *CodesetClient) CreateOrg(org string) error {
 	})
 
 	if err != nil {
-		return errors.Wrap(err, "failed to create org")
+		return errors.Wrap(err, "Failed to create org")
 	}
+	return nil
+}
+
+// create user assigned to current project
+func (cc *CodesetClient) CreateUser(org string) error {
+	username := config.DefaultUserName(org)
+	user, resp, err := cc.giteaClient.GetUserInfo(username)
+	if resp == nil && err != nil {
+		return errors.Wrap(err, "Failed to make get user request")
+	}
+	if user.ID != 0 {
+		log.Println("User already exists")
+		return nil
+	}
+
+	log.Printf("Creating user '%s'", username)
+	_, _, err = cc.giteaClient.AdminCreateUser(gitea.CreateUserOption{
+		Username:           username,
+		Email:              config.DefaultUserEmail,
+		Password:           config.DefaultUserPassword,
+		MustChangePassword: gitea.OptionalBool(false),
+		SendNotify:         false,
+	})
+	if err != nil {
+		return errors.Wrap(err, "Failed to create user")
+	}
+
+	teams, _, err := cc.giteaClient.ListOrgTeams(org, gitea.ListTeamsOptions{})
+	if err != nil {
+		return errors.Wrap(err, "Failed to list org teams")
+	}
+	for _, team := range teams {
+		if team.Name == "Owners" {
+			_, err = cc.giteaClient.AddTeamMember(team.ID, username)
+			if err != nil {
+				return errors.Wrap(err, "Failed adding user to Owners")
+			}
+			break
+		}
+	}
+
+	if err != nil {
+		return errors.Wrap(err, "Failed to create application")
+	}
+
 	return nil
 }
 
@@ -93,7 +125,7 @@ func (cc *CodesetClient) CreateRepo(org, name string) error {
 	})
 
 	if err != nil {
-		return errors.Wrap(err, "Failed to create application")
+		return errors.Wrap(err, "Failed to create repository")
 	}
 
 	return nil
@@ -108,7 +140,7 @@ func (cc *CodesetClient) CreateRepoWebhook(org, name string) error {
 
 	for _, hook := range hooks {
 		url := hook.Config["url"]
-		if url == StagingEventListenerURL {
+		if url == config.StagingEventListenerURL {
 			log.Printf("Webhook for '%s' already exists", name)
 			return nil
 		}
@@ -119,9 +151,9 @@ func (cc *CodesetClient) CreateRepoWebhook(org, name string) error {
 		Active:       true,
 		BranchFilter: "*",
 		Config: map[string]string{
-			"secret":       HookSecret,
+			"secret":       config.HookSecret,
 			"http_method":  "POST",
-			"url":          StagingEventListenerURL,
+			"url":          config.StagingEventListenerURL,
 			"content_type": "json",
 		},
 		Type: "gitea",
@@ -130,54 +162,17 @@ func (cc *CodesetClient) CreateRepoWebhook(org, name string) error {
 	return nil
 }
 
-// Push the code from local dir to remote repo
-func (cc *CodesetClient) GitPush(org, name, location string) error {
-	log.Printf("Pushing the code to the git repository...")
-
-	giteaURL, err := cc.giteaResolver.GetGiteaURL()
-	if err != nil {
-		return errors.Wrap(err, "Failed to resolve gitea host")
-	}
-
-	u, err := url.Parse(giteaURL)
-	if err != nil {
-		return errors.Wrap(err, "Failed to parse gitea url")
-	}
-
-	username, password, err := cc.giteaResolver.GetGiteaCredentials()
-	if err != nil {
-		return errors.Wrap(err, "Failed to resolve gitea credentials")
-	}
-
-	u.User = url.UserPassword(username, password)
-	u.Path = path.Join(u.Path, org, name)
-
-	cmd := exec.Command("/bin/sh", "-c", fmt.Sprintf(`
-cd "%s"
-git init
-git config user.name "Fuseml"
-git config user.email ci@fuseml
-git remote add fuseml "%s"
-git fetch --all
-git reset --soft fuseml/main
-git add --all
-git commit --no-gpg-sign -m "pushed at %s"
-git push fuseml master:main
-`, location, u.String(), time.Now().Format("20060102150405")))
-
-	_, err = cmd.CombinedOutput()
-	if err != nil {
-		return errors.Wrap(err, "Pushiong the code has failed")
-	}
-	return nil
-}
-
-// Prepare the repository and push the code from local path to remote repo
-func (cc *CodesetClient) Push(code *codeset.Codeset, location string) error {
+// Prepare the org, repository, and create user that clients can use for pushing
+func (cc *CodesetClient) PrepareRepo(code *codeset.Codeset) error {
 
 	err := cc.CreateOrg(code.Project)
 	if err != nil {
 		return errors.Wrap(err, "Create org failed")
+	}
+
+	err = cc.CreateUser(code.Project)
+	if err != nil {
+		return errors.Wrap(err, "Create FuseML user failed")
 	}
 
 	err = cc.CreateRepo(code.Project, code.Name)
@@ -187,13 +182,7 @@ func (cc *CodesetClient) Push(code *codeset.Codeset, location string) error {
 
 	err = cc.CreateRepoWebhook(code.Project, code.Name)
 	if err != nil {
-		return errors.Wrap(err, "webhook configuration failed")
+		return errors.Wrap(err, "Creating webhook failed")
 	}
-
-	err = cc.GitPush(code.Project, code.Name, location)
-	if err != nil {
-		return errors.Wrap(err, "failed to git push code")
-	}
-
 	return nil
 }
