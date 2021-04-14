@@ -16,8 +16,18 @@ var (
 )
 
 // FIXME check git content, not internal map
-func (cs *CodesetStore) FindCodeset(project, name string) *codeset.Codeset {
-	return cs.items[name]
+func (cs *CodesetStore) FindCodeset(project, name string) (*codeset.Codeset, error) {
+	csc, err := NewCodesetClient()
+	if err != nil {
+		return nil, errors.Wrap(err, "Creating codeset client failed")
+	}
+
+	result, err := csc.GetRepo(project, name)
+	if err != nil {
+		return nil, errors.Wrap(err, "Fetching Codeset failed")
+	}
+	return result, nil
+	//	return cs.items[name]
 }
 
 // FIXME for all projects and labels, return codeset element
@@ -32,7 +42,7 @@ func (cs *CodesetStore) GetAllCodesets(project *string, label *string) ([]*codes
 	if err != nil {
 		return nil, errors.Wrap(err, "Fetching Codesets failed")
 	}
-        // FIXME check for label too
+	// FIXME check for label too
 	return result, nil
 }
 

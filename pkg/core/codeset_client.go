@@ -227,3 +227,23 @@ func (cc *CodesetClient) GetRepos(org *string) ([]*codeset.Codeset, error) {
 	}
 	return allRepos, nil
 }
+
+// Get the information about repository
+func (cc *CodesetClient) GetRepo(org, name string) (*codeset.Codeset, error) {
+	repo, _, err := cc.giteaClient.GetRepo(org, name)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to read repository")
+	}
+
+	ret := codeset.Codeset{
+		Name:    repo.Name,
+		Project: org,
+	}
+	if repo.Description == "" {
+		ret.Description = nil
+	} else {
+		ret.Description = &repo.Description
+	}
+	return &ret, nil
+	// TODO to get labels call ListRepoLabels(owner, repo string, opt ListLabelsOptions) ([]*Label, *Response, error)
+}
