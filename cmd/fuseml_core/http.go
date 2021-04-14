@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"log"
+	"mime"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -15,6 +17,7 @@ import (
 	goahttp "goa.design/goa/v3/http"
 	httpmdlwr "goa.design/goa/v3/http/middleware"
 	"goa.design/goa/v3/middleware"
+	"gopkg.in/yaml.v2"
 )
 
 // handleHTTPServer starts configures and starts a HTTP server on the given
@@ -34,8 +37,8 @@ func handleHTTPServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 	// Other encodings can be used by providing the corresponding functions,
 	// see goa.design/implement/encoding.
 	var (
-		dec = goahttp.RequestDecoder
-		enc = goahttp.ResponseEncoder
+		dec = requestDecoder
+		enc = responseEncoder
 	)
 
 	// Build the service HTTP request multiplexer and configure it to serve
@@ -117,4 +120,82 @@ func errorHandler(logger *log.Logger) func(context.Context, http.ResponseWriter,
 		_, _ = w.Write([]byte("[" + id + "] encoding: " + err.Error()))
 		logger.Printf("[%s] ERROR: %s", id, err.Error())
 	}
+}
+
+// requestDecoder implements the goahttp.Decoder interface.
+// Its return defaults to a YAML decoder, when a specific content type other
+// than YAML is requested it returns the decoder from the Goa RequestDecoder
+// function.
+func requestDecoder(r *http.Request) goahttp.Decoder {
+	contentType := r.Header.Get("Content-Type")
+	if contentType == "" {
+		// default to YAML
+		contentType = "application/x-yaml"
+	} else {
+		// sanitize
+		if mediaType, _, err := mime.ParseMediaType(contentType); err == nil {
+			contentType = mediaType
+		}
+	}
+	if contentType == "application/x-yaml" {
+		return yaml.NewDecoder(r.Body)
+	}
+	return goahttp.RequestDecoder(r)
+}
+
+// responseEncoder implements the goahttp.Encoder interface.
+// Its return defaults to a YAML encoder, when a specific content type other
+// than YAML is requested it returns the Encoder from the Goa ResponseEncoder
+// function.
+func responseEncoder(ctx context.Context, w http.ResponseWriter) goahttp.Encoder {
+	var ct string
+	if a := ctx.Value(goahttp.ContentTypeKey); a != nil {
+		ct = a.(string)
+	}
+	var (
+		enc goahttp.Encoder
+		mt  string
+		err error
+	)
+
+	if ct != "" {
+		// If content type explicitly set in the DSL, infer the response encoder
+		// from the content type context key.
+		if mt, _, err = mime.ParseMediaType(ct); err == nil {
+			switch {
+			case ct == "application/x-yaml" || strings.HasSuffix(ct, "+yaml"):
+				enc = yaml.NewEncoder(w)
+			default:
+				enc = goahttp.ResponseEncoder(ctx, w)
+			}
+		}
+		goahttp.SetContentType(w, mt)
+		return enc
+	}
+
+	var accept string
+	if a := ctx.Value(goahttp.AcceptTypeKey); a != nil {
+		accept = a.(string)
+	}
+
+	negotiate := func(a string) (goahttp.Encoder, string) {
+		if a == "" || a == "application/x-yaml" {
+			return yaml.NewEncoder(w), "application/x-yaml"
+		}
+		return goahttp.ResponseEncoder(ctx, w), a
+	}
+
+	// If Accept header exists in the request, infer the response encoder
+	// from the header value.
+	if enc, mt = negotiate(accept); enc == nil {
+		// attempt to normalize
+		if mt, _, err = mime.ParseMediaType(accept); err == nil {
+			enc, mt = negotiate(mt)
+		}
+	}
+	if enc == nil {
+		enc, mt = negotiate("")
+	}
+	goahttp.SetContentType(w, mt)
+	return enc
 }
