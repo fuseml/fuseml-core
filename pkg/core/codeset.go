@@ -22,11 +22,7 @@ func NewCodeset(logger *log.Logger) codeset.Service {
 // Retrieve information about codesets registered in FuseML.
 func (s *codesetsrvc) List(ctx context.Context, p *codeset.ListPayload) (res []*codeset.Codeset, err error) {
 	s.logger.Print("codeset.list")
-	project := "all"
-	if p.Project != nil {
-		project = *p.Project
-	}
-	return codesetStore.GetAllCodesets(project, p.Label), nil
+	return codesetStore.GetAllCodesets(p.Project, p.Label)
 }
 
 // Register a codeset with the FuseML codeset codesetStore.

@@ -186,3 +186,44 @@ func (cc *CodesetClient) PrepareRepo(code *codeset.Codeset) error {
 	}
 	return nil
 }
+
+// Get all repositories for given project
+func (cc *CodesetClient) GetReposForOrg(org string) ([]*codeset.Codeset, error) {
+	var codesets []*codeset.Codeset
+	log.Printf("Listing repos for org '%s'...", org)
+	repos, _, err := cc.giteaClient.ListOrgRepos(org, gitea.ListOrgReposOptions{})
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to list project repos")
+	}
+	for _, repo := range repos {
+		codesets = append(codesets, &codeset.Codeset{Name: repo.Name, Project: org})
+	}
+	return codesets, nil
+}
+
+// Find all repositories, optionally filtered by project
+func (cc *CodesetClient) GetRepos(org *string) ([]*codeset.Codeset, error) {
+
+	var allRepos []*codeset.Codeset
+	var orgs []*gitea.Organization
+
+	if org == nil {
+		log.Printf("Going through all orgs...")
+		var err error
+		orgs, _, err = cc.giteaClient.ListMyOrgs(gitea.ListOrgsOptions{})
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to list orgs")
+		}
+	} else {
+		orgs = append(orgs, &gitea.Organization{UserName: *org})
+	}
+
+	for _, o := range orgs {
+		repos, err := cc.GetReposForOrg(o.UserName)
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to list repos for org "+o.UserName)
+		}
+		allRepos = append(allRepos, repos...)
+	}
+	return allRepos, nil
+}

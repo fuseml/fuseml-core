@@ -21,18 +21,19 @@ func (cs *CodesetStore) FindCodeset(project, name string) *codeset.Codeset {
 }
 
 // FIXME for all projects and labels, return codeset element
-func (cs *CodesetStore) GetAllCodesets(project string, label *string) (result []*codeset.Codeset) {
-	result = make([]*codeset.Codeset, 0, len(cs.items))
-	for _, r := range cs.items {
-		if project != "all" && r.Project != project {
-			continue
-		}
-		if label != nil && *r.Label != *label {
-			continue
-		}
-		result = append(result, r)
+func (cs *CodesetStore) GetAllCodesets(project *string, label *string) ([]*codeset.Codeset, error) {
+	// FIXME move this to init
+	csc, err := NewCodesetClient()
+	if err != nil {
+		return nil, errors.Wrap(err, "Creating codeset client failed")
 	}
-	return
+
+	result, err := csc.GetRepos(project)
+	if err != nil {
+		return nil, errors.Wrap(err, "Fetching Codesets failed")
+	}
+        // FIXME check for label too
+	return result, nil
 }
 
 // 1. create org + new repo
