@@ -14,6 +14,7 @@ import (
 
 	codeset "github.com/fuseml/fuseml-core/gen/codeset"
 	runnable "github.com/fuseml/fuseml-core/gen/runnable"
+	workflow "github.com/fuseml/fuseml-core/gen/workflow"
 	fuseml "github.com/fuseml/fuseml-core/pkg/core"
 	"github.com/fuseml/fuseml-core/pkg/core/gitea"
 )
@@ -49,10 +50,12 @@ func main() {
 	var (
 		runnableSvc runnable.Service
 		codesetSvc  codeset.Service
+		workflowSvc workflow.Service
 	)
 	{
 		runnableSvc = fuseml.NewRunnable(logger)
 		codesetSvc = fuseml.NewCodesetService(logger, fuseml.NewGitCodesetStore(gitAdmin))
+		workflowSvc = fuseml.NewWorkflow(logger)
 	}
 
 	// Wrap the services in endpoints that can be invoked from other services
@@ -60,10 +63,12 @@ func main() {
 	var (
 		runnableEndpoints *runnable.Endpoints
 		codesetEndpoints  *codeset.Endpoints
+		workflowEndpoints *workflow.Endpoints
 	)
 	{
 		runnableEndpoints = runnable.NewEndpoints(runnableSvc)
 		codesetEndpoints = codeset.NewEndpoints(codesetSvc)
+		workflowEndpoints = workflow.NewEndpoints(workflowSvc)
 	}
 
 	// Create channel used by both the signal handler and server goroutines
@@ -107,7 +112,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "80")
 			}
-			handleHTTPServer(ctx, u, runnableEndpoints, codesetEndpoints, &wg, errc, logger, *dbgF)
+			handleHTTPServer(ctx, u, runnableEndpoints, codesetEndpoints, workflowEndpoints, &wg, errc, logger, *dbgF)
 		}
 
 		{
@@ -133,7 +138,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "8080")
 			}
-			handleGRPCServer(ctx, u, runnableEndpoints, codesetEndpoints, &wg, errc, logger, *dbgF)
+			handleGRPCServer(ctx, u, runnableEndpoints, codesetEndpoints, workflowEndpoints, &wg, errc, logger, *dbgF)
 		}
 
 	case "prod":
@@ -160,7 +165,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "80")
 			}
-			handleHTTPServer(ctx, u, runnableEndpoints, codesetEndpoints, &wg, errc, logger, *dbgF)
+			handleHTTPServer(ctx, u, runnableEndpoints, codesetEndpoints, workflowEndpoints, &wg, errc, logger, *dbgF)
 		}
 
 		{
@@ -186,7 +191,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "8080")
 			}
-			handleGRPCServer(ctx, u, runnableEndpoints, codesetEndpoints, &wg, errc, logger, *dbgF)
+			handleGRPCServer(ctx, u, runnableEndpoints, codesetEndpoints, workflowEndpoints, &wg, errc, logger, *dbgF)
 		}
 
 	default:
