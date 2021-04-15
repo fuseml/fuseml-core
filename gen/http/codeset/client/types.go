@@ -32,8 +32,8 @@ type RegisterResponseBody struct {
 	Project *string `form:"project,omitempty" json:"project,omitempty" xml:"project,omitempty"`
 	// Codeset description
 	Description *string `form:"description,omitempty" json:"description,omitempty" xml:"description,omitempty"`
-	// Additional Codeset label that helps with identifying the type
-	Label *string `form:"label,omitempty" json:"label,omitempty" xml:"label,omitempty"`
+	// Additional Codeset labels that helps with identifying the type
+	Labels []string `form:"labels,omitempty" json:"labels,omitempty" xml:"labels,omitempty"`
 }
 
 // GetResponseBody is the type of the "codeset" service "get" endpoint HTTP
@@ -45,8 +45,8 @@ type GetResponseBody struct {
 	Project *string `form:"project,omitempty" json:"project,omitempty" xml:"project,omitempty"`
 	// Codeset description
 	Description *string `form:"description,omitempty" json:"description,omitempty" xml:"description,omitempty"`
-	// Additional Codeset label that helps with identifying the type
-	Label *string `form:"label,omitempty" json:"label,omitempty" xml:"label,omitempty"`
+	// Additional Codeset labels that helps with identifying the type
+	Labels []string `form:"labels,omitempty" json:"labels,omitempty" xml:"labels,omitempty"`
 }
 
 // ListNotFoundResponseBody is the type of the "codeset" service "list"
@@ -129,8 +129,8 @@ type CodesetResponse struct {
 	Project *string `form:"project,omitempty" json:"project,omitempty" xml:"project,omitempty"`
 	// Codeset description
 	Description *string `form:"description,omitempty" json:"description,omitempty" xml:"description,omitempty"`
-	// Additional Codeset label that helps with identifying the type
-	Label *string `form:"label,omitempty" json:"label,omitempty" xml:"label,omitempty"`
+	// Additional Codeset labels that helps with identifying the type
+	Labels []string `form:"labels,omitempty" json:"labels,omitempty" xml:"labels,omitempty"`
 }
 
 // CodesetRequestBody is used to define fields on request body types.
@@ -141,8 +141,8 @@ type CodesetRequestBody struct {
 	Project string `form:"project" json:"project" xml:"project"`
 	// Codeset description
 	Description *string `form:"description,omitempty" json:"description,omitempty" xml:"description,omitempty"`
-	// Additional Codeset label that helps with identifying the type
-	Label *string `form:"label,omitempty" json:"label,omitempty" xml:"label,omitempty"`
+	// Additional Codeset labels that helps with identifying the type
+	Labels []string `form:"labels,omitempty" json:"labels,omitempty" xml:"labels,omitempty"`
 }
 
 // NewRegisterRequestBody builds the HTTP request body from the payload of the
@@ -186,7 +186,12 @@ func NewRegisterCodesetCreated(body *RegisterResponseBody) *codeset.Codeset {
 		Name:        *body.Name,
 		Project:     *body.Project,
 		Description: body.Description,
-		Label:       body.Label,
+	}
+	if body.Labels != nil {
+		v.Labels = make([]string, len(body.Labels))
+		for i, val := range body.Labels {
+			v.Labels[i] = val
+		}
 	}
 
 	return v
@@ -214,7 +219,12 @@ func NewGetCodesetOK(body *GetResponseBody) *codeset.Codeset {
 		Name:        *body.Name,
 		Project:     *body.Project,
 		Description: body.Description,
-		Label:       body.Label,
+	}
+	if body.Labels != nil {
+		v.Labels = make([]string, len(body.Labels))
+		for i, val := range body.Labels {
+			v.Labels[i] = val
+		}
 	}
 
 	return v

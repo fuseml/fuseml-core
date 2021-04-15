@@ -39,8 +39,8 @@ message Codeset2 {
 	string project = 2;
 	// Codeset description
 	string description = 3;
-	// Additional Codeset label that helps with identifying the type
-	string label = 4;
+	// Additional Codeset labels that helps with identifying the type
+	repeated string labels = 4;
 }
 
 message RegisterRequest {
@@ -57,8 +57,8 @@ message RegisterResponse {
 	string project = 2;
 	// Codeset description
 	string description = 3;
-	// Additional Codeset label that helps with identifying the type
-	string label = 4;
+	// Additional Codeset labels that helps with identifying the type
+	repeated string labels = 4;
 }
 
 message GetRequest {
@@ -75,6 +75,6 @@ message GetResponse {
 	string project = 2;
 	// Codeset description
 	string description = 3;
-	// Additional Codeset label that helps with identifying the type
-	string label = 4;
+	// Additional Codeset labels that helps with identifying the type
+	repeated string labels = 4;
 }

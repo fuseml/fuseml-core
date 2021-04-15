@@ -275,7 +275,7 @@ definitions:
       fault:
         type: boolean
         description: Is the error a server-side fault?
-        example: false
+        example: true
       id:
         type: string
         description: ID is a unique identifier for this particular occurrence of the
@@ -293,7 +293,7 @@ definitions:
       temporary:
         type: boolean
         description: Is the error temporary?
-        example: false
+        example: true
       timeout:
         type: boolean
         description: Is the error a timeout?
@@ -301,12 +301,12 @@ definitions:
     description: If neither name or project is not given, should return 400 Bad Request.
       (default view)
     example:
-      fault: false
+      fault: true
       id: 123abc
       message: parameter 'p' must be an integer
       name: bad_request
       temporary: true
-      timeout: false
+      timeout: true
     required:
     - name
     - id
@@ -321,7 +321,7 @@ definitions:
       fault:
         type: boolean
         description: Is the error a server-side fault?
-        example: true
+        example: false
       id:
         type: string
         description: ID is a unique identifier for this particular occurrence of the
@@ -339,11 +339,11 @@ definitions:
       temporary:
         type: boolean
         description: Is the error temporary?
-        example: false
+        example: true
       timeout:
         type: boolean
         description: Is the error a timeout?
-        example: true
+        example: false
     description: If there is no codeset with the given name and project, should return
       404 Not Found. (default view)
     example:
@@ -352,7 +352,7 @@ definitions:
       message: parameter 'p' must be an integer
       name: bad_request
       temporary: false
-      timeout: true
+      timeout: false
     required:
     - name
     - id
@@ -368,10 +368,15 @@ definitions:
         type: string
         description: Codeset description
         example: My first MLFlow application with FuseML
-      label:
-        type: string
-        description: Additional Codeset label that helps with identifying the type
-        example: mlflow
+      labels:
+        type: array
+        items:
+          type: string
+          example: Sunt molestias pariatur.
+        description: Additional Codeset labels that helps with identifying the type
+        example:
+        - mlflow
+        - playground
       name:
         type: string
         description: The name of the Codeset
@@ -382,7 +387,9 @@ definitions:
         example: mlflow-project-01
     example:
       description: My first MLFlow application with FuseML
-      label: mlflow
+      labels:
+      - mlflow
+      - playground
       name: mlflow-app-01
       project: mlflow-project-01
     required:
@@ -413,7 +420,7 @@ definitions:
       temporary:
         type: boolean
         description: Is the error temporary?
-        example: false
+        example: true
       timeout:
         type: boolean
         description: Is the error a timeout?
@@ -425,7 +432,7 @@ definitions:
       id: 123abc
       message: parameter 'p' must be an integer
       name: bad_request
-      temporary: true
+      temporary: false
       timeout: false
     required:
     - name
@@ -441,7 +448,7 @@ definitions:
       fault:
         type: boolean
         description: Is the error a server-side fault?
-        example: false
+        example: true
       id:
         type: string
         description: ID is a unique identifier for this particular occurrence of the
@@ -459,19 +466,19 @@ definitions:
       temporary:
         type: boolean
         description: Is the error temporary?
-        example: true
+        example: false
       timeout:
         type: boolean
         description: Is the error a timeout?
-        example: true
+        example: false
     description: If the Codeset does not have the required fields, should return 400
       Bad Request. (default view)
     example:
-      fault: false
+      fault: true
       id: 123abc
       message: parameter 'p' must be an integer
       name: bad_request
-      temporary: false
+      temporary: true
       timeout: false
     required:
     - name
@@ -489,7 +496,9 @@ definitions:
     example:
       codeset:
         description: My first MLFlow application with FuseML
-        label: mlflow
+        labels:
+        - mlflow
+        - playground
         name: mlflow-app-01
         project: mlflow-project-01
     required:
@@ -502,10 +511,15 @@ definitions:
         type: string
         description: Codeset description
         example: My first MLFlow application with FuseML
-      label:
-        type: string
-        description: Additional Codeset label that helps with identifying the type
-        example: mlflow
+      labels:
+        type: array
+        items:
+          type: string
+          example: Earum quis maxime.
+        description: Additional Codeset labels that helps with identifying the type
+        example:
+        - mlflow
+        - playground
       name:
         type: string
         description: The name of the Codeset
@@ -516,7 +530,9 @@ definitions:
         example: mlflow-project-01
     example:
       description: My first MLFlow application with FuseML
-      label: mlflow
+      labels:
+      - mlflow
+      - playground
       name: mlflow-app-01
       project: mlflow-project-01
     required:
@@ -530,10 +546,15 @@ definitions:
         type: string
         description: Codeset description
         example: My first MLFlow application with FuseML
-      label:
-        type: string
-        description: Additional Codeset label that helps with identifying the type
-        example: mlflow
+      labels:
+        type: array
+        items:
+          type: string
+          example: Qui fugiat voluptatum rerum et vero et.
+        description: Additional Codeset labels that helps with identifying the type
+        example:
+        - mlflow
+        - playground
       name:
         type: string
         description: The name of the Codeset
@@ -544,7 +565,9 @@ definitions:
         example: mlflow-project-01
     example:
       description: My first MLFlow application with FuseML
-      label: mlflow
+      labels:
+      - mlflow
+      - playground
       name: mlflow-app-01
       project: mlflow-project-01
     required:
@@ -558,10 +581,15 @@ definitions:
         type: string
         description: Codeset description
         example: My first MLFlow application with FuseML
-      label:
-        type: string
-        description: Additional Codeset label that helps with identifying the type
-        example: mlflow
+      labels:
+        type: array
+        items:
+          type: string
+          example: Non iusto perferendis optio tempore voluptate.
+        description: Additional Codeset labels that helps with identifying the type
+        example:
+        - mlflow
+        - playground
       name:
         type: string
         description: The name of the Codeset
@@ -572,7 +600,9 @@ definitions:
         example: mlflow-project-01
     example:
       description: My first MLFlow application with FuseML
-      label: mlflow
+      labels:
+      - mlflow
+      - playground
       name: mlflow-app-01
       project: mlflow-project-01
     required:
@@ -645,7 +675,7 @@ definitions:
       fault:
         type: boolean
         description: Is the error a server-side fault?
-        example: true
+        example: false
       id:
         type: string
         description: ID is a unique identifier for this particular occurrence of the
@@ -663,7 +693,7 @@ definitions:
       temporary:
         type: boolean
         description: Is the error temporary?
-        example: false
+        example: true
       timeout:
         type: boolean
         description: Is the error a timeout?
@@ -676,7 +706,7 @@ definitions:
       message: parameter 'p' must be an integer
       name: bad_request
       temporary: false
-      timeout: false
+      timeout: true
     required:
     - name
     - id
@@ -691,7 +721,7 @@ definitions:
       fault:
         type: boolean
         description: Is the error a server-side fault?
-        example: false
+        example: true
       id:
         type: string
         description: ID is a unique identifier for this particular occurrence of the
@@ -713,15 +743,15 @@ definitions:
       timeout:
         type: boolean
         description: Is the error a timeout?
-        example: true
+        example: false
     description: If there is no runnable with the given name/id, should return 404
       Not Found. (default view)
     example:
-      fault: false
+      fault: true
       id: 123abc
       message: parameter 'p' must be an integer
       name: bad_request
-      temporary: true
+      temporary: false
       timeout: false
     required:
     - name
@@ -776,18 +806,6 @@ definitions:
             - label1
             - label2
             name: BuilderRun1
-        - kind: parameter
-          name: Input1
-          parameter:
-            datatype: file
-            default: mydata.csv
-            optional: true
-          runnable:
-            kind: builder
-            labels:
-            - label1
-            - label2
-            name: BuilderRun1
       kind:
         type: string
         description: The kind of runnable (builder, trainer, predictor etc.)
@@ -796,7 +814,7 @@ definitions:
         type: array
         items:
           type: string
-          example: Sit dolorum et omnis voluptas quis.
+          example: Commodi occaecati voluptas voluptate excepturi.
         description: Labels associated with the runnable
         example:
         - trainer
@@ -810,30 +828,6 @@ definitions:
           $ref: '#/definitions/RunnableOutputResponseBody'
         description: List of outputs (artifacts, values etc.) generated by this runnable
         example:
-        - kind: model
-          metadata:
-            datatype: file
-            default: mydata.csv
-            optional: true
-          name: Output1
-          runnable:
-            kind: builder
-            labels:
-            - label1
-            - label2
-            name: BuilderRun1
-        - kind: model
-          metadata:
-            datatype: file
-            default: mydata.csv
-            optional: true
-          name: Output1
-          runnable:
-            kind: builder
-            labels:
-            - label1
-            - label2
-            name: BuilderRun1
         - kind: model
           metadata:
             datatype: file
@@ -1107,7 +1101,7 @@ definitions:
       fault:
         type: boolean
         description: Is the error a server-side fault?
-        example: false
+        example: true
       id:
         type: string
         description: ID is a unique identifier for this particular occurrence of the
@@ -1137,7 +1131,7 @@ definitions:
       id: 123abc
       message: parameter 'p' must be an integer
       name: bad_request
-      temporary: true
+      temporary: false
       timeout: false
     required:
     - name
@@ -1245,7 +1239,7 @@ definitions:
         type: array
         items:
           type: string
-          example: Qui porro sed vitae voluptate omnis deserunt.
+          example: Ad atque sed.
         description: Runnable labels
         example:
         - label1
@@ -1272,7 +1266,7 @@ definitions:
         type: array
         items:
           type: string
-          example: Et aut tempora temporibus quidem hic.
+          example: Illum eveniet autem minus.
         description: Runnable labels
         example:
         - label1
@@ -1299,7 +1293,7 @@ definitions:
         type: array
         items:
           type: string
-          example: Et ut molestiae qui modi.
+          example: Autem atque non in velit sint.
         description: Runnable labels
         example:
         - label1
@@ -1343,7 +1337,7 @@ definitions:
       timeout:
         type: boolean
         description: Is the error a timeout?
-        example: true
+        example: false
     description: If the runnable does not have the required fields, should return
       400 Bad Request. (default view)
     example:
@@ -1351,8 +1345,8 @@ definitions:
       id: 123abc
       message: parameter 'p' must be an integer
       name: bad_request
-      temporary: false
-      timeout: true
+      temporary: true
+      timeout: false
     required:
     - name
     - id
@@ -1438,7 +1432,7 @@ definitions:
         type: array
         items:
           type: string
-          example: Nostrum rerum.
+          example: Qui numquam quia nihil minima et.
         description: Labels associated with the runnable
         example:
         - trainer
@@ -1521,11 +1515,47 @@ definitions:
           - label1
           - label2
           name: BuilderRun1
+      - kind: parameter
+        name: Input1
+        parameter:
+          datatype: file
+          default: mydata.csv
+          optional: true
+        runnable:
+          kind: builder
+          labels:
+          - label1
+          - label2
+          name: BuilderRun1
       kind: trainer
       labels:
       - trainer
       name: MyTrainer
       outputs:
+      - kind: model
+        metadata:
+          datatype: file
+          default: mydata.csv
+          optional: true
+        name: Output1
+        runnable:
+          kind: builder
+          labels:
+          - label1
+          - label2
+          name: BuilderRun1
+      - kind: model
+        metadata:
+          datatype: file
+          default: mydata.csv
+          optional: true
+        name: Output1
+        runnable:
+          kind: builder
+          labels:
+          - label1
+          - label2
+          name: BuilderRun1
       - kind: model
         metadata:
           datatype: file
@@ -1611,7 +1641,7 @@ definitions:
         type: array
         items:
           type: string
-          example: Voluptas aperiam eligendi nulla laboriosam eos.
+          example: Quo aut quae quia quasi molestiae.
         description: Labels associated with the runnable
         example:
         - trainer
@@ -1625,30 +1655,6 @@ definitions:
           $ref: '#/definitions/RunnableOutputResponseBody'
         description: List of outputs (artifacts, values etc.) generated by this runnable
         example:
-        - kind: model
-          metadata:
-            datatype: file
-            default: mydata.csv
-            optional: true
-          name: Output1
-          runnable:
-            kind: builder
-            labels:
-            - label1
-            - label2
-            name: BuilderRun1
-        - kind: model
-          metadata:
-            datatype: file
-            default: mydata.csv
-            optional: true
-          name: Output1
-          runnable:
-            kind: builder
-            labels:
-            - label1
-            - label2
-            name: BuilderRun1
         - kind: model
           metadata:
             datatype: file
@@ -1717,35 +1723,23 @@ definitions:
           - label1
           - label2
           name: BuilderRun1
+      - kind: parameter
+        name: Input1
+        parameter:
+          datatype: file
+          default: mydata.csv
+          optional: true
+        runnable:
+          kind: builder
+          labels:
+          - label1
+          - label2
+          name: BuilderRun1
       kind: trainer
       labels:
       - trainer
       name: MyTrainer
       outputs:
-      - kind: model
-        metadata:
-          datatype: file
-          default: mydata.csv
-          optional: true
-        name: Output1
-        runnable:
-          kind: builder
-          labels:
-          - label1
-          - label2
-          name: BuilderRun1
-      - kind: model
-        metadata:
-          datatype: file
-          default: mydata.csv
-          optional: true
-        name: Output1
-        runnable:
-          kind: builder
-          labels:
-          - label1
-          - label2
-          name: BuilderRun1
       - kind: model
         metadata:
           datatype: file
@@ -1823,30 +1817,6 @@ definitions:
             - label1
             - label2
             name: BuilderRun1
-        - kind: parameter
-          name: Input1
-          parameter:
-            datatype: file
-            default: mydata.csv
-            optional: true
-          runnable:
-            kind: builder
-            labels:
-            - label1
-            - label2
-            name: BuilderRun1
-        - kind: parameter
-          name: Input1
-          parameter:
-            datatype: file
-            default: mydata.csv
-            optional: true
-          runnable:
-            kind: builder
-            labels:
-            - label1
-            - label2
-            name: BuilderRun1
       kind:
         type: string
         description: The kind of runnable (builder, trainer, predictor etc.)
@@ -1855,7 +1825,7 @@ definitions:
         type: array
         items:
           type: string
-          example: Explicabo fugiat.
+          example: Dolorum eum et.
         description: Labels associated with the runnable
         example:
         - trainer
@@ -1954,6 +1924,18 @@ definitions:
       - trainer
       name: MyTrainer
       outputs:
+      - kind: model
+        metadata:
+          datatype: file
+          default: mydata.csv
+          optional: true
+        name: Output1
+        runnable:
+          kind: builder
+          labels:
+          - label1
+          - label2
+          name: BuilderRun1
       - kind: model
         metadata:
           datatype: file

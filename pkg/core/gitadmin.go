@@ -29,8 +29,8 @@ func (ga *GitAdmin) PrepareRepo(code *codeset.Codeset) error {
 }
 
 // Find all repositories, optionally filtered by project
-func (ga *GitAdmin) GetRepos(org *string) ([]*codeset.Codeset, error) {
-	return ga.admin.GetRepos(org)
+func (ga *GitAdmin) GetRepos(org, label *string) ([]*codeset.Codeset, error) {
+	return ga.admin.GetRepos(org, label)
 }
 
 // Get the information about repository

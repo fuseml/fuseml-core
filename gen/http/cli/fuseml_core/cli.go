@@ -234,7 +234,10 @@ Example:
     `+os.Args[0]+` codeset register --body '{
       "codeset": {
          "description": "My first MLFlow application with FuseML",
-         "label": "mlflow",
+         "labels": [
+            "mlflow",
+            "playground"
+         ],
          "name": "mlflow-app-01",
          "project": "mlflow-project-01"
       }

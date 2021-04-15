@@ -232,7 +232,12 @@ func marshalCodesetCodesetToCodesetResponse(v *codeset.Codeset) *CodesetResponse
 		Name:        v.Name,
 		Project:     v.Project,
 		Description: v.Description,
-		Label:       v.Label,
+	}
+	if v.Labels != nil {
+		res.Labels = make([]string, len(v.Labels))
+		for i, val := range v.Labels {
+			res.Labels[i] = val
+		}
 	}
 
 	return res
@@ -245,7 +250,12 @@ func unmarshalCodesetRequestBodyToCodesetCodeset(v *CodesetRequestBody) *codeset
 		Name:        *v.Name,
 		Project:     *v.Project,
 		Description: v.Description,
-		Label:       v.Label,
+	}
+	if v.Labels != nil {
+		res.Labels = make([]string, len(v.Labels))
+		for i, val := range v.Labels {
+			res.Labels[i] = val
+		}
 	}
 
 	return res

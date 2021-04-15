@@ -31,18 +31,17 @@ func (cs *CodesetStore) FindCodeset(project, name string) (*codeset.Codeset, err
 }
 
 // FIXME for all projects and labels, return codeset element
-func (cs *CodesetStore) GetAllCodesets(project *string, label *string) ([]*codeset.Codeset, error) {
+func (cs *CodesetStore) GetAllCodesets(project, label *string) ([]*codeset.Codeset, error) {
 	// FIXME move this to init
 	ga, err := NewGitAdmin()
 	if err != nil {
 		return nil, errors.Wrap(err, "Creating codeset client failed")
 	}
 
-	result, err := ga.GetRepos(project)
+	result, err := ga.GetRepos(project, label)
 	if err != nil {
 		return nil, errors.Wrap(err, "Fetching Codesets failed")
 	}
-	// FIXME check for label too
 	return result, nil
 }
 

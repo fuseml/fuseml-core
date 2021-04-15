@@ -137,8 +137,8 @@ var Codeset = Type("Codeset", func() {
 	Field(3, "description", String, "Codeset description", func() {
 		Example("My first MLFlow application with FuseML")
 	})
-	Field(4, "label", String, "Additional Codeset label that helps with identifying the type", func() {
-		Example("mlflow")
+	Field(4, "labels", ArrayOf(String), "Additional Codeset labels that helps with identifying the type", func() {
+		Example([]string{"mlflow", "playground"})
 	})
 	Required("name", "project")
 })

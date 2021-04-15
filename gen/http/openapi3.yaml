@@ -85,20 +85,52 @@ paths:
                 description: Return all registered Codesets matching the query.
                 example:
                 - description: My first MLFlow application with FuseML
-                  label: mlflow
+                  labels:
+                  - mlflow
+                  - playground
                   name: mlflow-app-01
                   project: mlflow-project-01
                 - description: My first MLFlow application with FuseML
-                  label: mlflow
+                  labels:
+                  - mlflow
+                  - playground
+                  name: mlflow-app-01
+                  project: mlflow-project-01
+                - description: My first MLFlow application with FuseML
+                  labels:
+                  - mlflow
+                  - playground
+                  name: mlflow-app-01
+                  project: mlflow-project-01
+                - description: My first MLFlow application with FuseML
+                  labels:
+                  - mlflow
+                  - playground
                   name: mlflow-app-01
                   project: mlflow-project-01
               example:
               - description: My first MLFlow application with FuseML
-                label: mlflow
+                labels:
+                - mlflow
+                - playground
                 name: mlflow-app-01
                 project: mlflow-project-01
               - description: My first MLFlow application with FuseML
-                label: mlflow
+                labels:
+                - mlflow
+                - playground
+                name: mlflow-app-01
+                project: mlflow-project-01
+              - description: My first MLFlow application with FuseML
+                labels:
+                - mlflow
+                - playground
+                name: mlflow-app-01
+                project: mlflow-project-01
+              - description: My first MLFlow application with FuseML
+                labels:
+                - mlflow
+                - playground
                 name: mlflow-app-01
                 project: mlflow-project-01
         "404":
@@ -137,7 +169,9 @@ paths:
             example:
               codeset:
                 description: My first MLFlow application with FuseML
-                label: mlflow
+                labels:
+                - mlflow
+                - playground
                 name: mlflow-app-01
                 project: mlflow-project-01
       responses:
@@ -149,7 +183,9 @@ paths:
                 $ref: '#/components/schemas/Codeset'
               example:
                 description: My first MLFlow application with FuseML
-                label: mlflow
+                labels:
+                - mlflow
+                - playground
                 name: mlflow-app-01
                 project: mlflow-project-01
         "400":
@@ -197,7 +233,9 @@ paths:
                 $ref: '#/components/schemas/Codeset'
               example:
                 description: My first MLFlow application with FuseML
-                label: mlflow
+                labels:
+                - mlflow
+                - playground
                 name: mlflow-app-01
                 project: mlflow-project-01
         "400":
@@ -416,7 +454,259 @@ paths:
                       - label1
                       - label2
                       name: BuilderRun1
+                - created: "2021-04-09T06:17:25Z"
+                  id: 3F59C655-AFF8-EAB8-FA17-44E154EF0557
+                  image:
+                    registryUrl: myregistry.io
+                    repository: example/builder
+                    tag: "1.0"
+                  inputs:
+                  - kind: parameter
+                    name: Input1
+                    parameter:
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    runnable:
+                      kind: builder
+                      labels:
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  - kind: parameter
+                    name: Input1
+                    parameter:
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    runnable:
+                      kind: builder
+                      labels:
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  - kind: parameter
+                    name: Input1
+                    parameter:
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    runnable:
+                      kind: builder
+                      labels:
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  kind: trainer
+                  labels:
+                  - trainer
+                  name: MyTrainer
+                  outputs:
+                  - kind: model
+                    metadata:
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    name: Output1
+                    runnable:
+                      kind: builder
+                      labels:
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  - kind: model
+                    metadata:
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    name: Output1
+                    runnable:
+                      kind: builder
+                      labels:
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  - kind: model
+                    metadata:
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    name: Output1
+                    runnable:
+                      kind: builder
+                      labels:
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                - created: "2021-04-09T06:17:25Z"
+                  id: 3F59C655-AFF8-EAB8-FA17-44E154EF0557
+                  image:
+                    registryUrl: myregistry.io
+                    repository: example/builder
+                    tag: "1.0"
+                  inputs:
+                  - kind: parameter
+                    name: Input1
+                    parameter:
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    runnable:
+                      kind: builder
+                      labels:
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  - kind: parameter
+                    name: Input1
+                    parameter:
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    runnable:
+                      kind: builder
+                      labels:
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  - kind: parameter
+                    name: Input1
+                    parameter:
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    runnable:
+                      kind: builder
+                      labels:
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  kind: trainer
+                  labels:
+                  - trainer
+                  name: MyTrainer
+                  outputs:
+                  - kind: model
+                    metadata:
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    name: Output1
+                    runnable:
+                      kind: builder
+                      labels:
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  - kind: model
+                    metadata:
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    name: Output1
+                    runnable:
+                      kind: builder
+                      labels:
+                      - label1
+                      - label2
+                      name: BuilderRun1
+                  - kind: model
+                    metadata:
+                      datatype: file
+                      default: mydata.csv
+                      optional: true
+                    name: Output1
+                    runnable:
+                      kind: builder
+                      labels:
+                      - label1
+                      - label2
+                      name: BuilderRun1
               example:
+              - created: "2021-04-09T06:17:25Z"
+                id: 3F59C655-AFF8-EAB8-FA17-44E154EF0557
+                image:
+                  registryUrl: myregistry.io
+                  repository: example/builder
+                  tag: "1.0"
+                inputs:
+                - kind: parameter
+                  name: Input1
+                  parameter:
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  runnable:
+                    kind: builder
+                    labels:
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: parameter
+                  name: Input1
+                  parameter:
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  runnable:
+                    kind: builder
+                    labels:
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: parameter
+                  name: Input1
+                  parameter:
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  runnable:
+                    kind: builder
+                    labels:
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                kind: trainer
+                labels:
+                - trainer
+                name: MyTrainer
+                outputs:
+                - kind: model
+                  metadata:
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  name: Output1
+                  runnable:
+                    kind: builder
+                    labels:
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: model
+                  metadata:
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  name: Output1
+                  runnable:
+                    kind: builder
+                    labels:
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: model
+                  metadata:
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  name: Output1
+                  runnable:
+                    kind: builder
+                    labels:
+                    - label1
+                    - label2
+                    name: BuilderRun1
               - created: "2021-04-09T06:17:25Z"
                 id: 3F59C655-AFF8-EAB8-FA17-44E154EF0557
                 image:
@@ -992,10 +1282,15 @@ components:
           type: string
           description: Codeset description
           example: My first MLFlow application with FuseML
-        label:
-          type: string
-          description: Additional Codeset label that helps with identifying the type
-          example: mlflow
+        labels:
+          type: array
+          items:
+            type: string
+            example: Maxime possimus.
+          description: Additional Codeset labels that helps with identifying the type
+          example:
+          - mlflow
+          - playground
         name:
           type: string
           description: The name of the Codeset
@@ -1006,7 +1301,9 @@ components:
           example: mlflow-project-01
       example:
         description: My first MLFlow application with FuseML
-        label: mlflow
+        labels:
+        - mlflow
+        - playground
         name: mlflow-app-01
         project: mlflow-project-01
       required:
@@ -1018,7 +1315,7 @@ components:
         fault:
           type: boolean
           description: Is the error a server-side fault?
-          example: false
+          example: true
         id:
           type: string
           description: ID is a unique identifier for this particular occurrence of
@@ -1036,11 +1333,11 @@ components:
         temporary:
           type: boolean
           description: Is the error temporary?
-          example: true
+          example: false
         timeout:
           type: boolean
           description: Is the error a timeout?
-          example: true
+          example: false
       description: If the Codeset is not found, should return 404 Not Found.
       example:
         id: 3F1FKVRR
@@ -1080,7 +1377,9 @@ components:
       example:
         codeset:
           description: My first MLFlow application with FuseML
-          label: mlflow
+          labels:
+          - mlflow
+          - playground
           name: mlflow-app-01
           project: mlflow-project-01
       required:
@@ -1150,7 +1449,7 @@ components:
           type: array
           items:
             type: string
-            example: Iusto minus.
+            example: Ea facere nam qui.
           description: Labels associated with the runnable
           example:
           - trainer
@@ -1165,18 +1464,6 @@ components:
           description: List of outputs (artifacts, values etc.) generated by this
             runnable
           example:
-          - kind: model
-            metadata:
-              datatype: file
-              default: mydata.csv
-              optional: true
-            name: Output1
-            runnable:
-              kind: builder
-              labels:
-              - label1
-              - label2
-              name: BuilderRun1
           - kind: model
             metadata:
               datatype: file
@@ -1233,35 +1520,23 @@ components:
             - label1
             - label2
             name: BuilderRun1
+        - kind: parameter
+          name: Input1
+          parameter:
+            datatype: file
+            default: mydata.csv
+            optional: true
+          runnable:
+            kind: builder
+            labels:
+            - label1
+            - label2
+            name: BuilderRun1
         kind: trainer
         labels:
         - trainer
         name: MyTrainer
         outputs:
-        - kind: model
-          metadata:
-            datatype: file
-            default: mydata.csv
-            optional: true
-          name: Output1
-          runnable:
-            kind: builder
-            labels:
-            - label1
-            - label2
-            name: BuilderRun1
-        - kind: model
-          metadata:
-            datatype: file
-            default: mydata.csv
-            optional: true
-          name: Output1
-          runnable:
-            kind: builder
-            labels:
-            - label1
-            - label2
-            name: BuilderRun1
         - kind: model
           metadata:
             datatype: file
@@ -1380,7 +1655,7 @@ components:
           type: array
           items:
             type: string
-            example: Modi est.
+            example: Et et veniam voluptate qui cumque magni.
           description: Runnable labels
           example:
           - label1
