@@ -1,26 +1,24 @@
 /**
  * This is the administration interface to the git store
- * It is currently implemented using gitea API
  */
 package fuseml
 
 import (
-	"github.com/pkg/errors"
-
 	codeset "github.com/fuseml/fuseml-core/gen/codeset"
-	giteaadmin "github.com/fuseml/fuseml-core/pkg/core/gitea"
 )
 
 type GitAdmin struct {
-	admin *giteaadmin.GiteaAdminClient
+	admin AdminClient
 }
 
-func NewGitAdmin() (*GitAdmin, error) {
-	admin, err := giteaadmin.NewGiteaAdminClient()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to initialize Gitea admin client")
-	}
-	return &GitAdmin{admin}, nil
+type AdminClient interface {
+	PrepareRepo(code *codeset.Codeset) error
+	GetRepos(org, label *string) ([]*codeset.Codeset, error)
+	GetRepo(org, name string) (*codeset.Codeset, error)
+}
+
+func NewGitAdmin(ac AdminClient) *GitAdmin {
+	return &GitAdmin{ac}
 }
 
 // Prepare the org, repository, and create user that clients can use for pushing

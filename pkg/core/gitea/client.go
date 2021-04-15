@@ -11,14 +11,20 @@ import (
 	config "github.com/fuseml/fuseml-core/pkg/core/config"
 )
 
-type GiteaAdminClient struct {
+type GiteaAdminClient interface {
+	PrepareRepo(code *codeset.Codeset) error
+	GetRepos(org, label *string) ([]*codeset.Codeset, error)
+	GetRepo(org, name string) (*codeset.Codeset, error)
+}
+
+type giteaAdminClient struct {
 	giteaClient *gitea.Client
 	url         string
 }
 
 // NewGiteaAdminClient creates a new gitea client and performs authentication
 // from the credentials provided as env variables
-func NewGiteaAdminClient() (*GiteaAdminClient, error) {
+func NewGiteaAdminClient() (GiteaAdminClient, error) {
 
 	url, exists := os.LookupEnv("GITEA_URL")
 	if !exists {
@@ -40,18 +46,18 @@ func NewGiteaAdminClient() (*GiteaAdminClient, error) {
 
 	client.SetBasicAuth(username, password)
 
-	return &GiteaAdminClient{
+	return giteaAdminClient{
 		giteaClient: client,
 		url:         url,
 	}, nil
 }
 
-func (gac *GiteaAdminClient) GetGiteaURL() (string, error) {
+func (gac giteaAdminClient) GetGiteaURL() (string, error) {
 	return gac.url, nil
 }
 
 // CreateOrg creates an Org in gitea
-func (gac *GiteaAdminClient) CreateOrg(org string) error {
+func (gac giteaAdminClient) CreateOrg(org string) error {
 
 	_, resp, err := gac.giteaClient.GetOrg(org)
 	if resp == nil && err != nil {
@@ -74,7 +80,7 @@ func (gac *GiteaAdminClient) CreateOrg(org string) error {
 }
 
 // create user assigned to current project
-func (gac *GiteaAdminClient) CreateUser(org string) error {
+func (gac giteaAdminClient) CreateUser(org string) error {
 	username := config.DefaultUserName(org)
 	user, resp, err := gac.giteaClient.GetUserInfo(username)
 	if resp == nil && err != nil {
@@ -119,7 +125,7 @@ func (gac *GiteaAdminClient) CreateUser(org string) error {
 }
 
 // create git repository with given name under given org
-func (gac *GiteaAdminClient) CreateRepo(c *codeset.Codeset) error {
+func (gac giteaAdminClient) CreateRepo(c *codeset.Codeset) error {
 	_, resp, err := gac.giteaClient.GetRepo(c.Project, c.Name)
 	if resp == nil && err != nil {
 		return errors.Wrap(err, "Failed to make get repo request")
@@ -147,7 +153,7 @@ func (gac *GiteaAdminClient) CreateRepo(c *codeset.Codeset) error {
 }
 
 // Add topics to given repository
-func (gac *GiteaAdminClient) AddRepoTopics(org, name string, labels []string) error {
+func (gac giteaAdminClient) AddRepoTopics(org, name string, labels []string) error {
 	for _, label := range labels {
 		_, err := gac.giteaClient.AddRepoTopic(org, name, label)
 		if err != nil {
@@ -158,7 +164,7 @@ func (gac *GiteaAdminClient) AddRepoTopics(org, name string, labels []string) er
 }
 
 // Create webhook for given repository and wire it to tekton listener
-func (gac *GiteaAdminClient) CreateRepoWebhook(org, name string) error {
+func (gac giteaAdminClient) CreateRepoWebhook(org, name string) error {
 	hooks, _, err := gac.giteaClient.ListRepoHooks(org, name, gitea.ListHooksOptions{})
 	if err != nil {
 		return errors.Wrap(err, "Failed to list webhooks")
@@ -189,7 +195,7 @@ func (gac *GiteaAdminClient) CreateRepoWebhook(org, name string) error {
 }
 
 // Prepare the org, repository, and create user that clients can use for pushing
-func (gac *GiteaAdminClient) PrepareRepo(code *codeset.Codeset) error {
+func (gac giteaAdminClient) PrepareRepo(code *codeset.Codeset) error {
 
 	err := gac.CreateOrg(code.Project)
 	if err != nil {
@@ -229,7 +235,7 @@ func contains(s []string, str string) bool {
 }
 
 // Get all repositories for given project, filter them for label (if given)
-func (gac *GiteaAdminClient) GetReposForOrg(org string, label *string) ([]*codeset.Codeset, error) {
+func (gac giteaAdminClient) GetReposForOrg(org string, label *string) ([]*codeset.Codeset, error) {
 	var codesets []*codeset.Codeset
 	log.Printf("Listing repos for org '%s'...", org)
 	repos, _, err := gac.giteaClient.ListOrgRepos(org, gitea.ListOrgReposOptions{})
@@ -257,7 +263,7 @@ func (gac *GiteaAdminClient) GetReposForOrg(org string, label *string) ([]*codes
 }
 
 // Find all repositories, optionally filtered by project
-func (gac *GiteaAdminClient) GetRepos(org, label *string) ([]*codeset.Codeset, error) {
+func (gac giteaAdminClient) GetRepos(org, label *string) ([]*codeset.Codeset, error) {
 
 	var allRepos []*codeset.Codeset
 	var orgs []*gitea.Organization
@@ -284,7 +290,8 @@ func (gac *GiteaAdminClient) GetRepos(org, label *string) ([]*codeset.Codeset, e
 }
 
 // Get the information about repository
-func (gac *GiteaAdminClient) GetRepo(org, name string) (*codeset.Codeset, error) {
+func (gac giteaAdminClient) GetRepo(org, name string) (*codeset.Codeset, error) {
+	log.Printf("Get repo %s for org '%s'...", name, org)
 	repo, _, err := gac.giteaClient.GetRepo(org, name)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to read repository")

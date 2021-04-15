@@ -2,14 +2,12 @@ package fuseml
 
 import (
 	"context"
-	"errors"
 	"log"
 
 	codeset "github.com/fuseml/fuseml-core/gen/codeset"
 )
 
-// codeset service example implementation.
-// The example methods log the requests and return zero values.
+// codeset service implementation.
 type codesetsrvc struct {
 	logger *log.Logger
 }
@@ -34,9 +32,5 @@ func (s *codesetsrvc) Register(ctx context.Context, p *codeset.RegisterPayload) 
 // Retrieve an Codeset from FuseML.
 func (s *codesetsrvc) Get(ctx context.Context, p *codeset.GetPayload) (res *codeset.Codeset, err error) {
 	s.logger.Print("codeset.get")
-	c, err := codesetStore.FindCodeset(p.Project, p.Name)
-	if c == nil {
-		return nil, codeset.MakeNotFound(errors.New("could not find a codeset with the specified name and project"))
-	}
-	return c, nil
+	return codesetStore.FindCodeset(p.Project, p.Name)
 }
