@@ -17,12 +17,12 @@ var (
 
 // FIXME check git content, not internal map
 func (cs *CodesetStore) FindCodeset(project, name string) (*codeset.Codeset, error) {
-	csc, err := NewCodesetClient()
+	ga, err := NewGitAdmin()
 	if err != nil {
 		return nil, errors.Wrap(err, "Creating codeset client failed")
 	}
 
-	result, err := csc.GetRepo(project, name)
+	result, err := ga.GetRepo(project, name)
 	if err != nil {
 		return nil, errors.Wrap(err, "Fetching Codeset failed")
 	}
@@ -33,12 +33,12 @@ func (cs *CodesetStore) FindCodeset(project, name string) (*codeset.Codeset, err
 // FIXME for all projects and labels, return codeset element
 func (cs *CodesetStore) GetAllCodesets(project *string, label *string) ([]*codeset.Codeset, error) {
 	// FIXME move this to init
-	csc, err := NewCodesetClient()
+	ga, err := NewGitAdmin()
 	if err != nil {
 		return nil, errors.Wrap(err, "Creating codeset client failed")
 	}
 
-	result, err := csc.GetRepos(project)
+	result, err := ga.GetRepos(project)
 	if err != nil {
 		return nil, errors.Wrap(err, "Fetching Codesets failed")
 	}
@@ -49,11 +49,11 @@ func (cs *CodesetStore) GetAllCodesets(project *string, label *string) ([]*codes
 // 1. create org + new repo
 // 2. register in some other store ???
 func (cs *CodesetStore) AddCodeset(c *codeset.Codeset) (*codeset.Codeset, error) {
-	csc, err := NewCodesetClient()
+	ga, err := NewGitAdmin()
 	if err != nil {
 		return nil, errors.Wrap(err, "Creating codeset client failed")
 	}
-	err = csc.PrepareRepo(c)
+	err = ga.PrepareRepo(c)
 	if err != nil {
 		return nil, errors.Wrap(err, "Preparing Repository failed")
 	}
