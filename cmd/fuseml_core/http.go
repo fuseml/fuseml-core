@@ -189,7 +189,7 @@ func responseEncoder(ctx context.Context, w http.ResponseWriter) goahttp.Encoder
 	}
 
 	negotiate := func(a string) (goahttp.Encoder, string) {
-		if a == "" || a == "application/x-yaml" {
+		if a == "application/x-yaml" {
 			return yaml.NewEncoder(w), "application/x-yaml"
 		}
 		return goahttp.ResponseEncoder(ctx, w), a
