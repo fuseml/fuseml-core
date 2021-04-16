@@ -52,7 +52,7 @@ func main() {
 	)
 	{
 		runnableSvc = fuseml.NewRunnable(logger)
-		codesetSvc = fuseml.NewCodesetService(logger, fuseml.NewInMemCodesetStore(gitAdmin))
+		codesetSvc = fuseml.NewCodesetService(logger, fuseml.NewGitCodesetStore(gitAdmin))
 	}
 
 	// Wrap the services in endpoints that can be invoked from other services

@@ -20,20 +20,17 @@ type GitAdmin interface {
 	GetRepo(org, name string) (*codeset.Codeset, error)
 }
 
-type inMemCodesetStore struct {
-	// FIXME this is just internal representation, it should go away
-	items    map[string]*codeset.Codeset
+type gitCodesetStore struct {
 	gitAdmin GitAdmin
 }
 
-func NewInMemCodesetStore(gitAdmin GitAdmin) *inMemCodesetStore {
-	return &inMemCodesetStore{
-		items:    make(map[string]*codeset.Codeset),
+func NewGitCodesetStore(gitAdmin GitAdmin) *gitCodesetStore {
+	return &gitCodesetStore{
 		gitAdmin: gitAdmin,
 	}
 }
 
-func (cs *inMemCodesetStore) Find(ctx context.Context, project, name string) (*codeset.Codeset, error) {
+func (cs *gitCodesetStore) Find(ctx context.Context, project, name string) (*codeset.Codeset, error) {
 	result, err := cs.gitAdmin.GetRepo(project, name)
 	if err != nil {
 		return nil, errors.Wrap(err, "Fetching Codeset failed")
@@ -42,7 +39,7 @@ func (cs *inMemCodesetStore) Find(ctx context.Context, project, name string) (*c
 }
 
 // return codeset elements matching given project and label
-func (cs *inMemCodesetStore) GetAll(ctx context.Context, project, label *string) ([]*codeset.Codeset, error) {
+func (cs *gitCodesetStore) GetAll(ctx context.Context, project, label *string) ([]*codeset.Codeset, error) {
 	result, err := cs.gitAdmin.GetRepos(project, label)
 	if err != nil {
 		return nil, errors.Wrap(err, "Fetching Codesets failed")
@@ -52,12 +49,11 @@ func (cs *inMemCodesetStore) GetAll(ctx context.Context, project, label *string)
 
 // 1. create org + new repo
 // 2. TODO register in some other store ???
-func (cs *inMemCodesetStore) Add(ctx context.Context, c *codeset.Codeset) (*codeset.Codeset, error) {
+func (cs *gitCodesetStore) Add(ctx context.Context, c *codeset.Codeset) (*codeset.Codeset, error) {
 	err := cs.gitAdmin.PrepareRepo(c)
 	if err != nil {
 		return nil, errors.Wrap(err, "Preparing Repository failed")
 	}
 	// Code itself needs to be pushed from client, here we could do some additional registration
-	cs.items[c.Name] = c
 	return c, nil
 }
