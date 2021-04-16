@@ -15,6 +15,7 @@ import (
 	codeset "github.com/fuseml/fuseml-core/gen/codeset"
 	runnable "github.com/fuseml/fuseml-core/gen/runnable"
 	fuseml "github.com/fuseml/fuseml-core/pkg/core"
+	"github.com/fuseml/fuseml-core/pkg/core/gitea"
 )
 
 func main() {
@@ -38,6 +39,12 @@ func main() {
 		logger = log.New(os.Stderr, "[fuseml] ", log.Ltime)
 	}
 
+	gitAdmin, err := gitea.NewGiteaAdminClient()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Failed to initialize Gitea admin client: ", err.Error())
+		os.Exit(1)
+	}
+
 	// Initialize the services.
 	var (
 		runnableSvc runnable.Service
@@ -45,7 +52,7 @@ func main() {
 	)
 	{
 		runnableSvc = fuseml.NewRunnable(logger)
-		codesetSvc = fuseml.NewCodeset(logger)
+		codesetSvc = fuseml.NewCodesetService(logger, fuseml.NewGitCodesetStore(gitAdmin))
 	}
 
 	// Wrap the services in endpoints that can be invoked from other services
