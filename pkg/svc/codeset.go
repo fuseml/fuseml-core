@@ -1,20 +1,21 @@
-package fuseml
+package svc
 
 import (
 	"context"
 	"log"
 
-	codeset "github.com/fuseml/fuseml-core/gen/codeset"
+	"github.com/fuseml/fuseml-core/gen/codeset"
+	"github.com/fuseml/fuseml-core/pkg/domain"
 )
 
 // codeset service implementation.
 type codesetsrvc struct {
 	logger *log.Logger
-	store  CodesetStore
+	store  domain.CodesetStore
 }
 
 // NewCodesetService returns the codeset service implementation.
-func NewCodesetService(logger *log.Logger, store CodesetStore) codeset.Service {
+func NewCodesetService(logger *log.Logger, store domain.CodesetStore) codeset.Service {
 	return &codesetsrvc{logger, store}
 }
 
