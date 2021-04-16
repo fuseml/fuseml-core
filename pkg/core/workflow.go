@@ -2,9 +2,11 @@ package fuseml
 
 import (
 	"context"
+	"errors"
 	"log"
 
 	workflow "github.com/fuseml/fuseml-core/gen/workflow"
+	"github.com/google/uuid"
 )
 
 // workflow service example implementation.
@@ -19,21 +21,32 @@ func NewWorkflow(logger *log.Logger) workflow.Service {
 }
 
 // Retrieve information about workflows registered in FuseML.
-func (s *workflowsrvc) List(ctx context.Context, p *workflow.ListPayload) (res []*workflow.Workflow, err error) {
+func (s *workflowsrvc) List(ctx context.Context, w *workflow.ListPayload) (res []*workflow.Workflow, err error) {
 	s.logger.Print("workflow.list")
-	return
+	name := "all"
+	if w.Name != nil {
+		name = *w.Name
+	}
+
+	return workflowStore.Get(name), nil
 }
 
 // Register a workflow with the FuseML workflow store.
-func (s *workflowsrvc) Register(ctx context.Context, p *workflow.Workflow) (res *workflow.Workflow, err error) {
-	res = &workflow.Workflow{}
+func (s *workflowsrvc) Register(ctx context.Context, w *workflow.Workflow) (res *workflow.Workflow, err error) {
 	s.logger.Print("workflow.register")
-	return
+	return workflowStore.Add(w)
 }
 
 // Retrieve an Workflow from FuseML.
-func (s *workflowsrvc) Get(ctx context.Context, p *workflow.GetPayload) (res *workflow.Workflow, err error) {
-	res = &workflow.Workflow{}
+func (s *workflowsrvc) Get(ctx context.Context, w *workflow.GetPayload) (res *workflow.Workflow, err error) {
 	s.logger.Print("workflow.get")
-	return
+	id, err := uuid.Parse(w.WorkflowNameOrID)
+	if err != nil {
+		return nil, workflow.MakeBadRequest(err)
+	}
+	wf := workflowStore.Find(id)
+	if wf == nil {
+		return nil, workflow.MakeNotFound(errors.New("could not find a workflow with the specified ID"))
+	}
+	return wf, nil
 }
