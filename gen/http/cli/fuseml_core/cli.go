@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 
+	codesetc "github.com/fuseml/fuseml-core/gen/http/codeset/client"
 	runnablec "github.com/fuseml/fuseml-core/gen/http/runnable/client"
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
@@ -23,13 +24,15 @@ import (
 //    command (subcommand1|subcommand2|...)
 //
 func UsageCommands() string {
-	return `runnable (list|register|get)
+	return `codeset (list|register|get)
+runnable (list|register|get)
 `
 }
 
 // UsageExamples produces an example of a valid invocation of the CLI tool.
 func UsageExamples() string {
-	return os.Args[0] + ` runnable list --kind "builder"` + "\n" +
+	return os.Args[0] + ` codeset list --project "mlflow-project-01" --label "mlflow"` + "\n" +
+		os.Args[0] + ` runnable list --kind "builder"` + "\n" +
 		""
 }
 
@@ -43,6 +46,20 @@ func ParseEndpoint(
 	restore bool,
 ) (goa.Endpoint, interface{}, error) {
 	var (
+		codesetFlags = flag.NewFlagSet("codeset", flag.ContinueOnError)
+
+		codesetListFlags       = flag.NewFlagSet("list", flag.ExitOnError)
+		codesetListProjectFlag = codesetListFlags.String("project", "", "")
+		codesetListLabelFlag   = codesetListFlags.String("label", "", "")
+
+		codesetRegisterFlags        = flag.NewFlagSet("register", flag.ExitOnError)
+		codesetRegisterBodyFlag     = codesetRegisterFlags.String("body", "REQUIRED", "")
+		codesetRegisterLocationFlag = codesetRegisterFlags.String("location", "REQUIRED", "")
+
+		codesetGetFlags       = flag.NewFlagSet("get", flag.ExitOnError)
+		codesetGetProjectFlag = codesetGetFlags.String("project", "REQUIRED", "Project name")
+		codesetGetNameFlag    = codesetGetFlags.String("name", "REQUIRED", "Codeset name")
+
 		runnableFlags = flag.NewFlagSet("runnable", flag.ContinueOnError)
 
 		runnableListFlags    = flag.NewFlagSet("list", flag.ExitOnError)
@@ -54,6 +71,11 @@ func ParseEndpoint(
 		runnableGetFlags                = flag.NewFlagSet("get", flag.ExitOnError)
 		runnableGetRunnableNameOrIDFlag = runnableGetFlags.String("runnable-name-or-id", "REQUIRED", "Runnable name or id")
 	)
+	codesetFlags.Usage = codesetUsage
+	codesetListFlags.Usage = codesetListUsage
+	codesetRegisterFlags.Usage = codesetRegisterUsage
+	codesetGetFlags.Usage = codesetGetUsage
+
 	runnableFlags.Usage = runnableUsage
 	runnableListFlags.Usage = runnableListUsage
 	runnableRegisterFlags.Usage = runnableRegisterUsage
@@ -74,6 +96,8 @@ func ParseEndpoint(
 	{
 		svcn = flag.Arg(0)
 		switch svcn {
+		case "codeset":
+			svcf = codesetFlags
 		case "runnable":
 			svcf = runnableFlags
 		default:
@@ -91,6 +115,19 @@ func ParseEndpoint(
 	{
 		epn = svcf.Arg(0)
 		switch svcn {
+		case "codeset":
+			switch epn {
+			case "list":
+				epf = codesetListFlags
+
+			case "register":
+				epf = codesetRegisterFlags
+
+			case "get":
+				epf = codesetGetFlags
+
+			}
+
 		case "runnable":
 			switch epn {
 			case "list":
@@ -124,6 +161,19 @@ func ParseEndpoint(
 	)
 	{
 		switch svcn {
+		case "codeset":
+			c := codesetc.NewClient(scheme, host, doer, enc, dec, restore)
+			switch epn {
+			case "list":
+				endpoint = c.List()
+				data, err = codesetc.BuildListPayload(*codesetListProjectFlag, *codesetListLabelFlag)
+			case "register":
+				endpoint = c.Register()
+				data, err = codesetc.BuildRegisterPayload(*codesetRegisterBodyFlag, *codesetRegisterLocationFlag)
+			case "get":
+				endpoint = c.Get()
+				data, err = codesetc.BuildGetPayload(*codesetGetProjectFlag, *codesetGetNameFlag)
+			}
 		case "runnable":
 			c := runnablec.NewClient(scheme, host, doer, enc, dec, restore)
 			switch epn {
@@ -144,6 +194,67 @@ func ParseEndpoint(
 	}
 
 	return endpoint, data, nil
+}
+
+// codesetUsage displays the usage of the codeset command and its subcommands.
+func codesetUsage() {
+	fmt.Fprintf(os.Stderr, `The codeset service performs operations on Codesets.
+Usage:
+    %s [globalflags] codeset COMMAND [flags]
+
+COMMAND:
+    list: Retrieve information about Codesets registered in FuseML.
+    register: Register a Codeset with the FuseML codeset store.
+    get: Retrieve an Codeset from FuseML.
+
+Additional help:
+    %s codeset COMMAND --help
+`, os.Args[0], os.Args[0])
+}
+func codesetListUsage() {
+	fmt.Fprintf(os.Stderr, `%s [flags] codeset list -project STRING -label STRING
+
+Retrieve information about Codesets registered in FuseML.
+    -project STRING: 
+    -label STRING: 
+
+Example:
+    `+os.Args[0]+` codeset list --project "mlflow-project-01" --label "mlflow"
+`, os.Args[0])
+}
+
+func codesetRegisterUsage() {
+	fmt.Fprintf(os.Stderr, `%s [flags] codeset register -body JSON -location STRING
+
+Register a Codeset with the FuseML codeset store.
+    -body JSON: 
+    -location STRING: 
+
+Example:
+    `+os.Args[0]+` codeset register --body '{
+      "codeset": {
+         "description": "My first MLFlow application with FuseML",
+         "labels": [
+            "mlflow",
+            "playground"
+         ],
+         "name": "mlflow-app-01",
+         "project": "mlflow-project-01"
+      }
+   }' --location "work/ml/mlflow-code"
+`, os.Args[0])
+}
+
+func codesetGetUsage() {
+	fmt.Fprintf(os.Stderr, `%s [flags] codeset get -project STRING -name STRING
+
+Retrieve an Codeset from FuseML.
+    -project STRING: Project name
+    -name STRING: Codeset name
+
+Example:
+    `+os.Args[0]+` codeset get --project "mlflow-project-01" --name "mlflow-app-01"
+`, os.Args[0])
 }
 
 // runnableUsage displays the usage of the runnable command and its subcommands.
@@ -221,23 +332,6 @@ Example:
                ],
                "name": "BuilderRun1"
             }
-         },
-         {
-            "kind": "parameter",
-            "name": "Input1",
-            "parameter": {
-               "datatype": "file",
-               "default": "mydata.csv",
-               "optional": true
-            },
-            "runnable": {
-               "kind": "builder",
-               "labels": [
-                  "label1",
-                  "label2"
-               ],
-               "name": "BuilderRun1"
-            }
          }
       ],
       "kind": "trainer",
@@ -246,40 +340,6 @@ Example:
       ],
       "name": "MyTrainer",
       "outputs": [
-         {
-            "kind": "model",
-            "metadata": {
-               "datatype": "file",
-               "default": "mydata.csv",
-               "optional": true
-            },
-            "name": "Output1",
-            "runnable": {
-               "kind": "builder",
-               "labels": [
-                  "label1",
-                  "label2"
-               ],
-               "name": "BuilderRun1"
-            }
-         },
-         {
-            "kind": "model",
-            "metadata": {
-               "datatype": "file",
-               "default": "mydata.csv",
-               "optional": true
-            },
-            "name": "Output1",
-            "runnable": {
-               "kind": "builder",
-               "labels": [
-                  "label1",
-                  "label2"
-               ],
-               "name": "BuilderRun1"
-            }
-         },
          {
             "kind": "model",
             "metadata": {

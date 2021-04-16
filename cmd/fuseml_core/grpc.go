@@ -7,9 +7,14 @@ import (
 	"net/url"
 	"sync"
 
+	codeset "github.com/fuseml/fuseml-core/gen/codeset"
+	codesetpb "github.com/fuseml/fuseml-core/gen/grpc/codeset/pb"
+	codesetsvr "github.com/fuseml/fuseml-core/gen/grpc/codeset/server"
+
 	runnablepb "github.com/fuseml/fuseml-core/gen/grpc/runnable/pb"
 	runnablesvr "github.com/fuseml/fuseml-core/gen/grpc/runnable/server"
 	runnable "github.com/fuseml/fuseml-core/gen/runnable"
+
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcmdlwr "goa.design/goa/v3/grpc/middleware"
 	"goa.design/goa/v3/middleware"
@@ -19,7 +24,7 @@ import (
 
 // handleGRPCServer starts configures and starts a gRPC server on the given
 // URL. It shuts down the server if any error is received in the error channel.
-func handleGRPCServer(ctx context.Context, u *url.URL, runnableEndpoints *runnable.Endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
+func handleGRPCServer(ctx context.Context, u *url.URL, runnableEndpoints *runnable.Endpoints, codesetEndpoints *codeset.Endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
 
 	// Setup goa log adapter.
 	var (
@@ -35,9 +40,11 @@ func handleGRPCServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 	// responses.
 	var (
 		runnableServer *runnablesvr.Server
+		codesetServer  *codesetsvr.Server
 	)
 	{
 		runnableServer = runnablesvr.New(runnableEndpoints, nil)
+		codesetServer = codesetsvr.New(codesetEndpoints, nil)
 	}
 
 	// Initialize gRPC server with the middleware.
@@ -50,6 +57,7 @@ func handleGRPCServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 
 	// Register the servers.
 	runnablepb.RegisterRunnableServer(srv, runnableServer)
+	codesetpb.RegisterCodesetServer(srv, codesetServer)
 
 	for svc, info := range srv.GetServiceInfo() {
 		for _, m := range info.Methods {

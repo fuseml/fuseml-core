@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"os"
 
+	codesetc "github.com/fuseml/fuseml-core/gen/grpc/codeset/client"
 	runnablec "github.com/fuseml/fuseml-core/gen/grpc/runnable/client"
 	goa "goa.design/goa/v3/pkg"
 	grpc "google.golang.org/grpc"
@@ -22,13 +23,18 @@ import (
 //    command (subcommand1|subcommand2|...)
 //
 func UsageCommands() string {
-	return `runnable (list|register|get)
+	return `codeset (list|register|get)
+runnable (list|register|get)
 `
 }
 
 // UsageExamples produces an example of a valid invocation of the CLI tool.
 func UsageExamples() string {
-	return os.Args[0] + ` runnable list --message '{
+	return os.Args[0] + ` codeset list --message '{
+      "label": "mlflow",
+      "project": "mlflow-project-01"
+   }'` + "\n" +
+		os.Args[0] + ` runnable list --message '{
       "kind": "builder"
    }'` + "\n" +
 		""
@@ -38,6 +44,17 @@ func UsageExamples() string {
 // line.
 func ParseEndpoint(cc *grpc.ClientConn, opts ...grpc.CallOption) (goa.Endpoint, interface{}, error) {
 	var (
+		codesetFlags = flag.NewFlagSet("codeset", flag.ContinueOnError)
+
+		codesetListFlags       = flag.NewFlagSet("list", flag.ExitOnError)
+		codesetListMessageFlag = codesetListFlags.String("message", "", "")
+
+		codesetRegisterFlags       = flag.NewFlagSet("register", flag.ExitOnError)
+		codesetRegisterMessageFlag = codesetRegisterFlags.String("message", "", "")
+
+		codesetGetFlags       = flag.NewFlagSet("get", flag.ExitOnError)
+		codesetGetMessageFlag = codesetGetFlags.String("message", "", "")
+
 		runnableFlags = flag.NewFlagSet("runnable", flag.ContinueOnError)
 
 		runnableListFlags       = flag.NewFlagSet("list", flag.ExitOnError)
@@ -49,6 +66,11 @@ func ParseEndpoint(cc *grpc.ClientConn, opts ...grpc.CallOption) (goa.Endpoint, 
 		runnableGetFlags       = flag.NewFlagSet("get", flag.ExitOnError)
 		runnableGetMessageFlag = runnableGetFlags.String("message", "", "")
 	)
+	codesetFlags.Usage = codesetUsage
+	codesetListFlags.Usage = codesetListUsage
+	codesetRegisterFlags.Usage = codesetRegisterUsage
+	codesetGetFlags.Usage = codesetGetUsage
+
 	runnableFlags.Usage = runnableUsage
 	runnableListFlags.Usage = runnableListUsage
 	runnableRegisterFlags.Usage = runnableRegisterUsage
@@ -69,6 +91,8 @@ func ParseEndpoint(cc *grpc.ClientConn, opts ...grpc.CallOption) (goa.Endpoint, 
 	{
 		svcn = flag.Arg(0)
 		switch svcn {
+		case "codeset":
+			svcf = codesetFlags
 		case "runnable":
 			svcf = runnableFlags
 		default:
@@ -86,6 +110,19 @@ func ParseEndpoint(cc *grpc.ClientConn, opts ...grpc.CallOption) (goa.Endpoint, 
 	{
 		epn = svcf.Arg(0)
 		switch svcn {
+		case "codeset":
+			switch epn {
+			case "list":
+				epf = codesetListFlags
+
+			case "register":
+				epf = codesetRegisterFlags
+
+			case "get":
+				epf = codesetGetFlags
+
+			}
+
 		case "runnable":
 			switch epn {
 			case "list":
@@ -119,6 +156,19 @@ func ParseEndpoint(cc *grpc.ClientConn, opts ...grpc.CallOption) (goa.Endpoint, 
 	)
 	{
 		switch svcn {
+		case "codeset":
+			c := codesetc.NewClient(cc, opts...)
+			switch epn {
+			case "list":
+				endpoint = c.List()
+				data, err = codesetc.BuildListPayload(*codesetListMessageFlag)
+			case "register":
+				endpoint = c.Register()
+				data, err = codesetc.BuildRegisterPayload(*codesetRegisterMessageFlag)
+			case "get":
+				endpoint = c.Get()
+				data, err = codesetc.BuildGetPayload(*codesetGetMessageFlag)
+			}
 		case "runnable":
 			c := runnablec.NewClient(cc, opts...)
 			switch epn {
@@ -139,6 +189,71 @@ func ParseEndpoint(cc *grpc.ClientConn, opts ...grpc.CallOption) (goa.Endpoint, 
 	}
 
 	return endpoint, data, nil
+}
+
+// codesetUsage displays the usage of the codeset command and its subcommands.
+func codesetUsage() {
+	fmt.Fprintf(os.Stderr, `The codeset service performs operations on Codesets.
+Usage:
+    %s [globalflags] codeset COMMAND [flags]
+
+COMMAND:
+    list: Retrieve information about Codesets registered in FuseML.
+    register: Register a Codeset with the FuseML codeset store.
+    get: Retrieve an Codeset from FuseML.
+
+Additional help:
+    %s codeset COMMAND --help
+`, os.Args[0], os.Args[0])
+}
+func codesetListUsage() {
+	fmt.Fprintf(os.Stderr, `%s [flags] codeset list -message JSON
+
+Retrieve information about Codesets registered in FuseML.
+    -message JSON: 
+
+Example:
+    `+os.Args[0]+` codeset list --message '{
+      "label": "mlflow",
+      "project": "mlflow-project-01"
+   }'
+`, os.Args[0])
+}
+
+func codesetRegisterUsage() {
+	fmt.Fprintf(os.Stderr, `%s [flags] codeset register -message JSON
+
+Register a Codeset with the FuseML codeset store.
+    -message JSON: 
+
+Example:
+    `+os.Args[0]+` codeset register --message '{
+      "codeset": {
+         "description": "My first MLFlow application with FuseML",
+         "labels": [
+            "mlflow",
+            "playground"
+         ],
+         "name": "mlflow-app-01",
+         "project": "mlflow-project-01"
+      },
+      "location": "mlflow-project-01"
+   }'
+`, os.Args[0])
+}
+
+func codesetGetUsage() {
+	fmt.Fprintf(os.Stderr, `%s [flags] codeset get -message JSON
+
+Retrieve an Codeset from FuseML.
+    -message JSON: 
+
+Example:
+    `+os.Args[0]+` codeset get --message '{
+      "name": "mlflow-app-01",
+      "project": "mlflow-project-01"
+   }'
+`, os.Args[0])
 }
 
 // runnableUsage displays the usage of the runnable command and its subcommands.
@@ -243,23 +358,6 @@ Example:
       ],
       "name": "MyTrainer",
       "outputs": [
-         {
-            "kind": "model",
-            "metadata": {
-               "datatype": "file",
-               "default": "mydata.csv",
-               "optional": true
-            },
-            "name": "Output1",
-            "runnable": {
-               "kind": "builder",
-               "labels": [
-                  "label1",
-                  "label2"
-               ],
-               "name": "BuilderRun1"
-            }
-         },
          {
             "kind": "model",
             "metadata": {

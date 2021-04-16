@@ -11,9 +11,12 @@ import (
 	"sync"
 	"time"
 
+	codeset "github.com/fuseml/fuseml-core/gen/codeset"
+	codesetsvr "github.com/fuseml/fuseml-core/gen/http/codeset/server"
 	openapisvr "github.com/fuseml/fuseml-core/gen/http/openapi/server"
 	runnablesvr "github.com/fuseml/fuseml-core/gen/http/runnable/server"
 	runnable "github.com/fuseml/fuseml-core/gen/runnable"
+
 	goahttp "goa.design/goa/v3/http"
 	httpmdlwr "goa.design/goa/v3/http/middleware"
 	"goa.design/goa/v3/middleware"
@@ -22,7 +25,7 @@ import (
 
 // handleHTTPServer starts configures and starts a HTTP server on the given
 // URL. It shuts down the server if any error is received in the error channel.
-func handleHTTPServer(ctx context.Context, u *url.URL, runnableEndpoints *runnable.Endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
+func handleHTTPServer(ctx context.Context, u *url.URL, runnableEndpoints *runnable.Endpoints, codesetEndpoints *codeset.Endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
 
 	// Setup goa log adapter.
 	var (
@@ -54,15 +57,18 @@ func handleHTTPServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 	// responses.
 	var (
 		runnableServer *runnablesvr.Server
+		codesetServer  *codesetsvr.Server
 		openapiServer  *openapisvr.Server
 	)
 	{
 		eh := errorHandler(logger)
 		runnableServer = runnablesvr.New(runnableEndpoints, mux, dec, enc, eh, nil)
+		codesetServer = codesetsvr.New(codesetEndpoints, mux, dec, enc, eh, nil)
 		openapiServer = openapisvr.New(nil, mux, dec, enc, eh, nil)
 		if debug {
 			servers := goahttp.Servers{
 				runnableServer,
+				codesetServer,
 				openapiServer,
 			}
 			servers.Use(httpmdlwr.Debug(mux, os.Stdout))
@@ -70,6 +76,7 @@ func handleHTTPServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 	}
 	// Configure the mux.
 	runnablesvr.Mount(mux, runnableServer)
+	codesetsvr.Mount(mux, codesetServer)
 	openapisvr.Mount(mux)
 
 	// Wrap the multiplexer with additional middlewares. Middlewares mounted
@@ -84,6 +91,9 @@ func handleHTTPServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 	// configure the server as required by your service.
 	srv := &http.Server{Addr: u.Host, Handler: handler}
 	for _, m := range runnableServer.Mounts {
+		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
+	}
+	for _, m := range codesetServer.Mounts {
 		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
 	}
 	for _, m := range openapiServer.Mounts {
