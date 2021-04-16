@@ -6,7 +6,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/fuseml/fuseml-core/gen/codeset"
-	giteaadmin "github.com/fuseml/fuseml-core/pkg/core/gitea"
 )
 
 type CodesetStore interface {
@@ -15,26 +14,27 @@ type CodesetStore interface {
 	Add(ctx context.Context, c *codeset.Codeset) (*codeset.Codeset, error)
 }
 
-type inMemCodesetStore struct {
-	// FIXME this is just internal representation, it should go away
-	items map[string]*codeset.Codeset
+type GitAdmin interface {
+	PrepareRepo(code *codeset.Codeset) error
+	GetRepos(org, label *string) ([]*codeset.Codeset, error)
+	GetRepo(org, name string) (*codeset.Codeset, error)
 }
 
-func NewInMemCodesetStore() *inMemCodesetStore {
+type inMemCodesetStore struct {
+	// FIXME this is just internal representation, it should go away
+	items    map[string]*codeset.Codeset
+	gitAdmin GitAdmin
+}
+
+func NewInMemCodesetStore(gitAdmin GitAdmin) *inMemCodesetStore {
 	return &inMemCodesetStore{
-		items: make(map[string]*codeset.Codeset),
+		items:    make(map[string]*codeset.Codeset),
+		gitAdmin: gitAdmin,
 	}
 }
 
 func (cs *inMemCodesetStore) Find(ctx context.Context, project, name string) (*codeset.Codeset, error) {
-
-	giteaAdmin, err := giteaadmin.NewGiteaAdminClient()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to initialize Gitea admin client")
-	}
-	gitAdmin := NewGitAdmin(giteaAdmin)
-
-	result, err := gitAdmin.GetRepo(project, name)
+	result, err := cs.gitAdmin.GetRepo(project, name)
 	if err != nil {
 		return nil, errors.Wrap(err, "Fetching Codeset failed")
 	}
@@ -43,14 +43,7 @@ func (cs *inMemCodesetStore) Find(ctx context.Context, project, name string) (*c
 
 // return codeset elements matching given project and label
 func (cs *inMemCodesetStore) GetAll(ctx context.Context, project, label *string) ([]*codeset.Codeset, error) {
-
-	giteaAdmin, err := giteaadmin.NewGiteaAdminClient()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to initialize Gitea admin client")
-	}
-	gitAdmin := NewGitAdmin(giteaAdmin)
-
-	result, err := gitAdmin.GetRepos(project, label)
+	result, err := cs.gitAdmin.GetRepos(project, label)
 	if err != nil {
 		return nil, errors.Wrap(err, "Fetching Codesets failed")
 	}
@@ -60,14 +53,7 @@ func (cs *inMemCodesetStore) GetAll(ctx context.Context, project, label *string)
 // 1. create org + new repo
 // 2. TODO register in some other store ???
 func (cs *inMemCodesetStore) Add(ctx context.Context, c *codeset.Codeset) (*codeset.Codeset, error) {
-
-	giteaAdmin, err := giteaadmin.NewGiteaAdminClient()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to initialize Gitea admin client")
-	}
-	gitAdmin := NewGitAdmin(giteaAdmin)
-
-	err = gitAdmin.PrepareRepo(c)
+	err := cs.gitAdmin.PrepareRepo(c)
 	if err != nil {
 		return nil, errors.Wrap(err, "Preparing Repository failed")
 	}
