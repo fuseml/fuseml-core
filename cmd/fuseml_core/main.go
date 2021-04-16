@@ -45,7 +45,7 @@ func main() {
 	)
 	{
 		runnableSvc = fuseml.NewRunnable(logger)
-		codesetSvc = fuseml.NewCodeset(logger)
+		codesetSvc = fuseml.NewCodesetService(logger, fuseml.NewInMemCodesetStore())
 	}
 
 	// Wrap the services in endpoints that can be invoked from other services

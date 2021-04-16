@@ -1,22 +1,32 @@
 package fuseml
 
 import (
+	"context"
+
 	"github.com/pkg/errors"
 
-	codeset "github.com/fuseml/fuseml-core/gen/codeset"
+	"github.com/fuseml/fuseml-core/gen/codeset"
 	giteaadmin "github.com/fuseml/fuseml-core/pkg/core/gitea"
 )
 
-type CodesetStore struct {
+type CodesetStore interface {
+	Find(ctx context.Context, project, name string) (*codeset.Codeset, error)
+	GetAll(ctx context.Context, project, label *string) ([]*codeset.Codeset, error)
+	Add(ctx context.Context, c *codeset.Codeset) (*codeset.Codeset, error)
+}
+
+type inMemCodesetStore struct {
 	// FIXME this is just internal representation, it should go away
 	items map[string]*codeset.Codeset
 }
 
-var (
-	codesetStore = CodesetStore{items: make(map[string]*codeset.Codeset)}
-)
+func NewInMemCodesetStore() *inMemCodesetStore {
+	return &inMemCodesetStore{
+		items: make(map[string]*codeset.Codeset),
+	}
+}
 
-func (cs *CodesetStore) FindCodeset(project, name string) (*codeset.Codeset, error) {
+func (cs *inMemCodesetStore) Find(ctx context.Context, project, name string) (*codeset.Codeset, error) {
 
 	giteaAdmin, err := giteaadmin.NewGiteaAdminClient()
 	if err != nil {
@@ -32,7 +42,7 @@ func (cs *CodesetStore) FindCodeset(project, name string) (*codeset.Codeset, err
 }
 
 // return codeset elements matching given project and label
-func (cs *CodesetStore) GetAllCodesets(project, label *string) ([]*codeset.Codeset, error) {
+func (cs *inMemCodesetStore) GetAll(ctx context.Context, project, label *string) ([]*codeset.Codeset, error) {
 
 	giteaAdmin, err := giteaadmin.NewGiteaAdminClient()
 	if err != nil {
@@ -49,7 +59,7 @@ func (cs *CodesetStore) GetAllCodesets(project, label *string) ([]*codeset.Codes
 
 // 1. create org + new repo
 // 2. TODO register in some other store ???
-func (cs *CodesetStore) AddCodeset(c *codeset.Codeset) (*codeset.Codeset, error) {
+func (cs *inMemCodesetStore) Add(ctx context.Context, c *codeset.Codeset) (*codeset.Codeset, error) {
 
 	giteaAdmin, err := giteaadmin.NewGiteaAdminClient()
 	if err != nil {
