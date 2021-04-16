@@ -15,9 +15,9 @@ type CodesetStore interface {
 }
 
 type GitAdmin interface {
-	PrepareRepo(code *codeset.Codeset) error
-	GetRepos(org, label *string) ([]*codeset.Codeset, error)
-	GetRepo(org, name string) (*codeset.Codeset, error)
+	PrepareRepository(code *codeset.Codeset) error
+	GetRepositories(org, label *string) ([]*codeset.Codeset, error)
+	GetRepository(org, name string) (*codeset.Codeset, error)
 }
 
 type gitCodesetStore struct {
@@ -31,7 +31,7 @@ func NewGitCodesetStore(gitAdmin GitAdmin) *gitCodesetStore {
 }
 
 func (cs *gitCodesetStore) Find(ctx context.Context, project, name string) (*codeset.Codeset, error) {
-	result, err := cs.gitAdmin.GetRepo(project, name)
+	result, err := cs.gitAdmin.GetRepository(project, name)
 	if err != nil {
 		return nil, errors.Wrap(err, "Fetching Codeset failed")
 	}
@@ -40,7 +40,7 @@ func (cs *gitCodesetStore) Find(ctx context.Context, project, name string) (*cod
 
 // return codeset elements matching given project and label
 func (cs *gitCodesetStore) GetAll(ctx context.Context, project, label *string) ([]*codeset.Codeset, error) {
-	result, err := cs.gitAdmin.GetRepos(project, label)
+	result, err := cs.gitAdmin.GetRepositories(project, label)
 	if err != nil {
 		return nil, errors.Wrap(err, "Fetching Codesets failed")
 	}
@@ -50,7 +50,7 @@ func (cs *gitCodesetStore) GetAll(ctx context.Context, project, label *string) (
 // 1. create org + new repo
 // 2. TODO register in some other store ???
 func (cs *gitCodesetStore) Add(ctx context.Context, c *codeset.Codeset) (*codeset.Codeset, error) {
-	err := cs.gitAdmin.PrepareRepo(c)
+	err := cs.gitAdmin.PrepareRepository(c)
 	if err != nil {
 		return nil, errors.Wrap(err, "Preparing Repository failed")
 	}
