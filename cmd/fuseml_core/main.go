@@ -12,14 +12,12 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/fuseml/fuseml-core"
 	"github.com/fuseml/fuseml-core/gen/codeset"
 	"github.com/fuseml/fuseml-core/gen/runnable"
+	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/core"
 	"github.com/fuseml/fuseml-core/pkg/core/gitea"
 	"github.com/fuseml/fuseml-core/pkg/svc"
-
-	workflow "github.com/fuseml/fuseml-core/gen/workflow"
 )
 
 func main() {
@@ -58,7 +56,7 @@ func main() {
 	{
 		runnableSvc = svc.NewRunnableService(logger, core.NewRunnableStore())
 		codesetSvc = svc.NewCodesetService(logger, core.NewGitCodesetStore(gitAdmin))
-		workflowSvc = fuseml.NewWorkflow(logger)
+		workflowSvc = svc.NewWorkflowService(logger, core.NewWorkflowStore())
 	}
 
 	// Wrap the services in endpoints that can be invoked from other services
