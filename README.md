@@ -15,8 +15,11 @@ Code structure:
 * `runnable.go` - contains a dummy implementation of the methods described in the design (`design/runnable.go`) for the runnable service, the actual implementation goes here.
 
 How to build and run:
+* run `make deps` to install go dependencies
 * run `make` to generate server, client and CLI code and build the `bin/fuseml_core` and `bin/fuseml_core-cli` binaries
-* run the binary (NOTE: use the `--help` flag to get the command line options that you can supply. By default the server listens on the follwing ports: 8000 (http) and 8080 (grpc)).
+* run the binaries
+  * export variables for GITEA_URL for both client and server, and GITEA_USERNAME, GITEA_PASSWORD for server side
+  * use the `--help` flag to get the command line options that you can supply. By default the server listens on the follwing ports: 8000 (http) and 8080 (grpc)
 
 ## NOTES
 
