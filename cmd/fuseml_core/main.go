@@ -39,7 +39,7 @@ func main() {
 		logger = log.New(os.Stderr, "[fuseml] ", log.Ltime)
 	}
 
-	gitAdmin, err := gitea.NewGiteaAdminClient()
+	gitAdmin, err := gitea.NewGiteaAdminClient(logger)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to initialize Gitea admin client: ", err.Error())
 		os.Exit(1)

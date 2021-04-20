@@ -12,31 +12,54 @@ import (
 )
 
 type GiteaAdminClient interface {
-	PrepareRepo(code *codeset.Codeset) error
-	GetRepos(org, label *string) ([]*codeset.Codeset, error)
-	GetRepo(org, name string) (*codeset.Codeset, error)
+	PrepareRepository(code *codeset.Codeset) error
+	GetRepositories(org, label *string) ([]*codeset.Codeset, error)
+	GetRepository(org, name string) (*codeset.Codeset, error)
+}
+
+type GiteaClient interface {
+	GetOrg(orgname string) (*gitea.Organization, *gitea.Response, error)
+	CreateOrg(gitea.CreateOrgOption) (*gitea.Organization, *gitea.Response, error)
+	GetUserInfo(string) (*gitea.User, *gitea.Response, error)
+	AdminCreateUser(gitea.CreateUserOption) (*gitea.User, *gitea.Response, error)
+	ListOrgTeams(string, gitea.ListTeamsOptions) ([]*gitea.Team, *gitea.Response, error)
+	AddTeamMember(int64, string) (*gitea.Response, error)
+	GetRepo(string, string) (*gitea.Repository, *gitea.Response, error)
+	CreateOrgRepo(string, gitea.CreateRepoOption) (*gitea.Repository, *gitea.Response, error)
+	AddRepoTopic(string, string, string) (*gitea.Response, error)
+	ListRepoHooks(string, string, gitea.ListHooksOptions) ([]*gitea.Hook, *gitea.Response, error)
+	ListOrgRepos(string, gitea.ListOrgReposOptions) ([]*gitea.Repository, *gitea.Response, error)
+	CreateRepoHook(string, string, gitea.CreateHookOption) (*gitea.Hook, *gitea.Response, error)
+	ListRepoTopics(string, string, gitea.ListRepoTopicsOptions) ([]string, *gitea.Response, error)
+	ListMyOrgs(gitea.ListOrgsOptions) ([]*gitea.Organization, *gitea.Response, error)
 }
 
 type giteaAdminClient struct {
-	giteaClient *gitea.Client
+	giteaClient GiteaClient
 	url         string
+	logger      *log.Logger
 }
+
+var ErrGITEA_URLMissing = "Value for gitea URL (GITEA_URL) was not provided."
+var ErrGITEA_USERNAMEMissing = "Value for gitea user name (GITEA_USERNAME) was not provided."
+var ErrGITEA_PASSWORDMissing = "Value for gitea user password (GITEA_PASSWORD) was not provided."
+var ErrRepoNotFound = "Repository by that name not found"
 
 // NewGiteaAdminClient creates a new gitea client and performs authentication
 // from the credentials provided as env variables
-func NewGiteaAdminClient() (GiteaAdminClient, error) {
+func NewGiteaAdminClient(logger *log.Logger) (GiteaAdminClient, error) {
 
 	url, exists := os.LookupEnv("GITEA_URL")
 	if !exists {
-		return nil, errors.New("Value for gitea URL (GITEA_URL) was not provided.")
+		return nil, errors.New(ErrGITEA_URLMissing)
 	}
 	username, exists := os.LookupEnv("GITEA_USERNAME")
 	if !exists {
-		return nil, errors.New("Value for gitea user name (GITEA_USERNAME) was not provided.")
+		return nil, errors.New(ErrGITEA_USERNAMEMissing)
 	}
 	password, exists := os.LookupEnv("GITEA_PASSWORD")
 	if !exists {
-		return nil, errors.New("Value for gitea user password (GITEA_PASSWORD) was not provided.")
+		return nil, errors.New(ErrGITEA_PASSWORDMissing)
 	}
 
 	client, err := gitea.NewClient(url)
@@ -49,7 +72,12 @@ func NewGiteaAdminClient() (GiteaAdminClient, error) {
 	return giteaAdminClient{
 		giteaClient: client,
 		url:         url,
+		logger:      logger,
 	}, nil
+}
+
+func GenerateUserName(org string) string {
+	return config.DefaultUserName(org)
 }
 
 func (gac giteaAdminClient) GetGiteaURL() (string, error) {
@@ -57,15 +85,16 @@ func (gac giteaAdminClient) GetGiteaURL() (string, error) {
 }
 
 // CreateOrg creates an Org in gitea
-func (gac giteaAdminClient) CreateOrg(org string) error {
+func (gac giteaAdminClient) CreateOrganization(org string) error {
 
+	gac.logger.Println("creating org " + org)
 	_, resp, err := gac.giteaClient.GetOrg(org)
 	if resp == nil && err != nil {
 		return errors.Wrap(err, "Failed to make get org request")
 	}
 
-	if resp.StatusCode == 200 {
-		log.Printf("Organization already exists.")
+	if resp != nil && resp.StatusCode == 200 {
+		gac.logger.Printf("Organization already exists.")
 		return nil
 	}
 
@@ -81,17 +110,17 @@ func (gac giteaAdminClient) CreateOrg(org string) error {
 
 // create user assigned to current project
 func (gac giteaAdminClient) CreateUser(org string) error {
-	username := config.DefaultUserName(org)
+	username := GenerateUserName(org)
 	user, resp, err := gac.giteaClient.GetUserInfo(username)
 	if resp == nil && err != nil {
 		return errors.Wrap(err, "Failed to make get user request")
 	}
-	if user.ID != 0 {
-		log.Println("User already exists")
+	if user != nil && user.ID != 0 {
+		gac.logger.Println("User already exists")
 		return nil
 	}
 
-	log.Printf("Creating user '%s'", username)
+	gac.logger.Printf("Creating user '%s'", username)
 	_, _, err = gac.giteaClient.AdminCreateUser(gitea.CreateUserOption{
 		Username:           username,
 		Email:              config.DefaultUserEmail,
@@ -131,12 +160,12 @@ func (gac giteaAdminClient) CreateRepo(c *codeset.Codeset) error {
 		return errors.Wrap(err, "Failed to make get repo request")
 	}
 
-	if resp.StatusCode == 200 {
-		log.Printf("Repository '%s' already exists under '%s'", c.Name, c.Project)
+	if resp != nil && resp.StatusCode == 200 {
+		gac.logger.Printf("Repository '%s' already exists under '%s'", c.Name, c.Project)
 		return nil
 	}
 
-	log.Printf("Creating repository '%s' under '%s'...", c.Name, c.Project)
+	gac.logger.Printf("Creating repository '%s' under '%s'...", c.Name, c.Project)
 	_, _, err = gac.giteaClient.CreateOrgRepo(c.Project, gitea.CreateRepoOption{
 		Name:          c.Name,
 		AutoInit:      true,
@@ -173,12 +202,12 @@ func (gac giteaAdminClient) CreateRepoWebhook(org, name string) error {
 	for _, hook := range hooks {
 		url := hook.Config["url"]
 		if url == config.StagingEventListenerURL {
-			log.Printf("Webhook for '%s' already exists", name)
+			gac.logger.Printf("Webhook for '%s' already exists", name)
 			return nil
 		}
 	}
 
-	log.Printf("Creating Webhook for '%s' under '%s'...", name, org)
+	gac.logger.Printf("Creating Webhook for '%s' under '%s'...", name, org)
 	gac.giteaClient.CreateRepoHook(org, name, gitea.CreateHookOption{
 		Active:       true,
 		BranchFilter: "*",
@@ -195,9 +224,9 @@ func (gac giteaAdminClient) CreateRepoWebhook(org, name string) error {
 }
 
 // Prepare the org, repository, and create user that clients can use for pushing
-func (gac giteaAdminClient) PrepareRepo(code *codeset.Codeset) error {
+func (gac giteaAdminClient) PrepareRepository(code *codeset.Codeset) error {
 
-	err := gac.CreateOrg(code.Project)
+	err := gac.CreateOrganization(code.Project)
 	if err != nil {
 		return errors.Wrap(err, "Create org failed")
 	}
@@ -237,7 +266,7 @@ func contains(s []string, str string) bool {
 // Get all repositories for given project, filter them for label (if given)
 func (gac giteaAdminClient) GetReposForOrg(org string, label *string) ([]*codeset.Codeset, error) {
 	var codesets []*codeset.Codeset
-	log.Printf("Listing repos for org '%s'...", org)
+	gac.logger.Printf("Listing repos for org '%s'...", org)
 	repos, _, err := gac.giteaClient.ListOrgRepos(org, gitea.ListOrgReposOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to list project repos")
@@ -263,13 +292,13 @@ func (gac giteaAdminClient) GetReposForOrg(org string, label *string) ([]*codese
 }
 
 // Find all repositories, optionally filtered by project
-func (gac giteaAdminClient) GetRepos(org, label *string) ([]*codeset.Codeset, error) {
+func (gac giteaAdminClient) GetRepositories(org, label *string) ([]*codeset.Codeset, error) {
 
 	var allRepos []*codeset.Codeset
 	var orgs []*gitea.Organization
 
 	if org == nil {
-		log.Printf("Going through all orgs...")
+		gac.logger.Printf("Going through all orgs...")
 		var err error
 		orgs, _, err = gac.giteaClient.ListMyOrgs(gitea.ListOrgsOptions{})
 		if err != nil {
@@ -290,11 +319,14 @@ func (gac giteaAdminClient) GetRepos(org, label *string) ([]*codeset.Codeset, er
 }
 
 // Get the information about repository
-func (gac giteaAdminClient) GetRepo(org, name string) (*codeset.Codeset, error) {
-	log.Printf("Get repo %s for org '%s'...", name, org)
+func (gac giteaAdminClient) GetRepository(org, name string) (*codeset.Codeset, error) {
+	gac.logger.Printf("Get repo %s for org '%s'...", name, org)
 	repo, _, err := gac.giteaClient.GetRepo(org, name)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to read repository")
+	}
+	if repo == nil || repo.Name == "" {
+		return nil, errors.New(ErrRepoNotFound)
 	}
 
 	ret := codeset.Codeset{

@@ -9,7 +9,7 @@ build: tidy lint
 	go build ${GO_GCFLAGS} -o bin/fuseml_core-cli ${GO_LDFLAGS} ./cmd/fuseml_core-cli
 
 test:
-	ginkgo ./gen ./pkg
+	ginkgo ./gen ./pkg ./pkg/core/gitea
 
 gen-core:
 	go mod download
