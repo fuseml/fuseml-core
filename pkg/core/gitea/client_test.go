@@ -23,6 +23,32 @@ type testGiteaClient struct {
 	testStore *TestStore
 }
 
+func NewTestStore() *TestStore {
+	return &TestStore{
+		repositories:   make(map[string]gitea.Repository),
+		projects:       make(map[string]gitea.Organization),
+		projects2repos: make(map[string][]*gitea.Repository),
+		teams:          make(map[int64][]string),
+	}
+}
+
+// Set a specific logger just for testing
+func testLogger() *log.Logger {
+
+	logger := log.New(os.Stderr, "[test] ", log.Ltime)
+	// suppress the regular output from app
+	logger.SetOutput(io.Discard)
+	return logger
+}
+
+func NewTestGiteaAdminClient(testStore *TestStore) *giteaAdminClient {
+	return &giteaAdminClient{
+		giteaClient: &testGiteaClient{testStore},
+		logger:      testLogger(),
+		url:         test_url,
+	}
+}
+
 func (tc testGiteaClient) AddRepoTopic(string, string, string) (*gitea.Response, error) {
 	return nil, nil
 }
@@ -98,6 +124,7 @@ var (
 	project1 = "test-project1"
 	project2 = "test-project2"
 	name     = "test"
+	test_url = "http://gitea.example.io"
 )
 
 func getTestCodeset() *codeset.Codeset {
@@ -109,15 +136,6 @@ func getTestCodeset() *codeset.Codeset {
 		Description: &description,
 		Labels:      []string{"mlflow", "test"},
 	}
-}
-
-// Set a specific logger just for testing
-func testLogger() *log.Logger {
-
-	logger := log.New(os.Stderr, "[test] ", log.Ltime)
-	// suppress the regular output from app
-	logger.SetOutput(io.Discard)
-	return logger
 }
 
 func assertError(t testing.TB, got error, want string) {
@@ -133,19 +151,8 @@ func assertError(t testing.TB, got error, want string) {
 
 func TestPrepareRepository(t *testing.T) {
 
-	testStore := TestStore{
-		repositories:   make(map[string]gitea.Repository),
-		projects:       make(map[string]gitea.Organization),
-		projects2repos: make(map[string][]*gitea.Repository),
-		teams:          make(map[int64][]string),
-	}
-
-	test_url := "http://gitea.example.io"
-	testGiteaAdminClient := &giteaAdminClient{
-		giteaClient: &testGiteaClient{&testStore},
-		url:         test_url,
-		logger:      testLogger(),
-	}
+	testStore := NewTestStore()
+	testGiteaAdminClient := NewTestGiteaAdminClient(testStore)
 	code := getTestCodeset()
 
 	// checking initial state of owners team members
@@ -179,19 +186,8 @@ func TestPrepareRepository(t *testing.T) {
 
 func TestGetRepository(t *testing.T) {
 
-	testStore := TestStore{
-		repositories:   make(map[string]gitea.Repository),
-		projects:       make(map[string]gitea.Organization),
-		projects2repos: make(map[string][]*gitea.Repository),
-		teams:          make(map[int64][]string),
-	}
+	testGiteaAdminClient := NewTestGiteaAdminClient(NewTestStore())
 
-	test_url := "http://gitea.example.io"
-	testGiteaAdminClient := &giteaAdminClient{
-		giteaClient: &testGiteaClient{&testStore},
-		logger:      testLogger(),
-		url:         test_url,
-	}
 	// Reading repo that was not added should throw error
 	_, err := testGiteaAdminClient.GetRepository(project1, name)
 
@@ -212,19 +208,7 @@ func TestGetRepository(t *testing.T) {
 
 func TestGetRepositories(t *testing.T) {
 
-	testStore := TestStore{
-		repositories:   make(map[string]gitea.Repository),
-		projects:       make(map[string]gitea.Organization),
-		projects2repos: make(map[string][]*gitea.Repository),
-		teams:          make(map[int64][]string),
-	}
-
-	test_url := "http://gitea.example.io"
-	testGiteaAdminClient := &giteaAdminClient{
-		giteaClient: &testGiteaClient{&testStore},
-		logger:      testLogger(),
-		url:         test_url,
-	}
+	testGiteaAdminClient := NewTestGiteaAdminClient(NewTestStore())
 
 	repos, err := testGiteaAdminClient.GetRepositories(&project1, nil)
 	if len(repos) > 0 {
