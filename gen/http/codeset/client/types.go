@@ -34,6 +34,8 @@ type RegisterResponseBody struct {
 	Description *string `form:"description,omitempty" json:"description,omitempty" xml:"description,omitempty"`
 	// Additional Codeset labels that helps with identifying the type
 	Labels []string `form:"labels,omitempty" json:"labels,omitempty" xml:"labels,omitempty"`
+	// Full URL to the Codeset
+	URL *string `form:"url,omitempty" json:"url,omitempty" xml:"url,omitempty"`
 }
 
 // GetResponseBody is the type of the "codeset" service "get" endpoint HTTP
@@ -47,6 +49,8 @@ type GetResponseBody struct {
 	Description *string `form:"description,omitempty" json:"description,omitempty" xml:"description,omitempty"`
 	// Additional Codeset labels that helps with identifying the type
 	Labels []string `form:"labels,omitempty" json:"labels,omitempty" xml:"labels,omitempty"`
+	// Full URL to the Codeset
+	URL *string `form:"url,omitempty" json:"url,omitempty" xml:"url,omitempty"`
 }
 
 // ListNotFoundResponseBody is the type of the "codeset" service "list"
@@ -131,6 +135,8 @@ type CodesetResponse struct {
 	Description *string `form:"description,omitempty" json:"description,omitempty" xml:"description,omitempty"`
 	// Additional Codeset labels that helps with identifying the type
 	Labels []string `form:"labels,omitempty" json:"labels,omitempty" xml:"labels,omitempty"`
+	// Full URL to the Codeset
+	URL *string `form:"url,omitempty" json:"url,omitempty" xml:"url,omitempty"`
 }
 
 // CodesetRequestBody is used to define fields on request body types.
@@ -143,6 +149,8 @@ type CodesetRequestBody struct {
 	Description *string `form:"description,omitempty" json:"description,omitempty" xml:"description,omitempty"`
 	// Additional Codeset labels that helps with identifying the type
 	Labels []string `form:"labels,omitempty" json:"labels,omitempty" xml:"labels,omitempty"`
+	// Full URL to the Codeset
+	URL *string `form:"url,omitempty" json:"url,omitempty" xml:"url,omitempty"`
 }
 
 // NewRegisterRequestBody builds the HTTP request body from the payload of the
@@ -186,6 +194,7 @@ func NewRegisterCodesetCreated(body *RegisterResponseBody) *codeset.Codeset {
 		Name:        *body.Name,
 		Project:     *body.Project,
 		Description: body.Description,
+		URL:         body.URL,
 	}
 	if body.Labels != nil {
 		v.Labels = make([]string, len(body.Labels))
@@ -219,6 +228,7 @@ func NewGetCodesetOK(body *GetResponseBody) *codeset.Codeset {
 		Name:        *body.Name,
 		Project:     *body.Project,
 		Description: body.Description,
+		URL:         body.URL,
 	}
 	if body.Labels != nil {
 		v.Labels = make([]string, len(body.Labels))

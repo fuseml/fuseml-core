@@ -48,7 +48,7 @@ func BuildRegisterPayload(codesetRegisterMessage string) (*codeset.RegisterPaylo
 		if codesetRegisterMessage != "" {
 			err = json.Unmarshal([]byte(codesetRegisterMessage), &message)
 			if err != nil {
-				return nil, fmt.Errorf("invalid JSON for message, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"codeset\": {\n         \"description\": \"My first MLFlow application with FuseML\",\n         \"labels\": [\n            \"mlflow\",\n            \"playground\"\n         ],\n         \"name\": \"mlflow-app-01\",\n         \"project\": \"mlflow-project-01\"\n      },\n      \"location\": \"mlflow-project-01\"\n   }'")
+				return nil, fmt.Errorf("invalid JSON for message, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"codeset\": {\n         \"description\": \"My first MLFlow application with FuseML\",\n         \"labels\": [\n            \"mlflow\",\n            \"playground\"\n         ],\n         \"name\": \"mlflow-app-01\",\n         \"project\": \"mlflow-project-01\",\n         \"url\": \"http://my-gitea.server/project/repository.git\"\n      },\n      \"location\": \"mlflow-project-01\"\n   }'")
 			}
 		}
 	}

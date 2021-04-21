@@ -39,6 +39,9 @@ func NewListResponse(result []*codeset.Codeset) *codesetpb.ListResponse {
 		if val.Description != nil {
 			message.Field[i].Description = *val.Description
 		}
+		if val.URL != nil {
+			message.Field[i].Url = *val.URL
+		}
 		if val.Labels != nil {
 			message.Field[i].Labels = make([]string, len(val.Labels))
 			for j, val := range val.Labels {
@@ -71,6 +74,9 @@ func NewRegisterResponse(result *codeset.Codeset) *codesetpb.RegisterResponse {
 	if result.Description != nil {
 		message.Description = *result.Description
 	}
+	if result.URL != nil {
+		message.Url = *result.URL
+	}
 	if result.Labels != nil {
 		message.Labels = make([]string, len(result.Labels))
 		for i, val := range result.Labels {
@@ -99,6 +105,9 @@ func NewGetResponse(result *codeset.Codeset) *codesetpb.GetResponse {
 	}
 	if result.Description != nil {
 		message.Description = *result.Description
+	}
+	if result.URL != nil {
+		message.Url = *result.URL
 	}
 	if result.Labels != nil {
 		message.Labels = make([]string, len(result.Labels))
@@ -133,6 +142,9 @@ func protobufCodesetpbCodeset2ToCodesetCodeset(v *codesetpb.Codeset2) *codeset.C
 	if v.Description != "" {
 		res.Description = &v.Description
 	}
+	if v.Url != "" {
+		res.URL = &v.Url
+	}
 	if v.Labels != nil {
 		res.Labels = make([]string, len(v.Labels))
 		for i, val := range v.Labels {
@@ -152,6 +164,9 @@ func svcCodesetCodesetToCodesetpbCodeset2(v *codeset.Codeset) *codesetpb.Codeset
 	}
 	if v.Description != nil {
 		res.Description = *v.Description
+	}
+	if v.URL != nil {
+		res.Url = *v.URL
 	}
 	if v.Labels != nil {
 		res.Labels = make([]string, len(v.Labels))

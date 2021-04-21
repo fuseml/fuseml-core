@@ -92,24 +92,28 @@ paths:
                   - playground
                   name: mlflow-app-01
                   project: mlflow-project-01
+                  url: http://my-gitea.server/project/repository.git
                 - description: My first MLFlow application with FuseML
                   labels:
                   - mlflow
                   - playground
                   name: mlflow-app-01
                   project: mlflow-project-01
+                  url: http://my-gitea.server/project/repository.git
                 - description: My first MLFlow application with FuseML
                   labels:
                   - mlflow
                   - playground
                   name: mlflow-app-01
                   project: mlflow-project-01
+                  url: http://my-gitea.server/project/repository.git
                 - description: My first MLFlow application with FuseML
                   labels:
                   - mlflow
                   - playground
                   name: mlflow-app-01
                   project: mlflow-project-01
+                  url: http://my-gitea.server/project/repository.git
               example:
               - description: My first MLFlow application with FuseML
                 labels:
@@ -117,24 +121,28 @@ paths:
                 - playground
                 name: mlflow-app-01
                 project: mlflow-project-01
+                url: http://my-gitea.server/project/repository.git
               - description: My first MLFlow application with FuseML
                 labels:
                 - mlflow
                 - playground
                 name: mlflow-app-01
                 project: mlflow-project-01
+                url: http://my-gitea.server/project/repository.git
               - description: My first MLFlow application with FuseML
                 labels:
                 - mlflow
                 - playground
                 name: mlflow-app-01
                 project: mlflow-project-01
+                url: http://my-gitea.server/project/repository.git
               - description: My first MLFlow application with FuseML
                 labels:
                 - mlflow
                 - playground
                 name: mlflow-app-01
                 project: mlflow-project-01
+                url: http://my-gitea.server/project/repository.git
         "404":
           description: Not Found response.
           content:
@@ -176,6 +184,7 @@ paths:
                 - playground
                 name: mlflow-app-01
                 project: mlflow-project-01
+                url: http://my-gitea.server/project/repository.git
       responses:
         "201":
           description: Created response.
@@ -190,6 +199,7 @@ paths:
                 - playground
                 name: mlflow-app-01
                 project: mlflow-project-01
+                url: http://my-gitea.server/project/repository.git
         "400":
           description: Bad Request response.
           content:
@@ -240,6 +250,7 @@ paths:
                 - playground
                 name: mlflow-app-01
                 project: mlflow-project-01
+                url: http://my-gitea.server/project/repository.git
         "400":
           description: Bad Request response.
           content:
@@ -1301,6 +1312,10 @@ components:
           type: string
           description: The project this Codeset belongs to
           example: mlflow-project-01
+        url:
+          type: string
+          description: Full URL to the Codeset
+          example: http://my-gitea.server/project/repository.git
       example:
         description: My first MLFlow application with FuseML
         labels:
@@ -1308,6 +1323,7 @@ components:
         - playground
         name: mlflow-app-01
         project: mlflow-project-01
+        url: http://my-gitea.server/project/repository.git
       required:
       - name
       - project
@@ -1384,6 +1400,7 @@ components:
           - playground
           name: mlflow-app-01
           project: mlflow-project-01
+          url: http://my-gitea.server/project/repository.git
       required:
       - codeset
     Runnable:

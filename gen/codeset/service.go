@@ -59,6 +59,8 @@ type Codeset struct {
 	Description *string
 	// Additional Codeset labels that helps with identifying the type
 	Labels []string
+	// Full URL to the Codeset
+	URL *string
 }
 
 // GetPayload is the payload type of the codeset service get method.
