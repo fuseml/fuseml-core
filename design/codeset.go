@@ -126,6 +126,7 @@ var _ = Service("codeset", func() {
 	})
 })
 
+// Codeset describes the Codeset
 var Codeset = Type("Codeset", func() {
 
 	Field(1, "name", String, "The name of the Codeset", func() {

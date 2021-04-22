@@ -13,7 +13,7 @@ type codesetsrvc struct {
 	store  CodesetStore
 }
 
-// NewCodeset returns the codeset service implementation.
+// NewCodesetService returns the codeset service implementation.
 func NewCodesetService(logger *log.Logger, store CodesetStore) codeset.Service {
 	return &codesetsrvc{logger, store}
 }

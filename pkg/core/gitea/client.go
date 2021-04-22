@@ -11,13 +11,15 @@ import (
 	config "github.com/fuseml/fuseml-core/pkg/core/config"
 )
 
-type GiteaAdminClient interface {
+// AdminClient describes the interface of Gitea Admin Client
+type AdminClient interface {
 	PrepareRepository(code *codeset.Codeset) error
 	GetRepositories(org, label *string) ([]*codeset.Codeset, error)
 	GetRepository(org, name string) (*codeset.Codeset, error)
 }
 
-type GiteaClient interface {
+// Client describes the interface of Gitea Client
+type Client interface {
 	GetOrg(orgname string) (*gitea.Organization, *gitea.Response, error)
 	CreateOrg(gitea.CreateOrgOption) (*gitea.Organization, *gitea.Response, error)
 	GetUserInfo(string) (*gitea.User, *gitea.Response, error)
@@ -34,32 +36,33 @@ type GiteaClient interface {
 	ListMyOrgs(gitea.ListOrgsOptions) ([]*gitea.Organization, *gitea.Response, error)
 }
 
+// giteaAdminClient is the struct holding information about gitea client
 type giteaAdminClient struct {
-	giteaClient GiteaClient
+	giteaClient Client
 	url         string
 	logger      *log.Logger
 }
 
-var ErrGITEA_URLMissing = "Value for gitea URL (GITEA_URL) was not provided."
-var ErrGITEA_USERNAMEMissing = "Value for gitea user name (GITEA_USERNAME) was not provided."
-var ErrGITEA_PASSWORDMissing = "Value for gitea user password (GITEA_PASSWORD) was not provided."
-var ErrRepoNotFound = "Repository by that name not found"
+var errGITEAURLMissing = "Value for gitea URL (GITEA_URL) was not provided."
+var errGITEAUSERNAMEMissing = "Value for gitea user name (GITEA_USERNAME) was not provided."
+var errGITEAPASSWORDMissing = "Value for gitea user password (GITEA_PASSWORD) was not provided."
+var errRepoNotFound = "Repository by that name not found"
 
-// NewGiteaAdminClient creates a new gitea client and performs authentication
+// NewAdminClient creates a new gitea client and performs authentication
 // from the credentials provided as env variables
-func NewGiteaAdminClient(logger *log.Logger) (GiteaAdminClient, error) {
+func NewAdminClient(logger *log.Logger) (AdminClient, error) {
 
 	url, exists := os.LookupEnv("GITEA_URL")
 	if !exists {
-		return nil, errors.New(ErrGITEA_URLMissing)
+		return nil, errors.New(errGITEAURLMissing)
 	}
 	username, exists := os.LookupEnv("GITEA_USERNAME")
 	if !exists {
-		return nil, errors.New(ErrGITEA_USERNAMEMissing)
+		return nil, errors.New(errGITEAUSERNAMEMissing)
 	}
 	password, exists := os.LookupEnv("GITEA_PASSWORD")
 	if !exists {
-		return nil, errors.New(ErrGITEA_PASSWORDMissing)
+		return nil, errors.New(errGITEAPASSWORDMissing)
 	}
 
 	client, err := gitea.NewClient(url)
@@ -76,7 +79,7 @@ func NewGiteaAdminClient(logger *log.Logger) (GiteaAdminClient, error) {
 	}, nil
 }
 
-func GenerateUserName(org string) string {
+func generateUserName(org string) string {
 	return config.DefaultUserName(org)
 }
 
@@ -110,7 +113,7 @@ func (gac giteaAdminClient) CreateOrganization(org string) error {
 
 // create user assigned to current project
 func (gac giteaAdminClient) CreateUser(org string) error {
-	username := GenerateUserName(org)
+	username := generateUserName(org)
 	user, resp, err := gac.giteaClient.GetUserInfo(username)
 	if resp == nil && err != nil {
 		return errors.Wrap(err, "Failed to make get user request")
@@ -326,7 +329,7 @@ func (gac giteaAdminClient) GetRepository(org, name string) (*codeset.Codeset, e
 		return nil, errors.Wrap(err, "Failed to read repository")
 	}
 	if repo == nil || repo.Name == "" {
-		return nil, errors.New(ErrRepoNotFound)
+		return nil, errors.New(errRepoNotFound)
 	}
 
 	ret := codeset.Codeset{

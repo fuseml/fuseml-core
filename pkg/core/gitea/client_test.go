@@ -45,7 +45,7 @@ func NewTestGiteaAdminClient(testStore *TestStore) *giteaAdminClient {
 	return &giteaAdminClient{
 		giteaClient: &testGiteaClient{testStore},
 		logger:      testLogger(),
-		url:         test_url,
+		url:         testURL,
 	}
 }
 
@@ -54,11 +54,10 @@ func (tc testGiteaClient) AddRepoTopic(string, string, string) (*gitea.Response,
 }
 func (tc testGiteaClient) GetOrg(orgname string) (*gitea.Organization, *gitea.Response, error) {
 	if org, ok := tc.testStore.projects[orgname]; ok {
-		http_resp := http.Response{StatusCode: 200}
-		return &org, &gitea.Response{Response: &http_resp}, nil
-	} else {
-		return nil, nil, nil
+		httpResp := http.Response{StatusCode: 200}
+		return &org, &gitea.Response{Response: &httpResp}, nil
 	}
+	return nil, nil, nil
 }
 func (tc testGiteaClient) CreateOrg(opt gitea.CreateOrgOption) (*gitea.Organization, *gitea.Response, error) {
 	org := gitea.Organization{UserName: opt.Name}
@@ -84,9 +83,8 @@ func (tc testGiteaClient) AddTeamMember(id int64, username string) (*gitea.Respo
 func (tc testGiteaClient) GetRepo(owner, reponame string) (*gitea.Repository, *gitea.Response, error) {
 	if repo, ok := tc.testStore.repositories[reponame]; ok {
 		return &repo, nil, nil
-	} else {
-		return nil, nil, nil
 	}
+	return nil, nil, nil
 
 }
 func (tc testGiteaClient) CreateOrgRepo(org string, repo gitea.CreateRepoOption) (*gitea.Repository, *gitea.Response, error) {
@@ -101,9 +99,8 @@ func (tc testGiteaClient) ListRepoHooks(string, string, gitea.ListHooksOptions) 
 func (tc testGiteaClient) ListOrgRepos(org string, opt gitea.ListOrgReposOptions) ([]*gitea.Repository, *gitea.Response, error) {
 	if repos, ok := tc.testStore.projects2repos[org]; ok {
 		return repos, nil, nil
-	} else {
-		return nil, nil, nil
 	}
+	return nil, nil, nil
 }
 
 func (tc testGiteaClient) CreateRepoHook(string, string, gitea.CreateHookOption) (*gitea.Hook, *gitea.Response, error) {
@@ -113,18 +110,18 @@ func (tc testGiteaClient) ListRepoTopics(org, repo string, opt gitea.ListRepoTop
 	return nil, nil, nil
 }
 func (tc testGiteaClient) ListMyOrgs(gitea.ListOrgsOptions) ([]*gitea.Organization, *gitea.Response, error) {
-	all_orgs := make([]*gitea.Organization, 0)
+	allOrgs := make([]*gitea.Organization, 0)
 	for _, org := range tc.testStore.projects {
-		all_orgs = append(all_orgs, &org)
+		allOrgs = append(allOrgs, &org)
 	}
-	return all_orgs, nil, nil
+	return allOrgs, nil, nil
 }
 
 var (
 	project1 = "test-project1"
 	project2 = "test-project2"
 	name     = "test"
-	test_url = "http://gitea.example.io"
+	testURL  = "http://gitea.example.io"
 )
 
 func getTestCodeset() *codeset.Codeset {
@@ -172,14 +169,14 @@ func TestPrepareRepository(t *testing.T) {
 
 	// fetch the id of Owners team
 	teams, _, _ := testGiteaAdminClient.giteaClient.ListOrgTeams(project1, gitea.ListTeamsOptions{})
-	owners_id := teams[0].ID
-	users_in_team := testStore.teams[owners_id]
+	ownersID := teams[0].ID
+	usersInTeam := testStore.teams[ownersID]
 
-	if len(users_in_team) < 1 {
+	if len(usersInTeam) < 1 {
 		t.Errorf("No users present in Owners team after adding repository")
 	}
 
-	if !contains(users_in_team, GenerateUserName(project1)) {
+	if !contains(usersInTeam, generateUserName(project1)) {
 		t.Errorf("New user is not present in the Owners team")
 	}
 }
@@ -191,7 +188,7 @@ func TestGetRepository(t *testing.T) {
 	// Reading repo that was not added should throw error
 	_, err := testGiteaAdminClient.GetRepository(project1, name)
 
-	assertError(t, err, ErrRepoNotFound)
+	assertError(t, err, errRepoNotFound)
 
 	// Prepare new repo
 	testGiteaAdminClient.PrepareRepository(getTestCodeset())
@@ -238,7 +235,7 @@ func TestGetRepositories(t *testing.T) {
 func TestNewGiteaAdminClient(t *testing.T) {
 
 	os.Unsetenv("GITEA_URL")
-	_, err := NewGiteaAdminClient(testLogger())
+	_, err := NewAdminClient(testLogger())
 
-	assertError(t, err, ErrGITEA_URLMissing)
+	assertError(t, err, errGITEAURLMissing)
 }
