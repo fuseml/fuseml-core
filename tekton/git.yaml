@@ -1,0 +1,12 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: my-repo
+  namespace: fuseml-workloads
+spec:
+  params:
+    - name: url
+      value: 'http://gitea-http.gitea:10080/workspace/mlflow-527370766.git'
+    - name: revision
+      value: main
+  type: git
