@@ -17,13 +17,19 @@ var _ = API("fuseml", func() {
 		Services("runnable", "codeset", "openapi")
 
 		// List the Hosts and their transport URLs.
-		Host("localhost", func() {
-			Description("Run the service on localhost.")
+		Host("dev", func() {
+			Description("Run the service listening on localhost.")
 			// Transport specific URLs, supported schemes are:
 			// 'http', 'https', 'grpc' and 'grpcs' with the respective default
 			// ports: 80, 443, 8080, 8443.
 			URI("http://localhost:8000")
 			URI("grpc://localhost:8080")
+		})
+
+		Host("prod", func() {
+			Description("Run the service on listening on all interfaces.")
+			URI("http://0.0.0.0")
+			URI("grpc://0.0.0.0")
 		})
 	})
 })
