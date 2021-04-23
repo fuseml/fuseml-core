@@ -133,7 +133,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "8080")
 			}
-			handleGRPCServer(ctx, u, runnableEndpoints, &wg, errc, logger, *dbgF)
+			handleGRPCServer(ctx, u, runnableEndpoints, codesetEndpoints, &wg, errc, logger, *dbgF)
 		}
 
 	case "prod":
@@ -160,7 +160,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "80")
 			}
-			handleHTTPServer(ctx, u, runnableEndpoints, &wg, errc, logger, *dbgF)
+			handleHTTPServer(ctx, u, runnableEndpoints, codesetEndpoints, &wg, errc, logger, *dbgF)
 		}
 
 		{
