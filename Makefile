@@ -54,8 +54,9 @@ tidy:
 deps:
 	go get goa.design/goa/v3/cmd/goa@v3.3.1
 	go get goa.design/goa/v3/http/codegen/openapi/v2@v3.3.1
-	go get -u google.golang.org/protobuf/cmd/protoc-gen-go
 	go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc
+	go get -u google.golang.org/protobuf/cmd/protoc-gen-go
+	go get golang.org/x/lint/golint
 
 # Build the docker image
 docker-build: test
