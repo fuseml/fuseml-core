@@ -385,6 +385,10 @@ definitions:
         type: string
         description: The project this Codeset belongs to
         example: mlflow-project-01
+      url:
+        type: string
+        description: Full URL to the Codeset
+        example: http://my-gitea.server/project/repository.git
     example:
       description: My first MLFlow application with FuseML
       labels:
@@ -392,6 +396,7 @@ definitions:
       - playground
       name: mlflow-app-01
       project: mlflow-project-01
+      url: http://my-gitea.server/project/repository.git
     required:
     - name
     - project
@@ -501,6 +506,7 @@ definitions:
         - playground
         name: mlflow-app-01
         project: mlflow-project-01
+        url: http://my-gitea.server/project/repository.git
     required:
     - codeset
   CodesetRegisterResponseBody:
@@ -528,6 +534,10 @@ definitions:
         type: string
         description: The project this Codeset belongs to
         example: mlflow-project-01
+      url:
+        type: string
+        description: Full URL to the Codeset
+        example: http://my-gitea.server/project/repository.git
     example:
       description: My first MLFlow application with FuseML
       labels:
@@ -535,6 +545,7 @@ definitions:
       - playground
       name: mlflow-app-01
       project: mlflow-project-01
+      url: http://my-gitea.server/project/repository.git
     required:
     - name
     - project
@@ -563,6 +574,10 @@ definitions:
         type: string
         description: The project this Codeset belongs to
         example: mlflow-project-01
+      url:
+        type: string
+        description: Full URL to the Codeset
+        example: http://my-gitea.server/project/repository.git
     example:
       description: My first MLFlow application with FuseML
       labels:
@@ -570,6 +585,7 @@ definitions:
       - playground
       name: mlflow-app-01
       project: mlflow-project-01
+      url: http://my-gitea.server/project/repository.git
     required:
     - name
     - project
@@ -598,6 +614,10 @@ definitions:
         type: string
         description: The project this Codeset belongs to
         example: mlflow-project-01
+      url:
+        type: string
+        description: Full URL to the Codeset
+        example: http://my-gitea.server/project/repository.git
     example:
       description: My first MLFlow application with FuseML
       labels:
@@ -605,6 +625,7 @@ definitions:
       - playground
       name: mlflow-app-01
       project: mlflow-project-01
+      url: http://my-gitea.server/project/repository.git
     required:
     - name
     - project

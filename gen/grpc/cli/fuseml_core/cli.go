@@ -235,7 +235,8 @@ Example:
             "playground"
          ],
          "name": "mlflow-app-01",
-         "project": "mlflow-project-01"
+         "project": "mlflow-project-01",
+         "url": "http://my-gitea.server/project/repository.git"
       },
       "location": "mlflow-project-01"
    }'

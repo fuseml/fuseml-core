@@ -45,7 +45,7 @@ func BuildRegisterPayload(codesetRegisterBody string, codesetRegisterLocation st
 	{
 		err = json.Unmarshal([]byte(codesetRegisterBody), &body)
 		if err != nil {
-			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"codeset\": {\n         \"description\": \"My first MLFlow application with FuseML\",\n         \"labels\": [\n            \"mlflow\",\n            \"playground\"\n         ],\n         \"name\": \"mlflow-app-01\",\n         \"project\": \"mlflow-project-01\"\n      }\n   }'")
+			return nil, fmt.Errorf("invalid JSON for body, \nerror: %s, \nexample of valid JSON:\n%s", err, "'{\n      \"codeset\": {\n         \"description\": \"My first MLFlow application with FuseML\",\n         \"labels\": [\n            \"mlflow\",\n            \"playground\"\n         ],\n         \"name\": \"mlflow-app-01\",\n         \"project\": \"mlflow-project-01\",\n         \"url\": \"http://my-gitea.server/project/repository.git\"\n      }\n   }'")
 		}
 		if body.Codeset == nil {
 			err = goa.MergeErrors(err, goa.MissingFieldError("codeset", "body"))

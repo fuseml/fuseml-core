@@ -140,5 +140,8 @@ var Codeset = Type("Codeset", func() {
 	Field(4, "labels", ArrayOf(String), "Additional Codeset labels that helps with identifying the type", func() {
 		Example([]string{"mlflow", "playground"})
 	})
+	Field(5, "url", String, "Full URL to the Codeset", func() {
+		Example("http://my-gitea.server/project/repository.git")
+	})
 	Required("name", "project")
 })

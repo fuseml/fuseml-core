@@ -343,6 +343,7 @@ func (gac giteaAdminClient) GetRepository(org, name string) (*codeset.Codeset, e
 		return nil, errors.Wrap(err, "Failed to list repo topics")
 	}
 	ret.Labels = labels
+	ret.URL = &repo.CloneURL
 
 	return &ret, nil
 }
