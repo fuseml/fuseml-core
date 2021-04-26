@@ -13,7 +13,7 @@ import (
 
 // AdminClient describes the interface of Gitea Admin Client
 type AdminClient interface {
-	PrepareRepository(code *codeset.Codeset) error
+	PrepareRepository(*codeset.Codeset, *string) error
 	GetRepositories(org, label *string) ([]*codeset.Codeset, error)
 	GetRepository(org, name string) (*codeset.Codeset, error)
 }
@@ -196,7 +196,11 @@ func (gac giteaAdminClient) AddRepoTopics(org, name string, labels []string) err
 }
 
 // Create webhook for given repository and wire it to tekton listener
-func (gac giteaAdminClient) CreateRepoWebhook(org, name string) error {
+func (gac giteaAdminClient) CreateRepoWebhook(org, name string, listenerURL *string) error {
+	if listenerURL == nil {
+		gac.logger.Printf("Webhook listener URL not provided, skipping creation")
+		return nil
+	}
 	hooks, _, err := gac.giteaClient.ListRepoHooks(org, name, gitea.ListHooksOptions{})
 	if err != nil {
 		return errors.Wrap(err, "Failed to list webhooks")
@@ -204,7 +208,7 @@ func (gac giteaAdminClient) CreateRepoWebhook(org, name string) error {
 
 	for _, hook := range hooks {
 		url := hook.Config["url"]
-		if url == config.StagingEventListenerURL {
+		if url == *listenerURL {
 			gac.logger.Printf("Webhook for '%s' already exists", name)
 			return nil
 		}
@@ -217,7 +221,7 @@ func (gac giteaAdminClient) CreateRepoWebhook(org, name string) error {
 		Config: map[string]string{
 			"secret":       config.HookSecret,
 			"http_method":  "POST",
-			"url":          config.StagingEventListenerURL,
+			"url":          *listenerURL,
 			"content_type": "json",
 		},
 		Type: "gitea",
@@ -227,7 +231,7 @@ func (gac giteaAdminClient) CreateRepoWebhook(org, name string) error {
 }
 
 // Prepare the org, repository, and create user that clients can use for pushing
-func (gac giteaAdminClient) PrepareRepository(code *codeset.Codeset) error {
+func (gac giteaAdminClient) PrepareRepository(code *codeset.Codeset, listenerURL *string) error {
 
 	err := gac.CreateOrganization(code.Project)
 	if err != nil {
@@ -249,7 +253,7 @@ func (gac giteaAdminClient) PrepareRepository(code *codeset.Codeset) error {
 		return errors.Wrap(err, "Failed to add topics to repository")
 	}
 
-	err = gac.CreateRepoWebhook(code.Project, code.Name)
+	err = gac.CreateRepoWebhook(code.Project, code.Name, listenerURL)
 	if err != nil {
 		return errors.Wrap(err, "Creating webhook failed")
 	}

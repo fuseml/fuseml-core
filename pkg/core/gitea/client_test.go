@@ -118,10 +118,12 @@ func (tc testGiteaClient) ListMyOrgs(gitea.ListOrgsOptions) ([]*gitea.Organizati
 }
 
 var (
-	project1 = "test-project1"
-	project2 = "test-project2"
-	name     = "test"
-	testURL  = "http://gitea.example.io"
+	project1              = "test-project1"
+	project2              = "test-project2"
+	name                  = "test"
+	testURL               = "http://gitea.example.io"
+	testListenerStringURL = "tekton-listener"
+	testListenerURL       = &testListenerStringURL
 )
 
 func getTestCodeset() *codeset.Codeset {
@@ -157,7 +159,7 @@ func TestPrepareRepository(t *testing.T) {
 		t.Errorf("Initial number of teams is not empty")
 	}
 
-	err := testGiteaAdminClient.PrepareRepository(code)
+	err := testGiteaAdminClient.PrepareRepository(code, testListenerURL)
 	if err != nil {
 		t.Errorf("Error preparing repository: %v", err)
 	}
@@ -191,7 +193,7 @@ func TestGetRepository(t *testing.T) {
 	assertError(t, err, errRepoNotFound)
 
 	// Prepare new repo
-	testGiteaAdminClient.PrepareRepository(getTestCodeset())
+	testGiteaAdminClient.PrepareRepository(getTestCodeset(), testListenerURL)
 
 	// Get the repo now
 	c, err := testGiteaAdminClient.GetRepository(project1, name)
@@ -214,7 +216,7 @@ func TestGetRepositories(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error reading list of repositories")
 	}
-	testGiteaAdminClient.PrepareRepository(getTestCodeset())
+	testGiteaAdminClient.PrepareRepository(getTestCodeset(), testListenerURL)
 
 	repos, _ = testGiteaAdminClient.GetRepositories(&project1, nil)
 	if len(repos) < 1 {
@@ -224,7 +226,7 @@ func TestGetRepositories(t *testing.T) {
 	// now add new project+repo and list all repos accross projects
 	codeset2 := getTestCodeset()
 	codeset2.Project = project2
-	testGiteaAdminClient.PrepareRepository(codeset2)
+	testGiteaAdminClient.PrepareRepository(codeset2, testListenerURL)
 
 	repos, _ = testGiteaAdminClient.GetRepositories(nil, nil)
 	if len(repos) != 2 {
