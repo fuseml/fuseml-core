@@ -1,7 +1,5 @@
-/**
- * This package is intended for git access from FuseML client
- * It needs GITEA_URL set as environment variable.
- */
+// Package git is intended for git access from FuseML client
+// It needs GITEA_URL set as environment variable.
 package git
 
 import (
@@ -22,12 +20,12 @@ import (
 func Push(org, name, location string) error {
 	log.Printf("Pushing the code to the git repository...")
 
-	gitUrl, exists := os.LookupEnv("GITEA_URL")
+	gitURL, exists := os.LookupEnv("GITEA_URL")
 	if !exists {
-		return errors.New("Value for gitea URL (GITEA_URL) was not provided.")
+		return errors.New("Value for gitea URL (GITEA_URL) was not provided")
 	}
 
-	u, err := url.Parse(gitUrl)
+	u, err := url.Parse(gitURL)
 	if err != nil {
 		return errors.Wrap(err, "Failed to parse gitea url")
 	}

@@ -1,17 +1,21 @@
 package config
 
 var (
+	// DefaultUserNamePrefix is the default prefix for user names created for each project
 	DefaultUserNamePrefix = "fuseml"
-	DefaultUserPassword   = "changeme"
-	DefaultUserEmail      = "fuseml@fuseml.org"
+	// DefaultUserPassword is the default password used when creating new per-project users
+	DefaultUserPassword = "changeme"
+	// DefaultUserEmail is the default value of email used when creating new per-project users
+	DefaultUserEmail = "fuseml@fuseml.org"
 
-	// FIXME: generate this and put it in a secret
+	// HookSecret is the default secret used when creating repository hooks
 	HookSecret = "generatedsecret"
 
-	// FIXME: detect this based on namespaces and services
+	// StagingEventListenerURL is the default name of event listener
 	StagingEventListenerURL = "http://el-mlflow-listener.fuseml-workloads:8080"
 )
 
+// DefaultUserName returns default user name for new per-project user
 func DefaultUserName(org string) string {
 	return DefaultUserNamePrefix + "-" + org
 }

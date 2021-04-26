@@ -111,6 +111,7 @@ var _ = Service("runnable", func() {
 	})
 })
 
+// RunnableImage describes an image of a runnable
 var RunnableImage = Type("RunnableImage", func() {
 	Field(1, "registryUrl", String, "The URL for the external registry where the image is stored (empty for internal images)",
 		func() {
@@ -125,6 +126,7 @@ var RunnableImage = Type("RunnableImage", func() {
 
 })
 
+// RunnableRef describes runnable reference
 var RunnableRef = Type("RunnableRef", func() {
 	Field(1, "name", String, "Runnable name", func() {
 		Example("BuilderRun1")
@@ -137,6 +139,7 @@ var RunnableRef = Type("RunnableRef", func() {
 	})
 })
 
+// RunnableInput is an input for a runnable
 var RunnableInput = Type("RunnableInput", func() {
 	Field(1, "name", String, "Input name", func() {
 		Example("Input1")
@@ -148,6 +151,7 @@ var RunnableInput = Type("RunnableInput", func() {
 	Field(4, "parameter", InputParameter, "Parameter description")
 })
 
+// InputParameter describes runnable input parameter
 var InputParameter = Type("InputParameter", func() {
 	Field(1, "datatype", String, "Parameter data type", func() {
 		Example("file")
@@ -160,6 +164,7 @@ var InputParameter = Type("InputParameter", func() {
 	})
 })
 
+// RunnabelOutput describes output of a runnable
 var RunnabelOutput = Type("RunnableOutput", func() {
 	Field(1, "name", String, "Output name", func() {
 		Example("Output1")
@@ -171,6 +176,7 @@ var RunnabelOutput = Type("RunnableOutput", func() {
 	Field(4, "metadata", InputParameter, "Metadata description")
 })
 
+// Runnable description
 var Runnable = Type("Runnable", func() {
 	Field(1, "id", String, "The ID of the runnable", func() {
 		Format(FormatUUID)
