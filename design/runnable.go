@@ -7,21 +7,34 @@ import (
 var _ = Service("runnable", func() {
 	Description("The runable service performs operations on runnables.")
 
-	// Method describes a service method (endpoint)
+	// List service endpoint
 	Method("list", func() {
-		Description("Retrieve information about runnables registered in FuseML.")
-		// Payload describes the method payload.
-		// Here the payload is an object that consists of two fields.
+		Description("Retrieve information about runnables registered in FuseML. Only runnables matching all supplied criteria are returned.")
 		Payload(func() {
-			// Field describes an object field given a field index, a field
-			// name, a type and a description.
-			Field(1, "kind", String, "The kind of runnables to list", func() {
-				Example("builder")
-			})
+			Field(1, "id", String,
+				"Value or regular expression used to filter runnables by their ID",
+				func() {
+					Example("ml-trainer-123")
+				})
+			Field(2, "kind", ArrayOf(String),
+				"List of values or regular expressions used to filter runnables by their kind.",
+				func() {
+					Example([]string{"builder", "trainer"})
+				})
+			Field(3, "labels", MapOf(String, String),
+				"List of values or regular expressions used filter results by their labels.",
+				func() {
+					Key(func() {
+						Pattern(`^[A-Za-z0-9-_]+$`)
+					})
+					Example(map[string]string{
+						"library":  "pytorch",
+						"function": "predict|train",
+					})
+				})
 		})
 
-		// Result describes the method result.
-		// Here the result is a collection of runnables value.
+		// Result is a collection of runnables
 		Result(ArrayOf(Runnable), "Return all registered runnables matching the query.")
 
 		Error("NotFound", func() {

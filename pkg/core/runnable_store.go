@@ -25,7 +25,7 @@ const (
 )
 
 // Find returns a list of runnables identified by kind or labels
-func (s *runnableStore) Find(ctx context.Context, kind string, labels map[string]string) (res []*domain.Runnable, err error) {
+func (s *runnableStore) Find(ctx context.Context, id string, kind []string, labels map[string]string) (res []*domain.Runnable, err error) {
 	res = make([]*domain.Runnable, 0, len(s.items))
 	for _, r := range s.items {
 		if kind == "all" || r.Kind == kind {

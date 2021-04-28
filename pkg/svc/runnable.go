@@ -266,11 +266,6 @@ func domainToRest(r *domain.Runnable) (res *runnable.Runnable) {
 // Retrieve information about runnables registered in FuseML.
 func (s *runnablesrvc) List(ctx context.Context, p *runnable.ListPayload) (res []*runnable.Runnable, err error) {
 	s.logger.Print("runnable.list")
-	kind := "all"
-	if p.Kind != nil {
-		kind = *p.Kind
-	}
-	labels := make(map[string]string)
 	items, err := s.store.Find(ctx, kind, labels)
 	res = make([]*runnable.Runnable, 0, len(items))
 	for _, r := range items {
