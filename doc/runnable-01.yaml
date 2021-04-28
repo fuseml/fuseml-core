@@ -1,6 +1,5 @@
-# FuseML Runnable Examples
+# Runnable YAML exemplifying a wide variety of input and outptut types and options
 
-```
 runnable:
   id: example-runnable-1234
   description: |
@@ -169,4 +168,3 @@ runnable:
       labels:
         dataset: sample
         format: csv
-```
