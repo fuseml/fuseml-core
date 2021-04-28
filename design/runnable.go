@@ -16,10 +16,10 @@ var _ = Service("runnable", func() {
 				func() {
 					Example("ml-trainer-123")
 				})
-			Field(2, "kind", ArrayOf(String),
-				"List of values or regular expressions used to filter runnables by their kind.",
+			Field(2, "kind", String,
+				"Value or regular expression used to filter runnables by their kind",
 				func() {
-					Example([]string{"builder", "trainer"})
+					Example("trainer")
 				})
 			Field(3, "labels", MapOf(String, String),
 				"List of values or regular expressions used filter results by their labels.",
@@ -32,6 +32,7 @@ var _ = Service("runnable", func() {
 						"function": "predict|train",
 					})
 				})
+			Required()
 		})
 
 		// Result is a collection of runnables
@@ -46,9 +47,9 @@ var _ = Service("runnable", func() {
 			// Requests to the service consist of HTTP GET requests.
 			// The payload fields are encoded as path parameters.
 			GET("/runnables")
-			Param("kind", String, "Kind of a registered runnables", func() {
-				Example("builder")
-			})
+			Param("id")
+			Param("kind")
+			Param("labels")
 			// Responses use a "200 OK" HTTP status.
 			// The result is encoded in the response body (default).
 			Response(StatusOK)

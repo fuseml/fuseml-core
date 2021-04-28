@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"errors"
+	"regexp"
 	"time"
 
 	"github.com/fuseml/fuseml-core/pkg/domain"
@@ -24,24 +25,57 @@ const (
 	errRunnableExists = "a runnable with that ID already exists"
 )
 
-// Find returns a list of runnables identified by kind or labels
-func (s *runnableStore) Find(ctx context.Context, id string, kind []string, labels map[string]string) (res []*domain.Runnable, err error) {
-	res = make([]*domain.Runnable, 0, len(s.items))
+// Find returns a list of runnables matching the input query.
+// Runnables may be matched by id, kind or labels. Only runnables that match all the
+// supplied criteria will be returned.
+func (s *runnableStore) Find(ctx context.Context, id string, kind string, labels map[string]string) (res []*domain.Runnable, err error) {
+	res = make([]*domain.Runnable, 0)
+
+RUNNABLES:
 	for _, r := range s.items {
-		if kind == "all" || r.Kind == kind {
-			rc := &domain.Runnable{}
-			// return a deep copy of the internal runnable
-			copier.Copy(&rc, r)
-			res = append(res, rc)
+		// match ID query
+		if id != "" && r.Id != id {
+			// try matching as a regexp
+			if match, _ := regexp.Match(id, []byte(r.Id)); !match {
+				continue RUNNABLES
+			}
 		}
-		// TODO: match labels
+		// match kind query
+		if kind != "" || r.Kind != kind {
+			// try matching as a regexp
+			if match, _ := regexp.Match(kind, []byte(r.Kind)); !match {
+				continue RUNNABLES
+			}
+		}
+		// match label query
+		for qLabelKey, qLabelValue := range labels {
+			rLabelValue, hasLabel := r.Labels[qLabelKey]
+			if !hasLabel {
+				// runnable label key doesn't match query
+				continue RUNNABLES
+			}
+			if qLabelValue == "" || qLabelValue == rLabelValue {
+				// empty query label value or exact match
+				continue
+			}
+			// try matching as a regexp
+			if match, _ := regexp.Match(qLabelValue, []byte(rLabelValue)); !match {
+				// runnable label value doesn't match query label regexp
+				continue RUNNABLES
+			}
+		}
+
+		rMatch := &domain.Runnable{}
+		// return a deep copy of the internal runnable
+		copier.Copy(&rMatch, r)
+		res = append(res, rMatch)
 	}
 	return
 }
 
 // Register adds a new runnable, based on the Runnable structure provided as argument
 func (s *runnableStore) Register(ctx context.Context, r *domain.Runnable) (res *domain.Runnable, err error) {
-	if s.items[r.Id] != nil {
+	if _, found := s.items[r.Id]; found {
 		return nil, errors.New(errRunnableExists)
 	}
 	res = &domain.Runnable{}

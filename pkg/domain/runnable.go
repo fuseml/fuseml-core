@@ -191,7 +191,7 @@ type RunnableArtifactSpec struct {
 }
 
 type RunnableStore interface {
-	Find(ctx context.Context, id string, kind []string, labels map[string]string) (res []*Runnable, err error)
+	Find(ctx context.Context, id string, kind string, labels map[string]string) (res []*Runnable, err error)
 	Register(ctx context.Context, r *Runnable) (res *Runnable, err error)
 	Get(ctx context.Context, name string) (res *Runnable, err error)
 }
