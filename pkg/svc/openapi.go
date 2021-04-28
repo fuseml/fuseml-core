@@ -1,4 +1,4 @@
-package fuseml
+package svc
 
 import (
 	"log"
