@@ -57,11 +57,11 @@ func restToDomain(r *runnable.Runnable) (res *domain.Runnable, err error) {
 		Id:          getStringValueOrDefault(r.ID, uuid.NewString()),
 		Description: r.Description,
 		Kind:        r.Kind,
-		Implem: domain.RunnableImplem{
-			Image:      r.Implem.Image,
-			Env:        r.Implem.Env,
-			Args:       r.Implem.Args,
-			Entrypoint: getStringValueOrDefault(r.Implem.Entrypoint, ""),
+		Container: domain.RunnableContainer{
+			Image:      r.Container.Image,
+			Env:        r.Container.Env,
+			Args:       r.Container.Args,
+			Entrypoint: getStringValueOrDefault(r.Container.Entrypoint, ""),
 		},
 		Inputs:            make(map[string]*domain.RunnableInput, len(r.Inputs)),
 		Outputs:           make(map[string]*domain.RunnableOutput, len(r.Outputs)),
@@ -181,11 +181,11 @@ func domainToRest(r *domain.Runnable) (res *runnable.Runnable) {
 		ID:          &r.Id,
 		Description: r.Description,
 		Kind:        r.Kind,
-		Implem: &runnable.RunnableImplem{
-			Image:      r.Implem.Image,
-			Entrypoint: getNilIfEmptyString(r.Implem.Entrypoint),
-			Env:        r.Implem.Env,
-			Args:       r.Implem.Args,
+		Container: &runnable.RunnableContainer{
+			Image:      r.Container.Image,
+			Entrypoint: getNilIfEmptyString(r.Container.Entrypoint),
+			Env:        r.Container.Env,
+			Args:       r.Container.Args,
 		},
 		Inputs:            make(map[string]*runnable.RunnableInput, len(r.Inputs)),
 		Outputs:           make(map[string]*runnable.RunnableOutput, len(r.Outputs)),

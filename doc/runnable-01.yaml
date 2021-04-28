@@ -5,7 +5,7 @@ runnable:
   description: |
     custom runnable example
   kind: custom
-  implem:
+  container:
     image: oci-registry.example.io/my-repo:tag
     env:
       ENV_VAR_ONE: "value-one"

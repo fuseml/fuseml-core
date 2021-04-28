@@ -69,7 +69,7 @@ type Runnable struct {
 	// for generic CPUs, one for GPUs from vendor X, one for TPUs from vendor Y etc.). This example
 	// cannot be modeled using one image and input parameters because the different sofware requirements
 	// can't coexist in the same container image.
-	Implem RunnableImplem
+	Container RunnableContainer
 	// Map of inputs - artifacts or parameters - accepted by this runnable, indexed by name
 	Inputs map[string]*RunnableInput
 	// Default root container path where the container expects input parameter values and/or artifact contents
@@ -85,8 +85,8 @@ type Runnable struct {
 	Labels map[string]string
 }
 
-// Runnable implementation
-type RunnableImplem struct {
+// Runnable container implementation
+type RunnableContainer struct {
 	// The container image associated with this runnable
 	Image string
 	// This flag indicates that the image is stored in the built-in container registry and the registry
