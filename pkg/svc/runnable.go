@@ -92,12 +92,12 @@ func restToDomain(r *runnable.Runnable) (res *domain.Runnable, err error) {
 			// default value passing mode for everything else is by-value
 			i.ValuePass.PassBy = domain.PBM_VALUE
 		}
-		switch {
-		case input.PassByValue != nil:
+
+		if input.PassByValue != nil {
 			i.ValuePass.PassBy = domain.PBM_VALUE
 			i.ValuePass.Path = getStringValueOrDefault(input.PassByValue.ToPath, "")
-			fallthrough
-		case input.PassByReference != nil:
+		}
+		if input.PassByReference != nil {
 			if input.PassByValue != nil {
 				return nil, getInputErr(i.Name, errMaxOnePassByMode)
 			}
@@ -137,12 +137,12 @@ func restToDomain(r *runnable.Runnable) (res *domain.Runnable, err error) {
 			// default value passing mode for everything else is by-value
 			o.ValuePass.PassBy = domain.PBM_VALUE
 		}
-		switch {
-		case output.PassByValue != nil:
+
+		if output.PassByValue != nil {
 			o.ValuePass.PassBy = domain.PBM_VALUE
 			o.ValuePass.Path = getStringValueOrDefault(output.PassByValue.FromPath, "")
-			fallthrough
-		case output.PassByReference != nil:
+		}
+		if output.PassByReference != nil {
 			if output.PassByValue != nil {
 				return nil, getOutputErr(o.Name, errMaxOnePassByMode)
 			}
@@ -195,9 +195,9 @@ func domainToRest(r *domain.Runnable) (res *runnable.Runnable) {
 		Labels:            r.Labels,
 	}
 	for iName, input := range r.Inputs {
-		defaultValue := &input.DefaultValue
+		defaultValue := (*string)(nil)
 		if input.Optional {
-			defaultValue = nil
+			defaultValue = &input.DefaultValue
 		}
 		i := runnable.RunnableInput{
 			Type:         string(input.Type),
@@ -238,7 +238,7 @@ func domainToRest(r *domain.Runnable) (res *runnable.Runnable) {
 			Labels:      output.Labels,
 		}
 
-		if output.Type != domain.RAT_PARAM {
+		if output.Type != domain.RAT_PARAM && output.Artifact != nil {
 			o.Artifact = &runnable.ArtifactArgSpec{
 				StoreType: getNilIfEmptyString(string(output.Artifact.StoreType)),
 				Store:     getNilIfEmptyString(output.Artifact.Store),

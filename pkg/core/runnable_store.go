@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/fuseml/fuseml-core/pkg/domain"
@@ -18,6 +19,10 @@ func NewRunnableStore() *runnableStore {
 		items: make(map[string]*domain.Runnable),
 	}
 }
+
+const (
+	errRunnableExists = "a runnable with that ID already exists"
+)
 
 // Find returns a list of runnables identified by kind or labels
 func (s *runnableStore) Find(ctx context.Context, kind string, labels map[string]string) (res []*domain.Runnable, err error) {
@@ -36,6 +41,9 @@ func (s *runnableStore) Find(ctx context.Context, kind string, labels map[string
 
 // Register adds a new runnable, based on the Runnable structure provided as argument
 func (s *runnableStore) Register(ctx context.Context, r *domain.Runnable) (res *domain.Runnable, err error) {
+	if s.items[r.Id] != nil {
+		return nil, errors.New(errRunnableExists)
+	}
 	res = &domain.Runnable{}
 	// return a deep copy of the internal runnable
 	copier.Copy(&res, r)
