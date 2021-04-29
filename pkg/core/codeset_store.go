@@ -13,6 +13,7 @@ import (
 // GitAdmin is an inteface to git administration clients
 type GitAdmin interface {
 	PrepareRepository(*codeset.Codeset, *string) error
+	CreateRepoWebhook(string, string, *string) error
 	GetRepositories(org, label *string) ([]*codeset.Codeset, error)
 	GetRepository(org, name string) (*codeset.Codeset, error)
 }
@@ -45,6 +46,15 @@ func (cs *GitCodesetStore) GetAll(ctx context.Context, project, label *string) (
 		return nil, errors.Wrap(err, "Fetching Codesets failed")
 	}
 	return result, nil
+}
+
+// CreateWebhook adds a new webhook to a codeset
+func (cs *GitCodesetStore) CreateWebhook(ctx context.Context, c *codeset.Codeset, listenerURL string) error {
+	err := cs.gitAdmin.CreateRepoWebhook(c.Project, c.Name, &listenerURL)
+	if err != nil {
+		return errors.Wrap(err, "Creating webhook failed")
+	}
+	return nil
 }
 
 // Add creates new codeset
