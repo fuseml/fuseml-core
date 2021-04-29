@@ -11,4 +11,5 @@ type CodesetStore interface {
 	Find(ctx context.Context, project, name string) (*codeset.Codeset, error)
 	GetAll(ctx context.Context, project, label *string) ([]*codeset.Codeset, error)
 	Add(ctx context.Context, c *codeset.Codeset) (*codeset.Codeset, error)
+	CreateWebhook(context.Context, *codeset.Codeset, string) error
 }

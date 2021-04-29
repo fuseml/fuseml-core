@@ -14,6 +14,7 @@ import (
 // AdminClient describes the interface of Gitea Admin Client
 type AdminClient interface {
 	PrepareRepository(*codeset.Codeset, *string) error
+	CreateRepoWebhook(string, string, *string) error
 	GetRepositories(org, label *string) ([]*codeset.Codeset, error)
 	GetRepository(org, name string) (*codeset.Codeset, error)
 }
