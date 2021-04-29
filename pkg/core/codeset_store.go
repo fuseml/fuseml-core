@@ -6,11 +6,13 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/fuseml/fuseml-core/gen/codeset"
+
+	config "github.com/fuseml/fuseml-core/pkg/core/config"
 )
 
 // GitAdmin is an inteface to git administration clients
 type GitAdmin interface {
-	PrepareRepository(code *codeset.Codeset) error
+	PrepareRepository(*codeset.Codeset, *string) error
 	GetRepositories(org, label *string) ([]*codeset.Codeset, error)
 	GetRepository(org, name string) (*codeset.Codeset, error)
 }
@@ -47,7 +49,9 @@ func (cs *GitCodesetStore) GetAll(ctx context.Context, project, label *string) (
 
 // Add creates new codeset
 func (cs *GitCodesetStore) Add(ctx context.Context, c *codeset.Codeset) (*codeset.Codeset, error) {
-	err := cs.gitAdmin.PrepareRepository(c)
+	var listenerURL *string
+	listenerURL = &config.StagingEventListenerURL
+	err := cs.gitAdmin.PrepareRepository(c, listenerURL)
 	if err != nil {
 		return nil, errors.Wrap(err, "Preparing Repository failed")
 	}
