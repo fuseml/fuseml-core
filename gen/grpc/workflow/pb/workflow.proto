@@ -1,0 +1,177 @@
+// Code generated with goa v3.3.1, DO NOT EDIT.
+//
+// workflow protocol buffer definition
+//
+// Command:
+// $ goa gen github.com/fuseml/fuseml-core/design
+
+syntax = "proto3";
+
+package workflow;
+
+option go_package = "/workflowpb";
+
+// The workflow service performs operations on workflows.
+service Workflow {
+	// List workflows registered in FuseML.
+	rpc List (ListRequest) returns (ListResponse);
+	// Register a workflow within the FuseML workflow store.
+	rpc Register (RegisterRequest) returns (RegisterResponse);
+	// Retrieve Workflow(s) from FuseML.
+	rpc Get (GetRequest) returns (GetResponse);
+}
+
+message ListRequest {
+	// List workflows with the specified name
+	string name = 1;
+}
+
+message ListResponse {
+	repeated Workflow2 field = 1;
+}
+
+message Workflow2 {
+	// The ID of the workflow
+	string id = 1;
+	// The workflow creation time
+	string created = 2;
+	// Name of the workflow
+	string name = 3;
+	// Description for the workflow
+	string description = 4;
+	// Inputs for the workflow
+	repeated WorkflowInput inputs = 5;
+	// Outputs from the workflow
+	repeated WorkflowOutput outputs = 6;
+	// Steps to be executed by the workflow
+	repeated WorkflowStep steps = 7;
+}
+
+message WorkflowInput {
+	// Name of the input
+	string name = 1;
+	// Description of the input
+	string description = 2;
+	// The type of the input (codeset, string, ...)
+	string type = 3;
+	// Default value for the input
+	string default = 4;
+	// Labels associated with the input
+	repeated string labels = 5;
+}
+
+message WorkflowOutput {
+	// Name of the output
+	string name = 1;
+	// Description of the output
+	string description = 2;
+	// The data type of the output
+	string type = 3;
+}
+
+message WorkflowStep {
+	// The name of the step
+	string name = 1;
+	// The image used to execute the step
+	string image = 2;
+	// List of inputs for the step
+	repeated WorkflowStepInput inputs = 3;
+	// List of output from the step
+	repeated WorkflowStepOutput outputs = 4;
+	// List of environment variables available for the container running the step
+	repeated StepEnv env = 5;
+}
+
+message WorkflowStepInput {
+	// Name of the input
+	string name = 1;
+	// Value of the input
+	string value = 2;
+	// Codeset associated with the input
+	StepInputCodeset codeset = 3;
+}
+
+message StepInputCodeset {
+	// Name or ID of the codeset
+	string name = 1;
+	// Path where the codeset will be mounted inside the container running the step
+	string path = 2;
+}
+
+message WorkflowStepOutput {
+	// Name of the variable to hold the step output value
+	string name = 1;
+	// If the step builds a container image as output it will be referenced as
+// 'image'
+	StepOutputImage image = 2;
+}
+
+message StepOutputImage {
+	// Path to the Dockerfile used to build the image
+	string dockerfile = 1;
+	// Name of the image, including the repository where the image will be stored
+	string name = 2;
+}
+
+message StepEnv {
+	// Name of the environment variable
+	string name = 1;
+	// Value to set for the enviroment variable
+	string value = 2;
+}
+
+message RegisterRequest {
+	// The ID of the workflow
+	string id = 1;
+	// The workflow creation time
+	string created = 2;
+	// Name of the workflow
+	string name = 3;
+	// Description for the workflow
+	string description = 4;
+	// Inputs for the workflow
+	repeated WorkflowInput inputs = 5;
+	// Outputs from the workflow
+	repeated WorkflowOutput outputs = 6;
+	// Steps to be executed by the workflow
+	repeated WorkflowStep steps = 7;
+}
+
+message RegisterResponse {
+	// The ID of the workflow
+	string id = 1;
+	// The workflow creation time
+	string created = 2;
+	// Name of the workflow
+	string name = 3;
+	// Description for the workflow
+	string description = 4;
+	// Inputs for the workflow
+	repeated WorkflowInput inputs = 5;
+	// Outputs from the workflow
+	repeated WorkflowOutput outputs = 6;
+	// Steps to be executed by the workflow
+	repeated WorkflowStep steps = 7;
+}
+
+message GetRequest {
+	// Workflow name or ID
+	string workflow_name_or_id = 1;
+}
+
+message GetResponse {
+	// The ID of the workflow
+	string id = 1;
+	// The workflow creation time
+	string created = 2;
+	// Name of the workflow
+	string name = 3;
+	// Description for the workflow
+	string description = 4;
+	// Inputs for the workflow
+	repeated WorkflowInput inputs = 5;
+	// Outputs from the workflow
+	repeated WorkflowOutput outputs = 6;
+	// Steps to be executed by the workflow
+	repeated WorkflowStep steps = 7;
+}

@@ -10,10 +10,12 @@ import (
 	codeset "github.com/fuseml/fuseml-core/gen/codeset"
 	codesetpb "github.com/fuseml/fuseml-core/gen/grpc/codeset/pb"
 	codesetsvr "github.com/fuseml/fuseml-core/gen/grpc/codeset/server"
-
 	runnablepb "github.com/fuseml/fuseml-core/gen/grpc/runnable/pb"
 	runnablesvr "github.com/fuseml/fuseml-core/gen/grpc/runnable/server"
+	workflowpb "github.com/fuseml/fuseml-core/gen/grpc/workflow/pb"
+	workflowsvr "github.com/fuseml/fuseml-core/gen/grpc/workflow/server"
 	runnable "github.com/fuseml/fuseml-core/gen/runnable"
+	workflow "github.com/fuseml/fuseml-core/gen/workflow"
 
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcmdlwr "goa.design/goa/v3/grpc/middleware"
@@ -24,8 +26,7 @@ import (
 
 // handleGRPCServer starts configures and starts a gRPC server on the given
 // URL. It shuts down the server if any error is received in the error channel.
-func handleGRPCServer(ctx context.Context, u *url.URL, runnableEndpoints *runnable.Endpoints, codesetEndpoints *codeset.Endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
-
+func handleGRPCServer(ctx context.Context, u *url.URL, runnableEndpoints *runnable.Endpoints, codesetEndpoints *codeset.Endpoints, workflowEndpoints *workflow.Endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
 	// Setup goa log adapter.
 	var (
 		adapter middleware.Logger
@@ -41,10 +42,12 @@ func handleGRPCServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 	var (
 		runnableServer *runnablesvr.Server
 		codesetServer  *codesetsvr.Server
+		workflowServer *workflowsvr.Server
 	)
 	{
 		runnableServer = runnablesvr.New(runnableEndpoints, nil)
 		codesetServer = codesetsvr.New(codesetEndpoints, nil)
+		workflowServer = workflowsvr.New(workflowEndpoints, nil)
 	}
 
 	// Initialize gRPC server with the middleware.
@@ -58,6 +61,7 @@ func handleGRPCServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 	// Register the servers.
 	runnablepb.RegisterRunnableServer(srv, runnableServer)
 	codesetpb.RegisterCodesetServer(srv, codesetServer)
+	workflowpb.RegisterWorkflowServer(srv, workflowServer)
 
 	for svc, info := range srv.GetServiceInfo() {
 		for _, m := range info.Methods {

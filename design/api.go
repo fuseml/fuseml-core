@@ -14,7 +14,7 @@ var _ = API("fuseml", func() {
 		Description("fuseml-core hosts the core services")
 
 		// List the services hosted by this server.
-		Services("runnable", "codeset", "openapi")
+		Services("runnable", "codeset", "workflow", "openapi")
 
 		// List the Hosts and their transport URLs.
 		Host("dev", func() {

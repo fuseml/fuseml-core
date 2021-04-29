@@ -300,7 +300,7 @@ paths:
                 description: Return all registered runnables matching the query.
                 example:
                 - created: "2021-04-09T06:17:25Z"
-                  id: 3F59C655-AFF8-EAB8-FA17-44E154EF0557
+                  id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
                   image:
                     registryUrl: myregistry.io
                     repository: example/builder
@@ -330,35 +330,11 @@ paths:
                       - label1
                       - label2
                       name: BuilderRun1
-                  - kind: parameter
-                    name: Input1
-                    parameter:
-                      datatype: file
-                      default: mydata.csv
-                      optional: true
-                    runnable:
-                      kind: builder
-                      labels:
-                      - label1
-                      - label2
-                      name: BuilderRun1
                   kind: trainer
                   labels:
                   - trainer
                   name: MyTrainer
                   outputs:
-                  - kind: model
-                    metadata:
-                      datatype: file
-                      default: mydata.csv
-                      optional: true
-                    name: Output1
-                    runnable:
-                      kind: builder
-                      labels:
-                      - label1
-                      - label2
-                      name: BuilderRun1
                   - kind: model
                     metadata:
                       datatype: file
@@ -384,7 +360,7 @@ paths:
                       - label2
                       name: BuilderRun1
                 - created: "2021-04-09T06:17:25Z"
-                  id: 3F59C655-AFF8-EAB8-FA17-44E154EF0557
+                  id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
                   image:
                     registryUrl: myregistry.io
                     repository: example/builder
@@ -414,203 +390,11 @@ paths:
                       - label1
                       - label2
                       name: BuilderRun1
-                  - kind: parameter
-                    name: Input1
-                    parameter:
-                      datatype: file
-                      default: mydata.csv
-                      optional: true
-                    runnable:
-                      kind: builder
-                      labels:
-                      - label1
-                      - label2
-                      name: BuilderRun1
                   kind: trainer
                   labels:
                   - trainer
                   name: MyTrainer
                   outputs:
-                  - kind: model
-                    metadata:
-                      datatype: file
-                      default: mydata.csv
-                      optional: true
-                    name: Output1
-                    runnable:
-                      kind: builder
-                      labels:
-                      - label1
-                      - label2
-                      name: BuilderRun1
-                  - kind: model
-                    metadata:
-                      datatype: file
-                      default: mydata.csv
-                      optional: true
-                    name: Output1
-                    runnable:
-                      kind: builder
-                      labels:
-                      - label1
-                      - label2
-                      name: BuilderRun1
-                  - kind: model
-                    metadata:
-                      datatype: file
-                      default: mydata.csv
-                      optional: true
-                    name: Output1
-                    runnable:
-                      kind: builder
-                      labels:
-                      - label1
-                      - label2
-                      name: BuilderRun1
-                - created: "2021-04-09T06:17:25Z"
-                  id: 3F59C655-AFF8-EAB8-FA17-44E154EF0557
-                  image:
-                    registryUrl: myregistry.io
-                    repository: example/builder
-                    tag: "1.0"
-                  inputs:
-                  - kind: parameter
-                    name: Input1
-                    parameter:
-                      datatype: file
-                      default: mydata.csv
-                      optional: true
-                    runnable:
-                      kind: builder
-                      labels:
-                      - label1
-                      - label2
-                      name: BuilderRun1
-                  - kind: parameter
-                    name: Input1
-                    parameter:
-                      datatype: file
-                      default: mydata.csv
-                      optional: true
-                    runnable:
-                      kind: builder
-                      labels:
-                      - label1
-                      - label2
-                      name: BuilderRun1
-                  - kind: parameter
-                    name: Input1
-                    parameter:
-                      datatype: file
-                      default: mydata.csv
-                      optional: true
-                    runnable:
-                      kind: builder
-                      labels:
-                      - label1
-                      - label2
-                      name: BuilderRun1
-                  kind: trainer
-                  labels:
-                  - trainer
-                  name: MyTrainer
-                  outputs:
-                  - kind: model
-                    metadata:
-                      datatype: file
-                      default: mydata.csv
-                      optional: true
-                    name: Output1
-                    runnable:
-                      kind: builder
-                      labels:
-                      - label1
-                      - label2
-                      name: BuilderRun1
-                  - kind: model
-                    metadata:
-                      datatype: file
-                      default: mydata.csv
-                      optional: true
-                    name: Output1
-                    runnable:
-                      kind: builder
-                      labels:
-                      - label1
-                      - label2
-                      name: BuilderRun1
-                  - kind: model
-                    metadata:
-                      datatype: file
-                      default: mydata.csv
-                      optional: true
-                    name: Output1
-                    runnable:
-                      kind: builder
-                      labels:
-                      - label1
-                      - label2
-                      name: BuilderRun1
-                - created: "2021-04-09T06:17:25Z"
-                  id: 3F59C655-AFF8-EAB8-FA17-44E154EF0557
-                  image:
-                    registryUrl: myregistry.io
-                    repository: example/builder
-                    tag: "1.0"
-                  inputs:
-                  - kind: parameter
-                    name: Input1
-                    parameter:
-                      datatype: file
-                      default: mydata.csv
-                      optional: true
-                    runnable:
-                      kind: builder
-                      labels:
-                      - label1
-                      - label2
-                      name: BuilderRun1
-                  - kind: parameter
-                    name: Input1
-                    parameter:
-                      datatype: file
-                      default: mydata.csv
-                      optional: true
-                    runnable:
-                      kind: builder
-                      labels:
-                      - label1
-                      - label2
-                      name: BuilderRun1
-                  - kind: parameter
-                    name: Input1
-                    parameter:
-                      datatype: file
-                      default: mydata.csv
-                      optional: true
-                    runnable:
-                      kind: builder
-                      labels:
-                      - label1
-                      - label2
-                      name: BuilderRun1
-                  kind: trainer
-                  labels:
-                  - trainer
-                  name: MyTrainer
-                  outputs:
-                  - kind: model
-                    metadata:
-                      datatype: file
-                      default: mydata.csv
-                      optional: true
-                    name: Output1
-                    runnable:
-                      kind: builder
-                      labels:
-                      - label1
-                      - label2
-                      name: BuilderRun1
                   - kind: model
                     metadata:
                       datatype: file
@@ -637,7 +421,7 @@ paths:
                       name: BuilderRun1
               example:
               - created: "2021-04-09T06:17:25Z"
-                id: 3F59C655-AFF8-EAB8-FA17-44E154EF0557
+                id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
                 image:
                   registryUrl: myregistry.io
                   repository: example/builder
@@ -667,35 +451,11 @@ paths:
                     - label1
                     - label2
                     name: BuilderRun1
-                - kind: parameter
-                  name: Input1
-                  parameter:
-                    datatype: file
-                    default: mydata.csv
-                    optional: true
-                  runnable:
-                    kind: builder
-                    labels:
-                    - label1
-                    - label2
-                    name: BuilderRun1
                 kind: trainer
                 labels:
                 - trainer
                 name: MyTrainer
                 outputs:
-                - kind: model
-                  metadata:
-                    datatype: file
-                    default: mydata.csv
-                    optional: true
-                  name: Output1
-                  runnable:
-                    kind: builder
-                    labels:
-                    - label1
-                    - label2
-                    name: BuilderRun1
                 - kind: model
                   metadata:
                     datatype: file
@@ -721,7 +481,7 @@ paths:
                     - label2
                     name: BuilderRun1
               - created: "2021-04-09T06:17:25Z"
-                id: 3F59C655-AFF8-EAB8-FA17-44E154EF0557
+                id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
                 image:
                   registryUrl: myregistry.io
                   repository: example/builder
@@ -751,35 +511,11 @@ paths:
                     - label1
                     - label2
                     name: BuilderRun1
-                - kind: parameter
-                  name: Input1
-                  parameter:
-                    datatype: file
-                    default: mydata.csv
-                    optional: true
-                  runnable:
-                    kind: builder
-                    labels:
-                    - label1
-                    - label2
-                    name: BuilderRun1
                 kind: trainer
                 labels:
                 - trainer
                 name: MyTrainer
                 outputs:
-                - kind: model
-                  metadata:
-                    datatype: file
-                    default: mydata.csv
-                    optional: true
-                  name: Output1
-                  runnable:
-                    kind: builder
-                    labels:
-                    - label1
-                    - label2
-                    name: BuilderRun1
                 - kind: model
                   metadata:
                     datatype: file
@@ -805,7 +541,7 @@ paths:
                     - label2
                     name: BuilderRun1
               - created: "2021-04-09T06:17:25Z"
-                id: 3F59C655-AFF8-EAB8-FA17-44E154EF0557
+                id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
                 image:
                   registryUrl: myregistry.io
                   repository: example/builder
@@ -835,119 +571,11 @@ paths:
                     - label1
                     - label2
                     name: BuilderRun1
-                - kind: parameter
-                  name: Input1
-                  parameter:
-                    datatype: file
-                    default: mydata.csv
-                    optional: true
-                  runnable:
-                    kind: builder
-                    labels:
-                    - label1
-                    - label2
-                    name: BuilderRun1
                 kind: trainer
                 labels:
                 - trainer
                 name: MyTrainer
                 outputs:
-                - kind: model
-                  metadata:
-                    datatype: file
-                    default: mydata.csv
-                    optional: true
-                  name: Output1
-                  runnable:
-                    kind: builder
-                    labels:
-                    - label1
-                    - label2
-                    name: BuilderRun1
-                - kind: model
-                  metadata:
-                    datatype: file
-                    default: mydata.csv
-                    optional: true
-                  name: Output1
-                  runnable:
-                    kind: builder
-                    labels:
-                    - label1
-                    - label2
-                    name: BuilderRun1
-                - kind: model
-                  metadata:
-                    datatype: file
-                    default: mydata.csv
-                    optional: true
-                  name: Output1
-                  runnable:
-                    kind: builder
-                    labels:
-                    - label1
-                    - label2
-                    name: BuilderRun1
-              - created: "2021-04-09T06:17:25Z"
-                id: 3F59C655-AFF8-EAB8-FA17-44E154EF0557
-                image:
-                  registryUrl: myregistry.io
-                  repository: example/builder
-                  tag: "1.0"
-                inputs:
-                - kind: parameter
-                  name: Input1
-                  parameter:
-                    datatype: file
-                    default: mydata.csv
-                    optional: true
-                  runnable:
-                    kind: builder
-                    labels:
-                    - label1
-                    - label2
-                    name: BuilderRun1
-                - kind: parameter
-                  name: Input1
-                  parameter:
-                    datatype: file
-                    default: mydata.csv
-                    optional: true
-                  runnable:
-                    kind: builder
-                    labels:
-                    - label1
-                    - label2
-                    name: BuilderRun1
-                - kind: parameter
-                  name: Input1
-                  parameter:
-                    datatype: file
-                    default: mydata.csv
-                    optional: true
-                  runnable:
-                    kind: builder
-                    labels:
-                    - label1
-                    - label2
-                    name: BuilderRun1
-                kind: trainer
-                labels:
-                - trainer
-                name: MyTrainer
-                outputs:
-                - kind: model
-                  metadata:
-                    datatype: file
-                    default: mydata.csv
-                    optional: true
-                  name: Output1
-                  runnable:
-                    kind: builder
-                    labels:
-                    - label1
-                    - label2
-                    name: BuilderRun1
                 - kind: model
                   metadata:
                     datatype: file
@@ -996,7 +624,7 @@ paths:
               $ref: '#/components/schemas/Runnable'
             example:
               created: "2021-04-09T06:17:25Z"
-              id: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
+              id: E330131A-4516-F39A-1E98-7CBF64E7E788
               image:
                 registryUrl: myregistry.io
                 repository: example/builder
@@ -1055,104 +683,21 @@ paths:
                   - label1
                   - label2
                   name: BuilderRun1
+              - kind: model
+                metadata:
+                  datatype: file
+                  default: mydata.csv
+                  optional: true
+                name: Output1
+                runnable:
+                  kind: builder
+                  labels:
+                  - label1
+                  - label2
+                  name: BuilderRun1
       responses:
         "201":
           description: Created response.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Runnable'
-              example:
-                created: "2021-04-09T06:17:25Z"
-                id: E330131A-4516-F39A-1E98-7CBF64E7E788
-                image:
-                  registryUrl: myregistry.io
-                  repository: example/builder
-                  tag: "1.0"
-                inputs:
-                - kind: parameter
-                  name: Input1
-                  parameter:
-                    datatype: file
-                    default: mydata.csv
-                    optional: true
-                  runnable:
-                    kind: builder
-                    labels:
-                    - label1
-                    - label2
-                    name: BuilderRun1
-                - kind: parameter
-                  name: Input1
-                  parameter:
-                    datatype: file
-                    default: mydata.csv
-                    optional: true
-                  runnable:
-                    kind: builder
-                    labels:
-                    - label1
-                    - label2
-                    name: BuilderRun1
-                kind: trainer
-                labels:
-                - trainer
-                name: MyTrainer
-                outputs:
-                - kind: model
-                  metadata:
-                    datatype: file
-                    default: mydata.csv
-                    optional: true
-                  name: Output1
-                  runnable:
-                    kind: builder
-                    labels:
-                    - label1
-                    - label2
-                    name: BuilderRun1
-                - kind: model
-                  metadata:
-                    datatype: file
-                    default: mydata.csv
-                    optional: true
-                  name: Output1
-                  runnable:
-                    kind: builder
-                    labels:
-                    - label1
-                    - label2
-                    name: BuilderRun1
-        "400":
-          description: Bad Request response.
-          content:
-            application/vnd.goa.error:
-              schema:
-                $ref: '#/components/schemas/Error'
-              example:
-                id: 3F1FKVRR
-                message: Value of ID must be an integer
-                name: bad_request
-  /runnables/{runnableNameOrId}:
-    get:
-      tags:
-      - runnable
-      summary: get runnable
-      description: Retrieve an Runnable from FuseML.
-      operationId: runnable#get
-      parameters:
-      - name: runnableNameOrId
-        in: path
-        description: Runnable name or id
-        required: true
-        schema:
-          type: string
-          description: Runnable name or id
-          example: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
-        example: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
-      responses:
-        "200":
-          description: OK response.
           content:
             application/json:
               schema:
@@ -1254,6 +799,77 @@ paths:
                     - label1
                     - label2
                     name: BuilderRun1
+        "400":
+          description: Bad Request response.
+          content:
+            application/vnd.goa.error:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                id: 3F1FKVRR
+                message: Value of ID must be an integer
+                name: bad_request
+  /runnables/{runnableNameOrId}:
+    get:
+      tags:
+      - runnable
+      summary: get runnable
+      description: Retrieve an Runnable from FuseML.
+      operationId: runnable#get
+      parameters:
+      - name: runnableNameOrId
+        in: path
+        description: Runnable name or id
+        required: true
+        schema:
+          type: string
+          description: Runnable name or id
+          example: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
+        example: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
+      responses:
+        "200":
+          description: OK response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Runnable'
+              example:
+                created: "2021-04-09T06:17:25Z"
+                id: 77EB7E77-465C-FCC6-CEC6-11F6C8938D24
+                image:
+                  registryUrl: myregistry.io
+                  repository: example/builder
+                  tag: "1.0"
+                inputs:
+                - kind: parameter
+                  name: Input1
+                  parameter:
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  runnable:
+                    kind: builder
+                    labels:
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: parameter
+                  name: Input1
+                  parameter:
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  runnable:
+                    kind: builder
+                    labels:
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                kind: trainer
+                labels:
+                - trainer
+                name: MyTrainer
+                outputs:
                 - kind: model
                   metadata:
                     datatype: file
@@ -1266,6 +882,1256 @@ paths:
                     - label1
                     - label2
                     name: BuilderRun1
+                - kind: model
+                  metadata:
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  name: Output1
+                  runnable:
+                    kind: builder
+                    labels:
+                    - label1
+                    - label2
+                    name: BuilderRun1
+                - kind: model
+                  metadata:
+                    datatype: file
+                    default: mydata.csv
+                    optional: true
+                  name: Output1
+                  runnable:
+                    kind: builder
+                    labels:
+                    - label1
+                    - label2
+                    name: BuilderRun1
+        "400":
+          description: Bad Request response.
+          content:
+            application/vnd.goa.error:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                id: 3F1FKVRR
+                message: Value of ID must be an integer
+                name: bad_request
+        "404":
+          description: Not Found response.
+          content:
+            application/vnd.goa.error:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                id: 3F1FKVRR
+                message: Value of ID must be an integer
+                name: bad_request
+  /workflows:
+    get:
+      tags:
+      - workflow
+      summary: list workflow
+      description: List workflows registered in FuseML.
+      operationId: workflow#list
+      parameters:
+      - name: name
+        in: query
+        description: List workflows with the specified name
+        allowEmptyValue: true
+        schema:
+          type: string
+          description: List workflows with the specified name
+          example: workflowA
+        example: workflowA
+      responses:
+        "200":
+          description: OK response.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Workflow'
+                description: Return all registered workflows matching the query.
+                example:
+                - created: "2021-04-09T06:17:25Z"
+                  description: This workflow is just trains a model and serve it
+                  id: 74C53540-E974-ABFF-2565-6BF99F9017B2
+                  inputs:
+                  - default: mlflow-example
+                    description: An MLFlow project codeset
+                    labels:
+                    - mlflow-project
+                    name: mlflow-codeset
+                    type: codeset
+                  - default: mlflow-example
+                    description: An MLFlow project codeset
+                    labels:
+                    - mlflow-project
+                    name: mlflow-codeset
+                    type: codeset
+                  name: TrainAndServe
+                  outputs:
+                  - description: The URL where the exposed prediction service endpoint
+                      can be contacted to run predictions.
+                    name: prediction-url
+                    type: string
+                  - description: The URL where the exposed prediction service endpoint
+                      can be contacted to run predictions.
+                    name: prediction-url
+                    type: string
+                  - description: The URL where the exposed prediction service endpoint
+                      can be contacted to run predictions.
+                    name: prediction-url
+                    type: string
+                  steps:
+                  - env:
+                    - name: PATH
+                      value: /project
+                    - name: PATH
+                      value: /project
+                    image: ghcr.io/fuseml/kfserving-predictor:1.0
+                    inputs:
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    name: predictor
+                    outputs:
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+                  - env:
+                    - name: PATH
+                      value: /project
+                    - name: PATH
+                      value: /project
+                    image: ghcr.io/fuseml/kfserving-predictor:1.0
+                    inputs:
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    name: predictor
+                    outputs:
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+                  - env:
+                    - name: PATH
+                      value: /project
+                    - name: PATH
+                      value: /project
+                    image: ghcr.io/fuseml/kfserving-predictor:1.0
+                    inputs:
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    name: predictor
+                    outputs:
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+                - created: "2021-04-09T06:17:25Z"
+                  description: This workflow is just trains a model and serve it
+                  id: 74C53540-E974-ABFF-2565-6BF99F9017B2
+                  inputs:
+                  - default: mlflow-example
+                    description: An MLFlow project codeset
+                    labels:
+                    - mlflow-project
+                    name: mlflow-codeset
+                    type: codeset
+                  - default: mlflow-example
+                    description: An MLFlow project codeset
+                    labels:
+                    - mlflow-project
+                    name: mlflow-codeset
+                    type: codeset
+                  name: TrainAndServe
+                  outputs:
+                  - description: The URL where the exposed prediction service endpoint
+                      can be contacted to run predictions.
+                    name: prediction-url
+                    type: string
+                  - description: The URL where the exposed prediction service endpoint
+                      can be contacted to run predictions.
+                    name: prediction-url
+                    type: string
+                  - description: The URL where the exposed prediction service endpoint
+                      can be contacted to run predictions.
+                    name: prediction-url
+                    type: string
+                  steps:
+                  - env:
+                    - name: PATH
+                      value: /project
+                    - name: PATH
+                      value: /project
+                    image: ghcr.io/fuseml/kfserving-predictor:1.0
+                    inputs:
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    name: predictor
+                    outputs:
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+                  - env:
+                    - name: PATH
+                      value: /project
+                    - name: PATH
+                      value: /project
+                    image: ghcr.io/fuseml/kfserving-predictor:1.0
+                    inputs:
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    name: predictor
+                    outputs:
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+                  - env:
+                    - name: PATH
+                      value: /project
+                    - name: PATH
+                      value: /project
+                    image: ghcr.io/fuseml/kfserving-predictor:1.0
+                    inputs:
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    - codeset:
+                        name: mlflow-project
+                        path: /project
+                      name: model-uri
+                      value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                    name: predictor
+                    outputs:
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+                    - image:
+                        dockerfile: /project/.fuseml/Dockerfile
+                        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                      name: model-uri
+              example:
+              - created: "2021-04-09T06:17:25Z"
+                description: This workflow is just trains a model and serve it
+                id: 74C53540-E974-ABFF-2565-6BF99F9017B2
+                inputs:
+                - default: mlflow-example
+                  description: An MLFlow project codeset
+                  labels:
+                  - mlflow-project
+                  name: mlflow-codeset
+                  type: codeset
+                - default: mlflow-example
+                  description: An MLFlow project codeset
+                  labels:
+                  - mlflow-project
+                  name: mlflow-codeset
+                  type: codeset
+                name: TrainAndServe
+                outputs:
+                - description: The URL where the exposed prediction service endpoint
+                    can be contacted to run predictions.
+                  name: prediction-url
+                  type: string
+                - description: The URL where the exposed prediction service endpoint
+                    can be contacted to run predictions.
+                  name: prediction-url
+                  type: string
+                - description: The URL where the exposed prediction service endpoint
+                    can be contacted to run predictions.
+                  name: prediction-url
+                  type: string
+                steps:
+                - env:
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  image: ghcr.io/fuseml/kfserving-predictor:1.0
+                  inputs:
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  name: predictor
+                  outputs:
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                - env:
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  image: ghcr.io/fuseml/kfserving-predictor:1.0
+                  inputs:
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  name: predictor
+                  outputs:
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                - env:
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  image: ghcr.io/fuseml/kfserving-predictor:1.0
+                  inputs:
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  name: predictor
+                  outputs:
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+              - created: "2021-04-09T06:17:25Z"
+                description: This workflow is just trains a model and serve it
+                id: 74C53540-E974-ABFF-2565-6BF99F9017B2
+                inputs:
+                - default: mlflow-example
+                  description: An MLFlow project codeset
+                  labels:
+                  - mlflow-project
+                  name: mlflow-codeset
+                  type: codeset
+                - default: mlflow-example
+                  description: An MLFlow project codeset
+                  labels:
+                  - mlflow-project
+                  name: mlflow-codeset
+                  type: codeset
+                name: TrainAndServe
+                outputs:
+                - description: The URL where the exposed prediction service endpoint
+                    can be contacted to run predictions.
+                  name: prediction-url
+                  type: string
+                - description: The URL where the exposed prediction service endpoint
+                    can be contacted to run predictions.
+                  name: prediction-url
+                  type: string
+                - description: The URL where the exposed prediction service endpoint
+                    can be contacted to run predictions.
+                  name: prediction-url
+                  type: string
+                steps:
+                - env:
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  image: ghcr.io/fuseml/kfserving-predictor:1.0
+                  inputs:
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  name: predictor
+                  outputs:
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                - env:
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  image: ghcr.io/fuseml/kfserving-predictor:1.0
+                  inputs:
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  name: predictor
+                  outputs:
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                - env:
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  image: ghcr.io/fuseml/kfserving-predictor:1.0
+                  inputs:
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  name: predictor
+                  outputs:
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+              - created: "2021-04-09T06:17:25Z"
+                description: This workflow is just trains a model and serve it
+                id: 74C53540-E974-ABFF-2565-6BF99F9017B2
+                inputs:
+                - default: mlflow-example
+                  description: An MLFlow project codeset
+                  labels:
+                  - mlflow-project
+                  name: mlflow-codeset
+                  type: codeset
+                - default: mlflow-example
+                  description: An MLFlow project codeset
+                  labels:
+                  - mlflow-project
+                  name: mlflow-codeset
+                  type: codeset
+                name: TrainAndServe
+                outputs:
+                - description: The URL where the exposed prediction service endpoint
+                    can be contacted to run predictions.
+                  name: prediction-url
+                  type: string
+                - description: The URL where the exposed prediction service endpoint
+                    can be contacted to run predictions.
+                  name: prediction-url
+                  type: string
+                - description: The URL where the exposed prediction service endpoint
+                    can be contacted to run predictions.
+                  name: prediction-url
+                  type: string
+                steps:
+                - env:
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  image: ghcr.io/fuseml/kfserving-predictor:1.0
+                  inputs:
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  name: predictor
+                  outputs:
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                - env:
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  image: ghcr.io/fuseml/kfserving-predictor:1.0
+                  inputs:
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  name: predictor
+                  outputs:
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                - env:
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  image: ghcr.io/fuseml/kfserving-predictor:1.0
+                  inputs:
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  name: predictor
+                  outputs:
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+        "404":
+          description: Not Found response.
+          content:
+            application/vnd.goa.error:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                id: 3F1FKVRR
+                message: Value of ID must be an integer
+                name: bad_request
+    post:
+      tags:
+      - workflow
+      summary: register workflow
+      description: Register a workflow within the FuseML workflow store.
+      operationId: workflow#register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Workflow'
+            example:
+              created: "2021-04-09T06:17:25Z"
+              description: This workflow is just trains a model and serve it
+              id: FB1E8AC6-4FA4-C883-ED5A-54960E88F5FE
+              inputs:
+              - default: mlflow-example
+                description: An MLFlow project codeset
+                labels:
+                - mlflow-project
+                name: mlflow-codeset
+                type: codeset
+              - default: mlflow-example
+                description: An MLFlow project codeset
+                labels:
+                - mlflow-project
+                name: mlflow-codeset
+                type: codeset
+              name: TrainAndServe
+              outputs:
+              - description: The URL where the exposed prediction service endpoint
+                  can be contacted to run predictions.
+                name: prediction-url
+                type: string
+              - description: The URL where the exposed prediction service endpoint
+                  can be contacted to run predictions.
+                name: prediction-url
+                type: string
+              steps:
+              - env:
+                - name: PATH
+                  value: /project
+                - name: PATH
+                  value: /project
+                - name: PATH
+                  value: /project
+                - name: PATH
+                  value: /project
+                image: ghcr.io/fuseml/kfserving-predictor:1.0
+                inputs:
+                - codeset:
+                    name: mlflow-project
+                    path: /project
+                  name: model-uri
+                  value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                - codeset:
+                    name: mlflow-project
+                    path: /project
+                  name: model-uri
+                  value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                name: predictor
+                outputs:
+                - image:
+                    dockerfile: /project/.fuseml/Dockerfile
+                    name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                  name: model-uri
+                - image:
+                    dockerfile: /project/.fuseml/Dockerfile
+                    name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                  name: model-uri
+                - image:
+                    dockerfile: /project/.fuseml/Dockerfile
+                    name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                  name: model-uri
+                - image:
+                    dockerfile: /project/.fuseml/Dockerfile
+                    name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                  name: model-uri
+              - env:
+                - name: PATH
+                  value: /project
+                - name: PATH
+                  value: /project
+                - name: PATH
+                  value: /project
+                - name: PATH
+                  value: /project
+                image: ghcr.io/fuseml/kfserving-predictor:1.0
+                inputs:
+                - codeset:
+                    name: mlflow-project
+                    path: /project
+                  name: model-uri
+                  value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                - codeset:
+                    name: mlflow-project
+                    path: /project
+                  name: model-uri
+                  value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                name: predictor
+                outputs:
+                - image:
+                    dockerfile: /project/.fuseml/Dockerfile
+                    name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                  name: model-uri
+                - image:
+                    dockerfile: /project/.fuseml/Dockerfile
+                    name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                  name: model-uri
+                - image:
+                    dockerfile: /project/.fuseml/Dockerfile
+                    name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                  name: model-uri
+                - image:
+                    dockerfile: /project/.fuseml/Dockerfile
+                    name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                  name: model-uri
+              - env:
+                - name: PATH
+                  value: /project
+                - name: PATH
+                  value: /project
+                - name: PATH
+                  value: /project
+                - name: PATH
+                  value: /project
+                image: ghcr.io/fuseml/kfserving-predictor:1.0
+                inputs:
+                - codeset:
+                    name: mlflow-project
+                    path: /project
+                  name: model-uri
+                  value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                - codeset:
+                    name: mlflow-project
+                    path: /project
+                  name: model-uri
+                  value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                name: predictor
+                outputs:
+                - image:
+                    dockerfile: /project/.fuseml/Dockerfile
+                    name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                  name: model-uri
+                - image:
+                    dockerfile: /project/.fuseml/Dockerfile
+                    name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                  name: model-uri
+                - image:
+                    dockerfile: /project/.fuseml/Dockerfile
+                    name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                  name: model-uri
+                - image:
+                    dockerfile: /project/.fuseml/Dockerfile
+                    name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                  name: model-uri
+      responses:
+        "201":
+          description: Created response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workflow'
+              example:
+                created: "2021-04-09T06:17:25Z"
+                description: This workflow is just trains a model and serve it
+                id: 2C91774A-6D4A-67B6-DC43-6AED849DACC1
+                inputs:
+                - default: mlflow-example
+                  description: An MLFlow project codeset
+                  labels:
+                  - mlflow-project
+                  name: mlflow-codeset
+                  type: codeset
+                - default: mlflow-example
+                  description: An MLFlow project codeset
+                  labels:
+                  - mlflow-project
+                  name: mlflow-codeset
+                  type: codeset
+                - default: mlflow-example
+                  description: An MLFlow project codeset
+                  labels:
+                  - mlflow-project
+                  name: mlflow-codeset
+                  type: codeset
+                name: TrainAndServe
+                outputs:
+                - description: The URL where the exposed prediction service endpoint
+                    can be contacted to run predictions.
+                  name: prediction-url
+                  type: string
+                - description: The URL where the exposed prediction service endpoint
+                    can be contacted to run predictions.
+                  name: prediction-url
+                  type: string
+                - description: The URL where the exposed prediction service endpoint
+                    can be contacted to run predictions.
+                  name: prediction-url
+                  type: string
+                steps:
+                - env:
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  image: ghcr.io/fuseml/kfserving-predictor:1.0
+                  inputs:
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  name: predictor
+                  outputs:
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                - env:
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  image: ghcr.io/fuseml/kfserving-predictor:1.0
+                  inputs:
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  name: predictor
+                  outputs:
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                - env:
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  image: ghcr.io/fuseml/kfserving-predictor:1.0
+                  inputs:
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  name: predictor
+                  outputs:
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                - env:
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  image: ghcr.io/fuseml/kfserving-predictor:1.0
+                  inputs:
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  name: predictor
+                  outputs:
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+        "400":
+          description: Bad Request response.
+          content:
+            application/vnd.goa.error:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                id: 3F1FKVRR
+                message: Value of ID must be an integer
+                name: bad_request
+  /workflows/{workflowNameOrId}:
+    get:
+      tags:
+      - workflow
+      summary: get workflow
+      description: Retrieve Workflow(s) from FuseML.
+      operationId: workflow#get
+      parameters:
+      - name: workflowNameOrId
+        in: path
+        description: Workflow name or ID
+        required: true
+        schema:
+          type: string
+          description: Workflow name or ID
+          example: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
+        example: 288BFD74-D973-18B5-FAA5-29ADF4569AC7
+      responses:
+        "200":
+          description: OK response.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workflow'
+              example:
+                created: "2021-04-09T06:17:25Z"
+                description: This workflow is just trains a model and serve it
+                id: 773F4E7F-A748-DF6D-4355-233071D2534A
+                inputs:
+                - default: mlflow-example
+                  description: An MLFlow project codeset
+                  labels:
+                  - mlflow-project
+                  name: mlflow-codeset
+                  type: codeset
+                - default: mlflow-example
+                  description: An MLFlow project codeset
+                  labels:
+                  - mlflow-project
+                  name: mlflow-codeset
+                  type: codeset
+                name: TrainAndServe
+                outputs:
+                - description: The URL where the exposed prediction service endpoint
+                    can be contacted to run predictions.
+                  name: prediction-url
+                  type: string
+                - description: The URL where the exposed prediction service endpoint
+                    can be contacted to run predictions.
+                  name: prediction-url
+                  type: string
+                - description: The URL where the exposed prediction service endpoint
+                    can be contacted to run predictions.
+                  name: prediction-url
+                  type: string
+                steps:
+                - env:
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  image: ghcr.io/fuseml/kfserving-predictor:1.0
+                  inputs:
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  name: predictor
+                  outputs:
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                - env:
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  - name: PATH
+                    value: /project
+                  image: ghcr.io/fuseml/kfserving-predictor:1.0
+                  inputs:
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  - codeset:
+                      name: mlflow-project
+                      path: /project
+                    name: model-uri
+                    value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+                  name: predictor
+                  outputs:
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
+                  - image:
+                      dockerfile: /project/.fuseml/Dockerfile
+                      name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+                    name: model-uri
         "400":
           description: Bad Request response.
           content:
@@ -1299,7 +2165,7 @@ components:
           type: array
           items:
             type: string
-            example: Maxime possimus.
+            example: Odit ex enim.
           description: Additional Codeset labels that helps with identifying the type
           example:
           - mlflow
@@ -1333,7 +2199,7 @@ components:
         fault:
           type: boolean
           description: Is the error a server-side fault?
-          example: true
+          example: false
         id:
           type: string
           description: ID is a unique identifier for this particular occurrence of
@@ -1351,11 +2217,11 @@ components:
         temporary:
           type: boolean
           description: Is the error temporary?
-          example: false
+          example: true
         timeout:
           type: boolean
           description: Is the error a timeout?
-          example: false
+          example: true
       description: If the Codeset is not found, should return 404 Not Found.
       example:
         id: 3F1FKVRR
@@ -1414,7 +2280,7 @@ components:
         id:
           type: string
           description: The ID of the runnable
-          example: AC77D914-0A36-9917-2BA7-F519556A50B8
+          example: E058AD50-5D7F-E9A8-E010-D33044724992
           format: uuid
         image:
           $ref: '#/components/schemas/RunnableImage'
@@ -1448,18 +2314,6 @@ components:
               - label1
               - label2
               name: BuilderRun1
-          - kind: parameter
-            name: Input1
-            parameter:
-              datatype: file
-              default: mydata.csv
-              optional: true
-            runnable:
-              kind: builder
-              labels:
-              - label1
-              - label2
-              name: BuilderRun1
         kind:
           type: string
           description: The kind of runnable (builder, trainer, predictor etc.)
@@ -1468,7 +2322,7 @@ components:
           type: array
           items:
             type: string
-            example: Ea facere nam qui.
+            example: Sapiente quae dignissimos voluptatum non rerum voluptate.
           description: Labels associated with the runnable
           example:
           - trainer
@@ -1509,7 +2363,7 @@ components:
               name: BuilderRun1
       example:
         created: "2021-04-09T06:17:25Z"
-        id: A129B534-C1FC-F09D-BF29-3DA5781E0ECB
+        id: E31B6C92-4A10-2D9D-2B43-B3362900308F
         image:
           registryUrl: myregistry.io
           repository: example/builder
@@ -1551,11 +2405,47 @@ components:
             - label1
             - label2
             name: BuilderRun1
+        - kind: parameter
+          name: Input1
+          parameter:
+            datatype: file
+            default: mydata.csv
+            optional: true
+          runnable:
+            kind: builder
+            labels:
+            - label1
+            - label2
+            name: BuilderRun1
         kind: trainer
         labels:
         - trainer
         name: MyTrainer
         outputs:
+        - kind: model
+          metadata:
+            datatype: file
+            default: mydata.csv
+            optional: true
+          name: Output1
+          runnable:
+            kind: builder
+            labels:
+            - label1
+            - label2
+            name: BuilderRun1
+        - kind: model
+          metadata:
+            datatype: file
+            default: mydata.csv
+            optional: true
+          name: Output1
+          runnable:
+            kind: builder
+            labels:
+            - label1
+            - label2
+            name: BuilderRun1
         - kind: model
           metadata:
             datatype: file
@@ -1674,7 +2564,7 @@ components:
           type: array
           items:
             type: string
-            example: Et et veniam voluptate qui cumque magni.
+            example: Temporibus nulla officiis aliquam quo et natus.
           description: Runnable labels
           example:
           - label1
@@ -1689,3 +2579,624 @@ components:
         - label1
         - label2
         name: BuilderRun1
+    StepEnv:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name of the environment variable
+          example: PATH
+        value:
+          type: string
+          description: Value to set for the enviroment variable
+          example: /project
+      example:
+        name: PATH
+        value: /project
+    StepInputCodeset:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Name or ID of the codeset
+          example: mlflow-project
+        path:
+          type: string
+          description: Path where the codeset will be mounted inside the container
+            running the step
+          example: /project
+      example:
+        name: mlflow-project
+        path: /project
+    StepOutputImage:
+      type: object
+      properties:
+        dockerfile:
+          type: string
+          description: Path to the Dockerfile used to build the image
+          example: /project/.fuseml/Dockerfile
+        name:
+          type: string
+          description: Name of the image, including the repository where the image
+            will be stored
+          example: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+      example:
+        dockerfile: /project/.fuseml/Dockerfile
+        name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+    Workflow:
+      type: object
+      properties:
+        created:
+          type: string
+          description: The workflow creation time
+          example: "2021-04-09T06:17:25Z"
+          format: date-time
+        description:
+          type: string
+          description: Description for the workflow
+          example: This workflow is just trains a model and serve it
+        id:
+          type: string
+          description: The ID of the workflow
+          example: EA2D3703-2B9D-E7C0-35B9-DB753C364369
+          format: uuid
+        inputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowInput'
+          description: Inputs for the workflow
+          example:
+          - default: mlflow-example
+            description: An MLFlow project codeset
+            labels:
+            - mlflow-project
+            name: mlflow-codeset
+            type: codeset
+          - default: mlflow-example
+            description: An MLFlow project codeset
+            labels:
+            - mlflow-project
+            name: mlflow-codeset
+            type: codeset
+          - default: mlflow-example
+            description: An MLFlow project codeset
+            labels:
+            - mlflow-project
+            name: mlflow-codeset
+            type: codeset
+        name:
+          type: string
+          description: Name of the workflow
+          example: TrainAndServe
+        outputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowOutput'
+          description: Outputs from the workflow
+          example:
+          - description: The URL where the exposed prediction service endpoint can
+              be contacted to run predictions.
+            name: prediction-url
+            type: string
+          - description: The URL where the exposed prediction service endpoint can
+              be contacted to run predictions.
+            name: prediction-url
+            type: string
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowStep'
+          description: Steps to be executed by the workflow
+          example:
+          - env:
+            - name: PATH
+              value: /project
+            - name: PATH
+              value: /project
+            image: ghcr.io/fuseml/kfserving-predictor:1.0
+            inputs:
+            - codeset:
+                name: mlflow-project
+                path: /project
+              name: model-uri
+              value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+            - codeset:
+                name: mlflow-project
+                path: /project
+              name: model-uri
+              value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+            - codeset:
+                name: mlflow-project
+                path: /project
+              name: model-uri
+              value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+            name: predictor
+            outputs:
+            - image:
+                dockerfile: /project/.fuseml/Dockerfile
+                name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+              name: model-uri
+            - image:
+                dockerfile: /project/.fuseml/Dockerfile
+                name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+              name: model-uri
+            - image:
+                dockerfile: /project/.fuseml/Dockerfile
+                name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+              name: model-uri
+          - env:
+            - name: PATH
+              value: /project
+            - name: PATH
+              value: /project
+            image: ghcr.io/fuseml/kfserving-predictor:1.0
+            inputs:
+            - codeset:
+                name: mlflow-project
+                path: /project
+              name: model-uri
+              value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+            - codeset:
+                name: mlflow-project
+                path: /project
+              name: model-uri
+              value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+            - codeset:
+                name: mlflow-project
+                path: /project
+              name: model-uri
+              value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+            name: predictor
+            outputs:
+            - image:
+                dockerfile: /project/.fuseml/Dockerfile
+                name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+              name: model-uri
+            - image:
+                dockerfile: /project/.fuseml/Dockerfile
+                name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+              name: model-uri
+            - image:
+                dockerfile: /project/.fuseml/Dockerfile
+                name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+              name: model-uri
+          - env:
+            - name: PATH
+              value: /project
+            - name: PATH
+              value: /project
+            image: ghcr.io/fuseml/kfserving-predictor:1.0
+            inputs:
+            - codeset:
+                name: mlflow-project
+                path: /project
+              name: model-uri
+              value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+            - codeset:
+                name: mlflow-project
+                path: /project
+              name: model-uri
+              value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+            - codeset:
+                name: mlflow-project
+                path: /project
+              name: model-uri
+              value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+            name: predictor
+            outputs:
+            - image:
+                dockerfile: /project/.fuseml/Dockerfile
+                name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+              name: model-uri
+            - image:
+                dockerfile: /project/.fuseml/Dockerfile
+                name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+              name: model-uri
+            - image:
+                dockerfile: /project/.fuseml/Dockerfile
+                name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+              name: model-uri
+          - env:
+            - name: PATH
+              value: /project
+            - name: PATH
+              value: /project
+            image: ghcr.io/fuseml/kfserving-predictor:1.0
+            inputs:
+            - codeset:
+                name: mlflow-project
+                path: /project
+              name: model-uri
+              value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+            - codeset:
+                name: mlflow-project
+                path: /project
+              name: model-uri
+              value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+            - codeset:
+                name: mlflow-project
+                path: /project
+              name: model-uri
+              value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+            name: predictor
+            outputs:
+            - image:
+                dockerfile: /project/.fuseml/Dockerfile
+                name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+              name: model-uri
+            - image:
+                dockerfile: /project/.fuseml/Dockerfile
+                name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+              name: model-uri
+            - image:
+                dockerfile: /project/.fuseml/Dockerfile
+                name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+              name: model-uri
+      example:
+        created: "2021-04-09T06:17:25Z"
+        description: This workflow is just trains a model and serve it
+        id: 9A05BD8A-CA8D-335E-C26E-14DB8FEBAB04
+        inputs:
+        - default: mlflow-example
+          description: An MLFlow project codeset
+          labels:
+          - mlflow-project
+          name: mlflow-codeset
+          type: codeset
+        - default: mlflow-example
+          description: An MLFlow project codeset
+          labels:
+          - mlflow-project
+          name: mlflow-codeset
+          type: codeset
+        - default: mlflow-example
+          description: An MLFlow project codeset
+          labels:
+          - mlflow-project
+          name: mlflow-codeset
+          type: codeset
+        name: TrainAndServe
+        outputs:
+        - description: The URL where the exposed prediction service endpoint can be
+            contacted to run predictions.
+          name: prediction-url
+          type: string
+        - description: The URL where the exposed prediction service endpoint can be
+            contacted to run predictions.
+          name: prediction-url
+          type: string
+        - description: The URL where the exposed prediction service endpoint can be
+            contacted to run predictions.
+          name: prediction-url
+          type: string
+        - description: The URL where the exposed prediction service endpoint can be
+            contacted to run predictions.
+          name: prediction-url
+          type: string
+        steps:
+        - env:
+          - name: PATH
+            value: /project
+          - name: PATH
+            value: /project
+          image: ghcr.io/fuseml/kfserving-predictor:1.0
+          inputs:
+          - codeset:
+              name: mlflow-project
+              path: /project
+            name: model-uri
+            value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+          - codeset:
+              name: mlflow-project
+              path: /project
+            name: model-uri
+            value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+          - codeset:
+              name: mlflow-project
+              path: /project
+            name: model-uri
+            value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+          name: predictor
+          outputs:
+          - image:
+              dockerfile: /project/.fuseml/Dockerfile
+              name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+            name: model-uri
+          - image:
+              dockerfile: /project/.fuseml/Dockerfile
+              name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+            name: model-uri
+          - image:
+              dockerfile: /project/.fuseml/Dockerfile
+              name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+            name: model-uri
+        - env:
+          - name: PATH
+            value: /project
+          - name: PATH
+            value: /project
+          image: ghcr.io/fuseml/kfserving-predictor:1.0
+          inputs:
+          - codeset:
+              name: mlflow-project
+              path: /project
+            name: model-uri
+            value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+          - codeset:
+              name: mlflow-project
+              path: /project
+            name: model-uri
+            value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+          - codeset:
+              name: mlflow-project
+              path: /project
+            name: model-uri
+            value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+          name: predictor
+          outputs:
+          - image:
+              dockerfile: /project/.fuseml/Dockerfile
+              name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+            name: model-uri
+          - image:
+              dockerfile: /project/.fuseml/Dockerfile
+              name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+            name: model-uri
+          - image:
+              dockerfile: /project/.fuseml/Dockerfile
+              name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+            name: model-uri
+        - env:
+          - name: PATH
+            value: /project
+          - name: PATH
+            value: /project
+          image: ghcr.io/fuseml/kfserving-predictor:1.0
+          inputs:
+          - codeset:
+              name: mlflow-project
+              path: /project
+            name: model-uri
+            value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+          - codeset:
+              name: mlflow-project
+              path: /project
+            name: model-uri
+            value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+          - codeset:
+              name: mlflow-project
+              path: /project
+            name: model-uri
+            value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+          name: predictor
+          outputs:
+          - image:
+              dockerfile: /project/.fuseml/Dockerfile
+              name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+            name: model-uri
+          - image:
+              dockerfile: /project/.fuseml/Dockerfile
+              name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+            name: model-uri
+          - image:
+              dockerfile: /project/.fuseml/Dockerfile
+              name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+            name: model-uri
+        - env:
+          - name: PATH
+            value: /project
+          - name: PATH
+            value: /project
+          image: ghcr.io/fuseml/kfserving-predictor:1.0
+          inputs:
+          - codeset:
+              name: mlflow-project
+              path: /project
+            name: model-uri
+            value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+          - codeset:
+              name: mlflow-project
+              path: /project
+            name: model-uri
+            value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+          - codeset:
+              name: mlflow-project
+              path: /project
+            name: model-uri
+            value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+          name: predictor
+          outputs:
+          - image:
+              dockerfile: /project/.fuseml/Dockerfile
+              name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+            name: model-uri
+          - image:
+              dockerfile: /project/.fuseml/Dockerfile
+              name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+            name: model-uri
+          - image:
+              dockerfile: /project/.fuseml/Dockerfile
+              name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+            name: model-uri
+      required:
+      - name
+      - steps
+    WorkflowInput:
+      type: object
+      properties:
+        default:
+          type: string
+          description: Default value for the input
+          example: mlflow-example
+        description:
+          type: string
+          description: Description of the input
+          example: An MLFlow project codeset
+        labels:
+          type: array
+          items:
+            type: string
+            example: Quod et nam.
+          description: Labels associated with the input
+          example:
+          - mlflow-project
+        name:
+          type: string
+          description: Name of the input
+          example: mlflow-codeset
+        type:
+          type: string
+          description: The type of the input (codeset, string, ...)
+          example: codeset
+      example:
+        default: mlflow-example
+        description: An MLFlow project codeset
+        labels:
+        - mlflow-project
+        name: mlflow-codeset
+        type: codeset
+    WorkflowOutput:
+      type: object
+      properties:
+        description:
+          type: string
+          description: Description of the output
+          example: The URL where the exposed prediction service endpoint can be contacted
+            to run predictions.
+        name:
+          type: string
+          description: Name of the output
+          example: prediction-url
+        type:
+          type: string
+          description: The data type of the output
+          example: string
+      example:
+        description: The URL where the exposed prediction service endpoint can be
+          contacted to run predictions.
+        name: prediction-url
+        type: string
+    WorkflowStep:
+      type: object
+      properties:
+        env:
+          type: array
+          items:
+            $ref: '#/components/schemas/StepEnv'
+          description: List of environment variables available for the container running
+            the step
+          example:
+          - name: PATH
+            value: /project
+          - name: PATH
+            value: /project
+          - name: PATH
+            value: /project
+          - name: PATH
+            value: /project
+        image:
+          type: string
+          description: The image used to execute the step
+          example: ghcr.io/fuseml/kfserving-predictor:1.0
+        inputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowStepInput'
+          description: List of inputs for the step
+          example:
+          - codeset:
+              name: mlflow-project
+              path: /project
+            name: model-uri
+            value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+          - codeset:
+              name: mlflow-project
+              path: /project
+            name: model-uri
+            value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+        name:
+          type: string
+          description: The name of the step
+          example: predictor
+        outputs:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkflowStepOutput'
+          description: List of output from the step
+          example:
+          - image:
+              dockerfile: /project/.fuseml/Dockerfile
+              name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+            name: model-uri
+          - image:
+              dockerfile: /project/.fuseml/Dockerfile
+              name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+            name: model-uri
+      example:
+        env:
+        - name: PATH
+          value: /project
+        - name: PATH
+          value: /project
+        - name: PATH
+          value: /project
+        image: ghcr.io/fuseml/kfserving-predictor:1.0
+        inputs:
+        - codeset:
+            name: mlflow-project
+            path: /project
+          name: model-uri
+          value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+        - codeset:
+            name: mlflow-project
+            path: /project
+          name: model-uri
+          value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+        - codeset:
+            name: mlflow-project
+            path: /project
+          name: model-uri
+          value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+        name: predictor
+        outputs:
+        - image:
+            dockerfile: /project/.fuseml/Dockerfile
+            name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+          name: model-uri
+        - image:
+            dockerfile: /project/.fuseml/Dockerfile
+            name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+          name: model-uri
+    WorkflowStepInput:
+      type: object
+      properties:
+        codeset:
+          $ref: '#/components/schemas/StepInputCodeset'
+        name:
+          type: string
+          description: Name of the input
+          example: model-uri
+        value:
+          type: string
+          description: Value of the input
+          example: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+      example:
+        codeset:
+          name: mlflow-project
+          path: /project
+        name: model-uri
+        value: s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model
+    WorkflowStepOutput:
+      type: object
+      properties:
+        image:
+          $ref: '#/components/schemas/StepOutputImage'
+        name:
+          type: string
+          description: Name of the variable to hold the step output value
+          example: model-uri
+      example:
+        image:
+          dockerfile: /project/.fuseml/Dockerfile
+          name: registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1
+        name: model-uri

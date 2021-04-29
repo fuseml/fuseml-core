@@ -14,6 +14,7 @@ import (
 
 	codesetc "github.com/fuseml/fuseml-core/gen/grpc/codeset/client"
 	runnablec "github.com/fuseml/fuseml-core/gen/grpc/runnable/client"
+	workflowc "github.com/fuseml/fuseml-core/gen/grpc/workflow/client"
 	goa "goa.design/goa/v3/pkg"
 	grpc "google.golang.org/grpc"
 )
@@ -25,6 +26,7 @@ import (
 func UsageCommands() string {
 	return `codeset (list|register|get)
 runnable (list|register|get)
+workflow (list|register|get)
 `
 }
 
@@ -36,6 +38,9 @@ func UsageExamples() string {
    }'` + "\n" +
 		os.Args[0] + ` runnable list --message '{
       "kind": "builder"
+   }'` + "\n" +
+		os.Args[0] + ` workflow list --message '{
+      "name": "workflowA"
    }'` + "\n" +
 		""
 }
@@ -65,6 +70,17 @@ func ParseEndpoint(cc *grpc.ClientConn, opts ...grpc.CallOption) (goa.Endpoint, 
 
 		runnableGetFlags       = flag.NewFlagSet("get", flag.ExitOnError)
 		runnableGetMessageFlag = runnableGetFlags.String("message", "", "")
+
+		workflowFlags = flag.NewFlagSet("workflow", flag.ContinueOnError)
+
+		workflowListFlags       = flag.NewFlagSet("list", flag.ExitOnError)
+		workflowListMessageFlag = workflowListFlags.String("message", "", "")
+
+		workflowRegisterFlags       = flag.NewFlagSet("register", flag.ExitOnError)
+		workflowRegisterMessageFlag = workflowRegisterFlags.String("message", "", "")
+
+		workflowGetFlags       = flag.NewFlagSet("get", flag.ExitOnError)
+		workflowGetMessageFlag = workflowGetFlags.String("message", "", "")
 	)
 	codesetFlags.Usage = codesetUsage
 	codesetListFlags.Usage = codesetListUsage
@@ -75,6 +91,11 @@ func ParseEndpoint(cc *grpc.ClientConn, opts ...grpc.CallOption) (goa.Endpoint, 
 	runnableListFlags.Usage = runnableListUsage
 	runnableRegisterFlags.Usage = runnableRegisterUsage
 	runnableGetFlags.Usage = runnableGetUsage
+
+	workflowFlags.Usage = workflowUsage
+	workflowListFlags.Usage = workflowListUsage
+	workflowRegisterFlags.Usage = workflowRegisterUsage
+	workflowGetFlags.Usage = workflowGetUsage
 
 	if err := flag.CommandLine.Parse(os.Args[1:]); err != nil {
 		return nil, nil, err
@@ -95,6 +116,8 @@ func ParseEndpoint(cc *grpc.ClientConn, opts ...grpc.CallOption) (goa.Endpoint, 
 			svcf = codesetFlags
 		case "runnable":
 			svcf = runnableFlags
+		case "workflow":
+			svcf = workflowFlags
 		default:
 			return nil, nil, fmt.Errorf("unknown service %q", svcn)
 		}
@@ -133,6 +156,19 @@ func ParseEndpoint(cc *grpc.ClientConn, opts ...grpc.CallOption) (goa.Endpoint, 
 
 			case "get":
 				epf = runnableGetFlags
+
+			}
+
+		case "workflow":
+			switch epn {
+			case "list":
+				epf = workflowListFlags
+
+			case "register":
+				epf = workflowRegisterFlags
+
+			case "get":
+				epf = workflowGetFlags
 
 			}
 
@@ -181,6 +217,19 @@ func ParseEndpoint(cc *grpc.ClientConn, opts ...grpc.CallOption) (goa.Endpoint, 
 			case "get":
 				endpoint = c.Get()
 				data, err = runnablec.BuildGetPayload(*runnableGetMessageFlag)
+			}
+		case "workflow":
+			c := workflowc.NewClient(cc, opts...)
+			switch epn {
+			case "list":
+				endpoint = c.List()
+				data, err = workflowc.BuildListPayload(*workflowListMessageFlag)
+			case "register":
+				endpoint = c.Register()
+				data, err = workflowc.BuildRegisterPayload(*workflowRegisterMessageFlag)
+			case "get":
+				endpoint = c.Get()
+				data, err = workflowc.BuildGetPayload(*workflowGetMessageFlag)
 			}
 		}
 	}
@@ -294,30 +343,13 @@ Register a runnable with the FuseML runnable store.
 Example:
     `+os.Args[0]+` runnable register --message '{
       "created": "2021-04-09T06:17:25Z",
-      "id": "77EB7E77-465C-FCC6-CEC6-11F6C8938D24",
+      "id": "5E3B665E-1239-9C12-9643-FFC1E6C04697",
       "image": {
          "registryUrl": "myregistry.io",
          "repository": "example/builder",
          "tag": "1.0"
       },
       "inputs": [
-         {
-            "kind": "parameter",
-            "name": "Input1",
-            "parameter": {
-               "datatype": "file",
-               "default": "mydata.csv",
-               "optional": true
-            },
-            "runnable": {
-               "kind": "builder",
-               "labels": [
-                  "label1",
-                  "label2"
-               ],
-               "name": "BuilderRun1"
-            }
-         },
          {
             "kind": "parameter",
             "name": "Input1",
@@ -409,6 +441,23 @@ Example:
                ],
                "name": "BuilderRun1"
             }
+         },
+         {
+            "kind": "model",
+            "metadata": {
+               "datatype": "file",
+               "default": "mydata.csv",
+               "optional": true
+            },
+            "name": "Output1",
+            "runnable": {
+               "kind": "builder",
+               "labels": [
+                  "label1",
+                  "label2"
+               ],
+               "name": "BuilderRun1"
+            }
          }
       ]
    }'
@@ -424,6 +473,367 @@ Retrieve an Runnable from FuseML.
 Example:
     `+os.Args[0]+` runnable get --message '{
       "runnableNameOrId": "288BFD74-D973-18B5-FAA5-29ADF4569AC7"
+   }'
+`, os.Args[0])
+}
+
+// workflowUsage displays the usage of the workflow command and its subcommands.
+func workflowUsage() {
+	fmt.Fprintf(os.Stderr, `The workflow service performs operations on workflows.
+Usage:
+    %s [globalflags] workflow COMMAND [flags]
+
+COMMAND:
+    list: List workflows registered in FuseML.
+    register: Register a workflow within the FuseML workflow store.
+    get: Retrieve Workflow(s) from FuseML.
+
+Additional help:
+    %s workflow COMMAND --help
+`, os.Args[0], os.Args[0])
+}
+func workflowListUsage() {
+	fmt.Fprintf(os.Stderr, `%s [flags] workflow list -message JSON
+
+List workflows registered in FuseML.
+    -message JSON: 
+
+Example:
+    `+os.Args[0]+` workflow list --message '{
+      "name": "workflowA"
+   }'
+`, os.Args[0])
+}
+
+func workflowRegisterUsage() {
+	fmt.Fprintf(os.Stderr, `%s [flags] workflow register -message JSON
+
+Register a workflow within the FuseML workflow store.
+    -message JSON: 
+
+Example:
+    `+os.Args[0]+` workflow register --message '{
+      "created": "2021-04-09T06:17:25Z",
+      "description": "This workflow is just trains a model and serve it",
+      "id": "76FB876C-96AC-91E7-BD21-B0C2988DDF65",
+      "inputs": [
+         {
+            "default": "mlflow-example",
+            "description": "An MLFlow project codeset",
+            "labels": [
+               "mlflow-project"
+            ],
+            "name": "mlflow-codeset",
+            "type": "codeset"
+         },
+         {
+            "default": "mlflow-example",
+            "description": "An MLFlow project codeset",
+            "labels": [
+               "mlflow-project"
+            ],
+            "name": "mlflow-codeset",
+            "type": "codeset"
+         },
+         {
+            "default": "mlflow-example",
+            "description": "An MLFlow project codeset",
+            "labels": [
+               "mlflow-project"
+            ],
+            "name": "mlflow-codeset",
+            "type": "codeset"
+         },
+         {
+            "default": "mlflow-example",
+            "description": "An MLFlow project codeset",
+            "labels": [
+               "mlflow-project"
+            ],
+            "name": "mlflow-codeset",
+            "type": "codeset"
+         }
+      ],
+      "name": "TrainAndServe",
+      "outputs": [
+         {
+            "description": "The URL where the exposed prediction service endpoint can be contacted to run predictions.",
+            "name": "prediction-url",
+            "type": "string"
+         },
+         {
+            "description": "The URL where the exposed prediction service endpoint can be contacted to run predictions.",
+            "name": "prediction-url",
+            "type": "string"
+         }
+      ],
+      "steps": [
+         {
+            "env": [
+               {
+                  "name": "PATH",
+                  "value": "/project"
+               },
+               {
+                  "name": "PATH",
+                  "value": "/project"
+               }
+            ],
+            "image": "ghcr.io/fuseml/kfserving-predictor:1.0",
+            "inputs": [
+               {
+                  "codeset": {
+                     "name": "mlflow-project",
+                     "path": "/project"
+                  },
+                  "name": "model-uri",
+                  "value": "s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model"
+               },
+               {
+                  "codeset": {
+                     "name": "mlflow-project",
+                     "path": "/project"
+                  },
+                  "name": "model-uri",
+                  "value": "s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model"
+               },
+               {
+                  "codeset": {
+                     "name": "mlflow-project",
+                     "path": "/project"
+                  },
+                  "name": "model-uri",
+                  "value": "s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model"
+               }
+            ],
+            "name": "predictor",
+            "outputs": [
+               {
+                  "image": {
+                     "dockerfile": "/project/.fuseml/Dockerfile",
+                     "name": "registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1"
+                  },
+                  "name": "model-uri"
+               },
+               {
+                  "image": {
+                     "dockerfile": "/project/.fuseml/Dockerfile",
+                     "name": "registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1"
+                  },
+                  "name": "model-uri"
+               },
+               {
+                  "image": {
+                     "dockerfile": "/project/.fuseml/Dockerfile",
+                     "name": "registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1"
+                  },
+                  "name": "model-uri"
+               }
+            ]
+         },
+         {
+            "env": [
+               {
+                  "name": "PATH",
+                  "value": "/project"
+               },
+               {
+                  "name": "PATH",
+                  "value": "/project"
+               }
+            ],
+            "image": "ghcr.io/fuseml/kfserving-predictor:1.0",
+            "inputs": [
+               {
+                  "codeset": {
+                     "name": "mlflow-project",
+                     "path": "/project"
+                  },
+                  "name": "model-uri",
+                  "value": "s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model"
+               },
+               {
+                  "codeset": {
+                     "name": "mlflow-project",
+                     "path": "/project"
+                  },
+                  "name": "model-uri",
+                  "value": "s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model"
+               },
+               {
+                  "codeset": {
+                     "name": "mlflow-project",
+                     "path": "/project"
+                  },
+                  "name": "model-uri",
+                  "value": "s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model"
+               }
+            ],
+            "name": "predictor",
+            "outputs": [
+               {
+                  "image": {
+                     "dockerfile": "/project/.fuseml/Dockerfile",
+                     "name": "registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1"
+                  },
+                  "name": "model-uri"
+               },
+               {
+                  "image": {
+                     "dockerfile": "/project/.fuseml/Dockerfile",
+                     "name": "registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1"
+                  },
+                  "name": "model-uri"
+               },
+               {
+                  "image": {
+                     "dockerfile": "/project/.fuseml/Dockerfile",
+                     "name": "registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1"
+                  },
+                  "name": "model-uri"
+               }
+            ]
+         },
+         {
+            "env": [
+               {
+                  "name": "PATH",
+                  "value": "/project"
+               },
+               {
+                  "name": "PATH",
+                  "value": "/project"
+               }
+            ],
+            "image": "ghcr.io/fuseml/kfserving-predictor:1.0",
+            "inputs": [
+               {
+                  "codeset": {
+                     "name": "mlflow-project",
+                     "path": "/project"
+                  },
+                  "name": "model-uri",
+                  "value": "s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model"
+               },
+               {
+                  "codeset": {
+                     "name": "mlflow-project",
+                     "path": "/project"
+                  },
+                  "name": "model-uri",
+                  "value": "s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model"
+               },
+               {
+                  "codeset": {
+                     "name": "mlflow-project",
+                     "path": "/project"
+                  },
+                  "name": "model-uri",
+                  "value": "s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model"
+               }
+            ],
+            "name": "predictor",
+            "outputs": [
+               {
+                  "image": {
+                     "dockerfile": "/project/.fuseml/Dockerfile",
+                     "name": "registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1"
+                  },
+                  "name": "model-uri"
+               },
+               {
+                  "image": {
+                     "dockerfile": "/project/.fuseml/Dockerfile",
+                     "name": "registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1"
+                  },
+                  "name": "model-uri"
+               },
+               {
+                  "image": {
+                     "dockerfile": "/project/.fuseml/Dockerfile",
+                     "name": "registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1"
+                  },
+                  "name": "model-uri"
+               }
+            ]
+         },
+         {
+            "env": [
+               {
+                  "name": "PATH",
+                  "value": "/project"
+               },
+               {
+                  "name": "PATH",
+                  "value": "/project"
+               }
+            ],
+            "image": "ghcr.io/fuseml/kfserving-predictor:1.0",
+            "inputs": [
+               {
+                  "codeset": {
+                     "name": "mlflow-project",
+                     "path": "/project"
+                  },
+                  "name": "model-uri",
+                  "value": "s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model"
+               },
+               {
+                  "codeset": {
+                     "name": "mlflow-project",
+                     "path": "/project"
+                  },
+                  "name": "model-uri",
+                  "value": "s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model"
+               },
+               {
+                  "codeset": {
+                     "name": "mlflow-project",
+                     "path": "/project"
+                  },
+                  "name": "model-uri",
+                  "value": "s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model"
+               }
+            ],
+            "name": "predictor",
+            "outputs": [
+               {
+                  "image": {
+                     "dockerfile": "/project/.fuseml/Dockerfile",
+                     "name": "registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1"
+                  },
+                  "name": "model-uri"
+               },
+               {
+                  "image": {
+                     "dockerfile": "/project/.fuseml/Dockerfile",
+                     "name": "registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1"
+                  },
+                  "name": "model-uri"
+               },
+               {
+                  "image": {
+                     "dockerfile": "/project/.fuseml/Dockerfile",
+                     "name": "registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1"
+                  },
+                  "name": "model-uri"
+               }
+            ]
+         }
+      ]
+   }'
+`, os.Args[0])
+}
+
+func workflowGetUsage() {
+	fmt.Fprintf(os.Stderr, `%s [flags] workflow get -message JSON
+
+Retrieve Workflow(s) from FuseML.
+    -message JSON: 
+
+Example:
+    `+os.Args[0]+` workflow get --message '{
+      "workflowNameOrId": "288BFD74-D973-18B5-FAA5-29ADF4569AC7"
    }'
 `, os.Args[0])
 }
