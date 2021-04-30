@@ -43,8 +43,8 @@ func httpUsageExamples() string {
 func responseDecoder(resp *http.Response) goahttp.Decoder {
 	contentType := resp.Header.Get("Content-Type")
 	if contentType == "" {
-		// default to YAML
-		contentType = "application/x-yaml"
+		// default to JSON
+		contentType = "application/json"
 	} else {
 		// sanitize
 		if mediaType, _, err := mime.ParseMediaType(contentType); err == nil {
