@@ -147,8 +147,8 @@ func errorHandler(logger *log.Logger) func(context.Context, http.ResponseWriter,
 func requestDecoder(r *http.Request) goahttp.Decoder {
 	contentType := r.Header.Get("Content-Type")
 	if contentType == "" {
-		// default to YAML
-		contentType = "application/x-yaml"
+		// default to JSON
+		contentType = "application/json"
 	} else {
 		// sanitize
 		if mediaType, _, err := mime.ParseMediaType(contentType); err == nil {
@@ -197,7 +197,7 @@ func responseEncoder(ctx context.Context, w http.ResponseWriter) goahttp.Encoder
 	}
 
 	negotiate := func(a string) (goahttp.Encoder, string) {
-		if a == "" || a == "application/x-yaml" {
+		if a == "application/x-yaml" {
 			return yaml.NewEncoder(w), "application/x-yaml"
 		}
 		return goahttp.ResponseEncoder(ctx, w), a
