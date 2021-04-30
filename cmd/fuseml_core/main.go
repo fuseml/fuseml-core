@@ -54,9 +54,11 @@ func main() {
 		workflowSvc workflow.Service
 	)
 	{
+		codesetStore := core.NewGitCodesetStore(gitAdmin)
+
 		runnableSvc = svc.NewRunnableService(logger, core.NewRunnableStore())
-		codesetSvc = svc.NewCodesetService(logger, core.NewGitCodesetStore(gitAdmin))
-		workflowSvc = svc.NewWorkflowService(logger, core.NewWorkflowStore())
+		codesetSvc = svc.NewCodesetService(logger, codesetStore)
+		workflowSvc = svc.NewWorkflowService(logger, core.NewWorkflowStore(), codesetStore)
 	}
 
 	// Wrap the services in endpoints that can be invoked from other services

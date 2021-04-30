@@ -60,24 +60,61 @@ var _ = Service("workflow", func() {
 		Description("Retrieve Workflow(s) from FuseML.")
 
 		Payload(func() {
-			Field(1, "workflowNameOrId", String, "Workflow name or ID", func() {
-				Example("288BFD74-D973-18B5-FAA5-29ADF4569AC7")
+			Field(1, "name", String, "Workflow name", func() {
+				Example("mlflow-sklearn-e2e")
 			})
-			Required("workflowNameOrId")
+			Required("name")
 		})
 
 		Error("BadRequest", func() {
-			Description("If name neither ID is given, should return 400 Bad Request.")
+			Description("If name is not given, should return 400 Bad Request.")
 		})
 		Error("NotFound", func() {
-			Description("If there is no workflow with the given name/ID, should return 404 Not Found.")
+			Description("If there is no workflow with the given name, should return 404 Not Found.")
 		})
 
 		Result(Workflow)
 
 		HTTP(func() {
-			GET("/workflows/{workflowNameOrId}")
+			GET("/workflows/{name}")
 			Response(StatusOK)
+			Response("BadRequest", StatusBadRequest)
+			Response("NotFound", StatusNotFound)
+		})
+
+		GRPC(func() {
+			Response(CodeOK)
+			Response("BadRequest", CodeInvalidArgument)
+			Response("NotFound", CodeNotFound)
+		})
+	})
+
+	Method("assign", func() {
+		Description("Assigins a Workflow to a Codeset")
+
+		Payload(func() {
+			Field(1, "workflowName", String, "Name of the Workflow to be associated with the codeset", func() {
+				Example("mlflow-sklearn-e2e")
+			})
+			Field(2, "codesetProject", String, "Project that hosts the codeset to assign the workflow to", func() {
+				Example("workspace")
+			})
+			Field(3, "codesetName", String, "Codeset to assign the workflow to", func() {
+				Example("mlflow-project-001")
+			})
+			Required("workflowName", "codesetProject", "codesetName")
+		})
+
+		Error("BadRequest", func() {
+			Description("If no workflowName or codeset is given, should return 400 Bad Request.")
+		})
+		Error("NotFound", func() {
+			Description("If there is no workflow with the given name or codeset, should return 404 Not Found.")
+		})
+
+		HTTP(func() {
+			POST("/workflows/assign")
+			Response(StatusCreated)
 			Response("BadRequest", StatusBadRequest)
 			Response("NotFound", StatusNotFound)
 		})
@@ -92,22 +129,19 @@ var _ = Service("workflow", func() {
 
 // Workflow describes a FuseML workflow
 var Workflow = Type("Workflow", func() {
-	Field(1, "id", String, "The ID of the workflow", func() {
-		Format(FormatUUID)
-	})
-	Field(2, "created", String, "The workflow creation time", func() {
+	Field(1, "created", String, "The workflow creation time", func() {
 		Format(FormatDateTime)
 		Example("2021-04-09T06:17:25Z")
 	})
-	Field(3, "name", String, "Name of the workflow", func() {
+	Field(2, "name", String, "Name of the workflow", func() {
 		Example("TrainAndServe")
 	})
-	Field(4, "description", String, "Description for the workflow", func() {
+	Field(3, "description", String, "Description for the workflow", func() {
 		Example("This workflow is just trains a model and serve it")
 	})
-	Field(5, "inputs", ArrayOf(WorkflowInput), "Inputs for the workflow")
-	Field(6, "outputs", ArrayOf(WorkflowOutput), "Outputs from the workflow")
-	Field(7, "steps", ArrayOf(WorkflowStep), "Steps to be executed by the workflow")
+	Field(4, "inputs", ArrayOf(WorkflowInput), "Inputs for the workflow")
+	Field(5, "outputs", ArrayOf(WorkflowOutput), "Outputs from the workflow")
+	Field(6, "steps", ArrayOf(WorkflowStep), "Steps to be executed by the workflow")
 
 	Required("name", "steps")
 })
