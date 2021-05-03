@@ -23,9 +23,9 @@ func NewTriggerTemplateBuilder(name, namespace string) *TriggerTemplateBuilder {
 	return b
 }
 
-// TriggerTemplateMeta sets the Meta structs of the TriggerTemplate.
+// Meta sets the Meta structs of the TriggerTemplate.
 // Any number of MetaOp modifiers can be passed.
-func (b *TriggerTemplateBuilder) TriggerTemplateMeta(ops ...MetaOp) {
+func (b *TriggerTemplateBuilder) Meta(ops ...MetaOp) {
 	for _, op := range ops {
 		switch o := op.(type) {
 		case ObjectMetaOp:
@@ -36,20 +36,25 @@ func (b *TriggerTemplateBuilder) TriggerTemplateMeta(ops ...MetaOp) {
 	}
 }
 
-// TriggerTemplateParam adds a ParamSpec to the TriggerTemplate spec.
-func (b *TriggerTemplateBuilder) TriggerTemplateParam(name string, description string, defaultValue ...string) {
-	param := v1alpha1.ParamSpec{
+// Param adds a ParamSpec to the TriggerTemplate spec.
+func (b *TriggerTemplateBuilder) Param(name, description string) {
+	b.TriggerTemplate.Spec.Params = append(b.TriggerTemplate.Spec.Params, v1alpha1.ParamSpec{
 		Name:        name,
 		Description: description,
-	}
-	if len(defaultValue) > 0 {
-		param.Default = &defaultValue[0]
-	}
-	b.TriggerTemplate.Spec.Params = append(b.TriggerTemplate.Spec.Params, param)
+	})
 }
 
-// TriggerResourceTemplate adds a ResourceTemplate to the TriggerTemplate spec.
-func (b *TriggerTemplateBuilder) TriggerResourceTemplate(resoureceTemplate runtime.RawExtension) {
+// ParamWithDefaultValue adds a ParamSpec with a default value to the TriggerTemplate spec.
+func (b *TriggerTemplateBuilder) ParamWithDefaultValue(name, description, defaultValue string) {
+	b.TriggerTemplate.Spec.Params = append(b.TriggerTemplate.Spec.Params, v1alpha1.ParamSpec{
+		Name:        name,
+		Description: description,
+		Default:     &defaultValue,
+	})
+}
+
+// ResourceTemplate adds a ResourceTemplate to the TriggerTemplate spec.
+func (b *TriggerTemplateBuilder) ResourceTemplate(resoureceTemplate runtime.RawExtension) {
 	b.TriggerTemplate.Spec.ResourceTemplates = append(b.TriggerTemplate.Spec.ResourceTemplates,
 		v1alpha1.TriggerResourceTemplate{
 			RawExtension: resoureceTemplate,

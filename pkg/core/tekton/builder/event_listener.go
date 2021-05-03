@@ -27,8 +27,8 @@ func (b *EventListenerBuilder) ServiceAccount(name string) {
 	b.EventListener.Spec.ServiceAccountName = name
 }
 
-// EventListenerTriggerBinding adds a EventListenerTrigger to the EventListener spec.
-func (b *EventListenerBuilder) EventListenerTriggerBinding(templateName string, bindingsName ...string) {
+// TriggerBinding adds a EventListenerTrigger to the EventListener spec.
+func (b *EventListenerBuilder) TriggerBinding(templateName string, bindingsName ...string) {
 	bindings := []*v1alpha1.TriggerSpecBinding{}
 	for _, bName := range bindingsName {
 		bindings = append(bindings, &v1alpha1.TriggerSpecBinding{

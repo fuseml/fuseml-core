@@ -22,8 +22,8 @@ func NewTriggerBindingBuilder(name, namespace string) *TriggerBindingBuilder {
 	return b
 }
 
-// TriggerBindingParam adds a Param to the TriggerBinding spec.
-func (b *TriggerBindingBuilder) TriggerBindingParam(name, value string) {
+// Param adds a Param to the TriggerBinding spec.
+func (b *TriggerBindingBuilder) Param(name, value string) {
 	b.TriggerBinding.Spec.Params = append(b.TriggerBinding.Spec.Params, v1alpha1.Param{
 		Name:  name,
 		Value: value,

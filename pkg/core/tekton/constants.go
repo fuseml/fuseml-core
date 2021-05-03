@@ -11,6 +11,7 @@ const (
 	cloneTaskName             = "clone"
 	codesetNameParam          = "codeset-name"
 	codesetVersionParam       = "codeset-version"
+	codesetURLParam           = "codeset-url"
 	fuseMLRegistry            = "registry.fuseml-registry"
 	fuseMLRegistryLocal       = "127.0.0.1:30500"
 	imageParamName            = "IMAGE"

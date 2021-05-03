@@ -23,48 +23,56 @@ func NewTaskSpecBuilder(name, image, command string) *TaskSpecBuilder {
 	return b
 }
 
-// TaskParam adds a ParamSpec to the TaskSpec.
-func (b *TaskSpecBuilder) TaskParam(name string, description ...string) {
-	p := v1beta1.ParamSpec{
+// Param adds a ParamSpec to the TaskSpec.
+func (b *TaskSpecBuilder) Param(name string) {
+	b.TaskSpec.Params = append(b.TaskSpec.Params, v1beta1.ParamSpec{
 		Name: name,
-	}
-	if len(description) > 0 {
-		p.Description = description[0]
-	}
-	b.TaskSpec.Params = append(b.TaskSpec.Params, p)
+	})
 }
 
-// TaskWorkspace adds a WorkspaceDeclaration to the TaskSpec.
-func (b *TaskSpecBuilder) TaskWorkspace(name string, mountPath ...string) {
-	ws := v1beta1.WorkspaceDeclaration{
-		Name: name,
-	}
-	if len(mountPath) > 0 {
-		ws.MountPath = mountPath[0]
-	}
-	b.TaskSpec.Workspaces = append(b.TaskSpec.Workspaces, ws)
+// ParamWithDescription adds a ParamSpec with a description to the TaskSpec.
+func (b *TaskSpecBuilder) ParamWithDescription(name, description string) {
+	b.TaskSpec.Params = append(b.TaskSpec.Params, v1beta1.ParamSpec{
+		Name:        name,
+		Description: description,
+	})
 }
 
-// TaskWorkingDir sets the WorkingDir on the TaskSpec step.
-func (b *TaskSpecBuilder) TaskWorkingDir(workingDir string) {
+// Workspace adds a WorkspaceDeclaration to the TaskSpec.
+func (b *TaskSpecBuilder) Workspace(name string) {
+	b.TaskSpec.Workspaces = append(b.TaskSpec.Workspaces, v1beta1.WorkspaceDeclaration{
+		Name: name,
+	})
+}
+
+// WorkspaceWithMountPath adds a WorkspaceDeclaration with a mount path to the TaskSpec.
+func (b *TaskSpecBuilder) WorkspaceWithMountPath(name, mountPath string) {
+	b.TaskSpec.Workspaces = append(b.TaskSpec.Workspaces, v1beta1.WorkspaceDeclaration{
+		Name:      name,
+		MountPath: mountPath,
+	})
+}
+
+// WorkingDir sets the WorkingDir on the TaskSpec step.
+func (b *TaskSpecBuilder) WorkingDir(workingDir string) {
 	b.TaskSpec.Steps[0].WorkingDir = workingDir
 }
 
-// TaskEnvVar adds a Env to the TaskSpec step.
-func (b *TaskSpecBuilder) TaskEnvVar(name, value string) {
+// Env adds a Env to the TaskSpec step.
+func (b *TaskSpecBuilder) Env(name, value string) {
 	b.TaskSpec.Steps[0].Env = append(b.TaskSpec.Steps[0].Env, corev1.EnvVar{
 		Name:  name,
 		Value: value,
 	})
 }
 
-// TaskImage sets the image on the TaskSpec step.
-func (b *TaskSpecBuilder) TaskImage(image string) {
+// Image sets the image on the TaskSpec step.
+func (b *TaskSpecBuilder) Image(image string) {
 	b.TaskSpec.Steps[0].Image = image
 }
 
-// TaskResult adds a TaskResult to the TaskSpec.
-func (b *TaskSpecBuilder) TaskResult(name string) {
+// Result adds a TaskResult to the TaskSpec.
+func (b *TaskSpecBuilder) Result(name string) {
 	b.TaskSpec.Results = append(b.TaskSpec.Results, v1beta1.TaskResult{
 		Name: name,
 	})

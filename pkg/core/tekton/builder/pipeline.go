@@ -22,9 +22,9 @@ func NewPipelineBuilder(name, namespace string) *PipelineBuilder {
 	return b
 }
 
-// PipelineMeta sets the Meta structs of the Pipeline.
+// Meta sets the Meta structs of the Pipeline.
 // Any number of MetaOp modifiers can be passed.
-func (b *PipelineBuilder) PipelineMeta(ops ...MetaOp) {
+func (b *PipelineBuilder) Meta(ops ...MetaOp) {
 	for _, op := range ops {
 		switch o := op.(type) {
 		case ObjectMetaOp:
@@ -35,45 +35,50 @@ func (b *PipelineBuilder) PipelineMeta(ops ...MetaOp) {
 	}
 }
 
-// PipelineParam adds a ParamSpec to the Pipeline spec.
-func (b *PipelineBuilder) PipelineParam(name string, description string, defaultValue ...string) {
-	param := v1beta1.ParamSpec{
+// Description sets the Description on the Pipeline spec.
+func (b *PipelineBuilder) Description(description string) {
+	b.Pipeline.Spec.Description = description
+}
+
+// Param adds a ParamSpec to the Pipeline spec.
+func (b *PipelineBuilder) Param(name string, description string) {
+	b.Pipeline.Spec.Params = append(b.Pipeline.Spec.Params, v1beta1.ParamSpec{
 		Name:        name,
 		Description: description,
-	}
-	if len(defaultValue) > 0 {
-		param.Default = v1beta1.NewArrayOrString(defaultValue[0])
-	}
-	b.Pipeline.Spec.Params = append(b.Pipeline.Spec.Params, param)
+	})
 }
 
-// PipelineWorkspace adds a WorkspacePipelineDeclaration to the Pipeline spec.
-func (b *PipelineBuilder) PipelineWorkspace(name string, optional ...bool) {
-	ws := v1beta1.WorkspacePipelineDeclaration{
-		Name: name,
-	}
-	if len(optional) > 0 {
-		ws.Optional = optional[0]
-	}
-	b.Pipeline.Spec.Workspaces = append(b.Pipeline.Spec.Workspaces, ws)
+// ParamWithDefaultValue adds a ParamSpec with a default value to the Pipeline spec.
+func (b *PipelineBuilder) ParamWithDefaultValue(name, description, defaultValue string) {
+	b.Pipeline.Spec.Params = append(b.Pipeline.Spec.Params, v1beta1.ParamSpec{
+		Name:        name,
+		Description: description,
+		Default:     v1beta1.NewArrayOrString(defaultValue),
+	})
 }
 
-// PipelineResource adds a PipelineDeclaredResource to the Pipeline spec.
-func (b *PipelineBuilder) PipelineResource(name string, tp string, optional ...bool) {
-	rs := v1beta1.PipelineDeclaredResource{
-		Name: name,
-		Type: tp,
-	}
-	if len(optional) > 0 {
-		rs.Optional = optional[0]
-	}
-	b.Pipeline.Spec.Resources = append(b.Pipeline.Spec.Resources, rs)
+// Workspace adds a WorkspacePipelineDeclaration to the Pipeline spec.
+func (b *PipelineBuilder) Workspace(name string, optional bool) {
+
+	b.Pipeline.Spec.Workspaces = append(b.Pipeline.Spec.Workspaces, v1beta1.WorkspacePipelineDeclaration{
+		Name:     name,
+		Optional: optional,
+	})
 }
 
-// PipelineTask adds a PipelineTask to the Pipeline spec.
+// Resource adds a PipelineDeclaredResource to the Pipeline spec.
+func (b *PipelineBuilder) Resource(name string, tp string, optional bool) {
+	b.Pipeline.Spec.Resources = append(b.Pipeline.Spec.Resources, v1beta1.PipelineDeclaredResource{
+		Name:     name,
+		Type:     tp,
+		Optional: optional,
+	})
+}
+
+// Task adds a PipelineTask to the Pipeline spec.
 // The PipelineTask can reference an existing task by name (string task paramter), or embeds the task
 // as a TaskSpec (v1beta1.TaskSpec task paramter)
-func (b *PipelineBuilder) PipelineTask(name string, task interface{}, params map[string]string,
+func (b *PipelineBuilder) Task(name string, task interface{}, params map[string]string,
 	workspaces map[string]string, resources map[string]string) {
 	pt := v1beta1.PipelineTask{
 		Name: name,
@@ -116,8 +121,8 @@ func (b *PipelineBuilder) PipelineTask(name string, task interface{}, params map
 	b.Pipeline.Spec.Tasks = append(b.Pipeline.Spec.Tasks, pt)
 }
 
-// PipelineResult adds a PipelineResult to the Pipeline spec.
-func (b *PipelineBuilder) PipelineResult(name, description, value string) {
+// Result adds a Result to the Pipeline spec.
+func (b *PipelineBuilder) Result(name, description, value string) {
 	b.Pipeline.Spec.Results = append(b.Pipeline.Spec.Results, v1beta1.PipelineResult{
 		Name:        name,
 		Description: description,

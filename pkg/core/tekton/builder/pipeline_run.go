@@ -28,9 +28,9 @@ func NewPipelineRunBuilder(generateName string) *PipelineRunBuilder {
 	return b
 }
 
-// PipelineRunMeta sets the Meta structs of the Pipeline.
+// Meta sets the Meta structs of the PipelineRun.
 // Any number of MetaOp modifiers can be passed.
-func (b *PipelineRunBuilder) PipelineRunMeta(ops ...MetaOp) {
+func (b *PipelineRunBuilder) Meta(ops ...MetaOp) {
 	for _, op := range ops {
 		switch o := op.(type) {
 		case ObjectMetaOp:

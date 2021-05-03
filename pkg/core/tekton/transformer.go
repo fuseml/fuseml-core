@@ -121,7 +121,8 @@ func eventListenerReady(ctx context.Context, name, namespace string) wait.Condit
 func generatePipeline(w workflow.Workflow, namespace string) *v1beta1.Pipeline {
 	resolver := newVariablesResolver()
 	pb := builder.NewPipelineBuilder(w.Name, namespace)
-	pb.PipelineMeta(builder.Label("fuseml/generated-from", w.Name))
+	pb.Meta(builder.Label("fuseml/generated-from", w.Name))
+	pb.Description(*w.Description)
 
 	// process the FuseML workflow inputs
 	for _, input := range w.Inputs {
@@ -131,16 +132,16 @@ func generatePipeline(w workflow.Workflow, namespace string) *v1beta1.Pipeline {
 		// pipeline which represents codeset.name and codeset.version in a FuseML
 		// workflow.
 		if *input.Type == inputTypeCodeset {
-			pb.PipelineWorkspace(codesetWorkspaceName)
-			pb.PipelineResource("source-repo", "git")
-			pb.PipelineTask("clone", cloneTaskName, nil, map[string]string{codesetWorkspaceName: codesetWorkspaceName},
+			pb.Workspace(codesetWorkspaceName, false)
+			pb.Resource("source-repo", "git", false)
+			pb.Task("clone", cloneTaskName, nil, map[string]string{codesetWorkspaceName: codesetWorkspaceName},
 				map[string]string{"source-repo": "source-repo"})
-			pb.PipelineParam(codesetNameParam, "Reference to the codeset (git project)")
+			pb.Param(codesetNameParam, "Reference to the codeset (git project)")
 			resolver.addReference(fmt.Sprintf("inputs.%s.name", *input.Name), fmt.Sprintf("$(params.%s)", codesetNameParam))
-			pb.PipelineParam(codesetVersionParam, "Codeset version (git revision)", "main")
+			pb.ParamWithDefaultValue(codesetVersionParam, "Codeset version (git revision)", "main")
 			resolver.addReference(fmt.Sprintf("inputs.%s.version", *input.Name), fmt.Sprintf("$(params.%s)", codesetVersionParam))
 		} else {
-			pb.PipelineParam(*input.Name, *input.Description, *input.Default)
+			pb.ParamWithDefaultValue(*input.Name, *input.Description, *input.Default)
 			resolver.addReference(fmt.Sprintf("inputs.%s", *input.Name), fmt.Sprintf("$(params.%s)", *input.Name))
 		}
 	}
@@ -159,14 +160,14 @@ STEPS:
 				if codesetPath != "" {
 					dockerfile = strings.Replace(dockerfile, fmt.Sprintf("%s/", codesetPath), "", 1)
 				}
-				pb.PipelineTask(*step.Name, builderTaskName, map[string]string{"IMAGE": resolver.resolve(*output.Image.Name),
+				pb.Task(*step.Name, builderTaskName, map[string]string{"IMAGE": resolver.resolve(*output.Image.Name),
 					"DOCKERFILE": dockerfile}, map[string]string{codesetWorkspaceName: codesetWorkspaceName}, nil)
 				resolver.addReference(fmt.Sprintf("steps.%s.outputs.%s", *step.Name, *output.Name), *output.Image.Name)
 				continue STEPS
 			}
 			// if the step output is the workflow output, map it to a PipelineResult in tekton
 			if wo := stepOutputIsWorkflowOutput(output, w.Outputs); wo != nil {
-				pb.PipelineResult(*wo.Name, *wo.Description, fmt.Sprintf("$(tasks.%s.results.%s)", *step.Name, *output.Name))
+				pb.Result(*wo.Name, *wo.Description, fmt.Sprintf("$(tasks.%s.results.%s)", *step.Name, *output.Name))
 			}
 		}
 
@@ -197,7 +198,7 @@ STEPS:
 			}
 			taskParams[imageParamName] = image
 		}
-		pb.PipelineTask(*step.Name, taskSpec, taskParams, taskWs, nil)
+		pb.Task(*step.Name, taskSpec, taskParams, taskWs, nil)
 	}
 	return &pb.Pipeline
 }
@@ -208,20 +209,20 @@ func generateTriggerTemplate(p *v1beta1.Pipeline) *v1alpha1.TriggerTemplate {
 	resolver := newVariablesResolver()
 	for _, param := range p.Spec.Params {
 		if param.Default != nil {
-			ttb.TriggerTemplateParam(param.Name, param.Description, param.Default.StringVal)
+			ttb.ParamWithDefaultValue(param.Name, param.Description, param.Default.StringVal)
 		} else {
-			ttb.TriggerTemplateParam(param.Name, param.Description)
+			ttb.Param(param.Name, param.Description)
 		}
 		// if there is a codeset paramter we also need to add the codeset-url as paramter to
 		// the template
 		resolver.addReference(param.Name, fmt.Sprintf("$(tt.params.%s)", param.Name))
-		if param.Name == "codeset-name" {
-			ttb.TriggerTemplateParam("codeset-url", "The codeset URL (git repository URL)")
-			resolver.addReference("codeset-url", "$(tt.params.codeset-url)")
-			prb.GenerateName(fmt.Sprintf("%s%s-", pipelineRunPrefix, resolver.resolve("codeset-name")))
-			prb.PipelineRunMeta(builder.Label("fuseml/codeset-name", resolver.resolve("codeset-name")))
-		} else if param.Name == "codeset-version" {
-			prb.PipelineRunMeta(builder.Label("fuseml/codeset-version", resolver.resolve("codeset-version")))
+		if param.Name == codesetNameParam {
+			ttb.Param(codesetURLParam, "The codeset URL (git repository URL)")
+			resolver.addReference(codesetURLParam, fmt.Sprintf("$(tt.params.%s)", codesetURLParam))
+			prb.GenerateName(fmt.Sprintf("%s%s-", pipelineRunPrefix, resolver.resolve(codesetNameParam)))
+			prb.Meta(builder.Label("fuseml/codeset-name", resolver.resolve(codesetNameParam)))
+		} else if param.Name == codesetVersionParam {
+			prb.Meta(builder.Label("fuseml/codeset-version", resolver.resolve(codesetVersionParam)))
 		}
 
 		prb.Param(param.Name, resolver.resolve(param.Name))
@@ -233,7 +234,7 @@ func generateTriggerTemplate(p *v1beta1.Pipeline) *v1alpha1.TriggerTemplate {
 
 	for _, res := range p.Spec.Resources {
 		if res.Type == "git" {
-			prb.ResourceGit(res.Name, resolver.resolve("codeset-url"), resolver.resolve("codeset-version"))
+			prb.ResourceGit(res.Name, resolver.resolve(codesetURLParam), resolver.resolve(codesetVersionParam))
 		}
 	}
 
@@ -244,23 +245,23 @@ func generateTriggerTemplate(p *v1beta1.Pipeline) *v1alpha1.TriggerTemplate {
 	if err != nil {
 		log.Fatalf("Error marshalling PipelineRun: %s", err)
 	}
-	ttb.TriggerResourceTemplate(runtime.RawExtension{Raw: prBytes})
+	ttb.ResourceTemplate(runtime.RawExtension{Raw: prBytes})
 
 	return &ttb.TriggerTemplate
 }
 
 func generateTriggerBinding(template *v1alpha1.TriggerTemplate) *v1alpha1.TriggerBinding {
 	webhookParamsMap := map[string]string{
-		"codeset-name":    "$(body.repository.name)",
-		"codeset-version": "$(body.commits[0].id)",
-		"codeset-url":     "$(body.repository.clone_url)",
+		codesetNameParam:    "$(body.repository.name)",
+		codesetVersionParam: "$(body.commits[0].id)",
+		codesetURLParam:     "$(body.repository.clone_url)",
 	}
 
 	tbb := builder.NewTriggerBindingBuilder(template.Name, template.Namespace)
 
 	for _, param := range template.Spec.Params {
 		if v, ok := webhookParamsMap[param.Name]; ok {
-			tbb.TriggerBindingParam(param.Name, v)
+			tbb.Param(param.Name, v)
 		}
 	}
 	return &tbb.TriggerBinding
@@ -269,7 +270,7 @@ func generateTriggerBinding(template *v1alpha1.TriggerTemplate) *v1alpha1.Trigge
 func generateEventListener(template *v1alpha1.TriggerTemplate, binding *v1alpha1.TriggerBinding) *v1alpha1.EventListener {
 	elb := builder.NewEventListenerBuilder(template.Name, template.Namespace)
 	elb.ServiceAccount(pipelineRunServiceAccount)
-	elb.EventListenerTriggerBinding(template.Name, binding.Name)
+	elb.TriggerBinding(template.Name, binding.Name)
 	return &elb.EventListener
 }
 
@@ -280,14 +281,14 @@ func toTektonTaskSpec(step workflow.WorkflowStep) v1beta1.TaskSpec {
 		// if there is a codeset as input, add workspace to the task and
 		// set its working directory to codeset.path
 		if input.Codeset != nil {
-			tb.TaskWorkspace(codesetWorkspaceName, *input.Codeset.Path)
-			tb.TaskWorkingDir(*input.Codeset.Path)
+			tb.WorkspaceWithMountPath(codesetWorkspaceName, *input.Codeset.Path)
+			tb.WorkingDir(*input.Codeset.Path)
 		} else {
 			// else add it as a parameter to the tekton task
-			tb.TaskParam(*input.Name)
+			tb.Param(*input.Name)
 			// make the inputs also available as env variable (with the
 			// FUSEML_ prefix) so that the container can use them
-			tb.TaskEnvVar(fmt.Sprintf("%s%s", inputsVarPrefix, strings.ToUpper(*input.Name)),
+			tb.Env(fmt.Sprintf("%s%s", inputsVarPrefix, strings.ToUpper(*input.Name)),
 				fmt.Sprintf("$(params.%s)", *input.Name))
 		}
 	}
@@ -295,8 +296,8 @@ func toTektonTaskSpec(step workflow.WorkflowStep) v1beta1.TaskSpec {
 	// if image is parameterized reference it as a task parameter to be able
 	// to receive its value from a task output
 	if strings.Contains(*step.Image, "{{") {
-		tb.TaskParam(imageParamName, "Name (reference) of the image to run")
-		tb.TaskImage(fmt.Sprintf("$(params.%s)", imageParamName))
+		tb.ParamWithDescription(imageParamName, "Name (reference) of the image to run")
+		tb.Image(fmt.Sprintf("$(params.%s)", imageParamName))
 	}
 
 	// a workflow output that is not an image represents a result in a tekton task.
@@ -304,14 +305,14 @@ func toTektonTaskSpec(step workflow.WorkflowStep) v1beta1.TaskSpec {
 	// can set the task output
 	for _, output := range step.Outputs {
 		if output.Image == nil {
-			tb.TaskResult(*output.Name)
-			tb.TaskEnvVar(stepOutputVarName, *output.Name)
+			tb.Result(*output.Name)
+			tb.Env(stepOutputVarName, *output.Name)
 		}
 	}
 
 	// load environment variables
 	for _, stepEnv := range step.Env {
-		tb.TaskEnvVar(*stepEnv.Name, *stepEnv.Value)
+		tb.Env(*stepEnv.Name, *stepEnv.Value)
 	}
 
 	return tb.TaskSpec
