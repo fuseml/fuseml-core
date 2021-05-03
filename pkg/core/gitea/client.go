@@ -281,19 +281,25 @@ func (gac giteaAdminClient) GetReposForOrg(org string, label *string) ([]*codese
 	}
 	for _, repo := range repos {
 		var labels []string
-		if label != nil {
-			labels, _, err = gac.giteaClient.ListRepoTopics(org, repo.Name, gitea.ListRepoTopicsOptions{})
-			if err != nil {
-				return nil, errors.Wrap(err, "Failed to list repo topics")
-			}
-			if !contains(labels, *label) {
-				continue
-			}
+		var description *string
+		labels, _, err = gac.giteaClient.ListRepoTopics(org, repo.Name, gitea.ListRepoTopicsOptions{})
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to list repo topics")
 		}
+		if label != nil && !contains(labels, *label) {
+			continue
+		}
+
+		if repo.Description != "" {
+			description = &repo.Description
+		}
+
 		codesets = append(codesets, &codeset.Codeset{
-			Name:    repo.Name,
-			Project: org,
-			Labels:  labels,
+			Name:        repo.Name,
+			Project:     org,
+			Labels:      labels,
+			Description: description,
+			URL:         &repo.CloneURL,
 		})
 	}
 	return codesets, nil
