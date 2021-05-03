@@ -1,8 +1,8 @@
 package config
 
 const (
-	// FuseMlNamespace is the kubernetes namespace where FuseML workfloads are created
-	FuseMlNamespace = "fuseml-workloads"
+	// FuseMLNamespace is the kubernetes namespace where FuseML workfloads are created
+	FuseMLNamespace = "fuseml-workloads"
 )
 
 var (

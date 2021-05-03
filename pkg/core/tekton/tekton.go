@@ -18,73 +18,111 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"knative.dev/pkg/apis"
 
+	"github.com/fuseml/fuseml-core/gen/codeset"
 	"github.com/fuseml/fuseml-core/gen/workflow"
-	"github.com/fuseml/fuseml-core/pkg/core/config"
 	"github.com/fuseml/fuseml-core/pkg/core/tekton/builder"
 )
 
-// CreatePipeline receives a FuseML workflow and creates a Tekton pipeline from it
-func CreatePipeline(ctx context.Context, logger *log.Logger, workflow *workflow.Workflow) (*v1beta1.Pipeline, error) {
-	tektonClients := newClients(config.FuseMlNamespace)
+// WorkflowBackend implements the FuseML WorkflowBackend interface for tekton
+type WorkflowBackend struct {
+	namespace     string
+	tektonClients *clients
+}
 
-	pipeline := generatePipeline(*workflow, config.FuseMlNamespace)
+// NewWorkflowBackend initializes Tekton backend
+func NewWorkflowBackend(namespace string) (*WorkflowBackend, error) {
+	clients, err := newClients(namespace)
+	if err != nil {
+		return nil, fmt.Errorf("error initializing tekton workflow backend: %w", err)
+	}
+	return &WorkflowBackend{namespace, clients}, nil
+}
+
+// CreateWorkflow receives a FuseML workflow and creates a Tekton pipeline from it
+func (w *WorkflowBackend) CreateWorkflow(ctx context.Context, logger *log.Logger, workflow *workflow.Workflow) error {
+	pipeline := generatePipeline(*workflow, w.namespace)
 	logger.Printf("Creating tekton pipeline for workflow: %s...", workflow.Name)
-	return tektonClients.PipelineClient.Create(ctx, pipeline, metav1.CreateOptions{})
+	_, err := w.tektonClients.PipelineClient.Create(ctx, pipeline, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("error creating tekton pipeline for workflow %q: %w", workflow.Name, err)
+	}
+
+	return nil
+}
+
+// CreateWorkflowRun creates a PipelineRun with its default values for received workflow and codeset
+func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, workflowName string, codeset codeset.Codeset) error {
+	pipeline, err := w.tektonClients.PipelineClient.Get(ctx, workflowName, metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("error getting tekton pipeline %q: %w", workflowName, err)
+	}
+
+	pipelineRun, err := generatePipelineRun(pipeline, codeset)
+	if err != nil {
+		return fmt.Errorf("error generating tekton pipeline run for workflow %q: %w", workflowName, err)
+	}
+
+	_, err = w.tektonClients.PipelineRunClient.Create(ctx, pipelineRun, metav1.CreateOptions{})
+	if err != nil {
+		return fmt.Errorf("error creating tekton pipeline run %q: %w", pipelineRun.Name, err)
+	}
+	return nil
 }
 
 // CreateListener creates tekton resources required to have a listener ready for triggering the pipeline
-func CreateListener(ctx context.Context, logger *log.Logger, name string) (string, error) {
-	tektonClients := newClients(config.FuseMlNamespace)
+func (w *WorkflowBackend) CreateListener(ctx context.Context, logger *log.Logger, workflowName string) (string, error) {
 
-	pipeline, err := tektonClients.PipelineClient.Get(ctx, name, metav1.GetOptions{})
+	pipeline, err := w.tektonClients.PipelineClient.Get(ctx, workflowName, metav1.GetOptions{})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("error getting tekton pipeline %q: %w", workflowName, err)
 	}
 
 	triggerTemplate := generateTriggerTemplate(pipeline)
-	_, err = tektonClients.TriggerTemplateClient.Get(ctx, name, metav1.GetOptions{})
+	_, err = w.tektonClients.TriggerTemplateClient.Get(ctx, workflowName, metav1.GetOptions{})
 	if err != nil {
 		if !k8serr.IsNotFound(err) {
-			return "", err
+			return "", fmt.Errorf("error getting tekton trigger template %q: %w", workflowName, err)
 		}
-		logger.Printf("Creating tekton trigger template for workflow: %s...", name)
-		_, err := tektonClients.TriggerTemplateClient.Create(ctx, triggerTemplate, metav1.CreateOptions{})
+		logger.Printf("Creating tekton trigger template for workflow: %s...", workflowName)
+		_, err := w.tektonClients.TriggerTemplateClient.Create(ctx, triggerTemplate, metav1.CreateOptions{})
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("error creating tekton trigger template %q: %w", workflowName, err)
 		}
 	}
 
 	triggerBinding := generateTriggerBinding(triggerTemplate)
-	_, err = tektonClients.TriggerBindingClient.Get(ctx, name, metav1.GetOptions{})
+	_, err = w.tektonClients.TriggerBindingClient.Get(ctx, workflowName, metav1.GetOptions{})
 	if err != nil {
 		if !k8serr.IsNotFound(err) {
-			return "", err
+			return "", fmt.Errorf("error getting tekton trigger binding %q: %w", workflowName, err)
 		}
-		logger.Printf("Creating tekton trigger binding for workflow: %s...", name)
-		_, err := tektonClients.TriggerBindingClient.Create(ctx, triggerBinding, metav1.CreateOptions{})
+		logger.Printf("Creating tekton trigger binding for workflow: %s...", workflowName)
+		_, err := w.tektonClients.TriggerBindingClient.Create(ctx, triggerBinding, metav1.CreateOptions{})
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("error creating tekton trigger binding %q: %w", workflowName, err)
 		}
 	}
 
 	eventListener := generateEventListener(triggerTemplate, triggerBinding)
-	el, err := tektonClients.EventListenerClient.Get(ctx, name, metav1.GetOptions{})
+	el, err := w.tektonClients.EventListenerClient.Get(ctx, workflowName, metav1.GetOptions{})
 	if err != nil {
 		if !k8serr.IsNotFound(err) {
-			return "", err
+			return "", fmt.Errorf("error getting tekton event listener %q: %w", workflowName, err)
 		}
-		logger.Printf("Creating tekton event listener for workflow: %s...", name)
-		el, err = tektonClients.EventListenerClient.Create(ctx, eventListener, metav1.CreateOptions{})
+		logger.Printf("Creating tekton event listener for workflow: %s...", workflowName)
+		el, err = w.tektonClients.EventListenerClient.Create(ctx, eventListener, metav1.CreateOptions{})
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("error creating tekton event listener %q: %w", workflowName, err)
 		}
 	}
 
-	if err := waitFor(eventListenerReady(ctx, el.Name, el.Namespace), 1*time.Second, 1*time.Minute); err != nil {
-		return "", fmt.Errorf("event listener '%s' did not get ready in the expected time", el.Name)
+	interval := 1 * time.Second
+	timeout := 1 * time.Minute
+	if err := waitFor(w.eventListenerReady(ctx, el.Name), interval, timeout); err != nil {
+		return "", fmt.Errorf("event listener %q did not get ready in the expected time: %w", el.Name, err)
 	}
 
-	el, _ = tektonClients.EventListenerClient.Get(ctx, name, metav1.GetOptions{})
+	el, _ = w.tektonClients.EventListenerClient.Get(ctx, workflowName, metav1.GetOptions{})
 	return el.Status.Address.URL.String(), nil
 }
 
@@ -92,10 +130,9 @@ func waitFor(waitFunc wait.ConditionFunc, interval, timeout time.Duration) error
 	return wait.PollImmediate(interval, timeout, waitFunc)
 }
 
-func eventListenerReady(ctx context.Context, name, namespace string) wait.ConditionFunc {
+func (w *WorkflowBackend) eventListenerReady(ctx context.Context, name string) wait.ConditionFunc {
 	return func() (bool, error) {
-		tektonClients := newClients(config.FuseMlNamespace)
-		el, err := tektonClients.EventListenerClient.Get(ctx, name, metav1.GetOptions{})
+		el, err := w.tektonClients.EventListenerClient.Get(ctx, name, metav1.GetOptions{})
 		if err != nil {
 			return false, nil
 		}
@@ -201,6 +238,40 @@ STEPS:
 		pb.Task(*step.Name, taskSpec, taskParams, taskWs, nil)
 	}
 	return &pb.Pipeline
+}
+
+func generatePipelineRun(p *v1beta1.Pipeline, codeset codeset.Codeset) (*v1beta1.PipelineRun, error) {
+	codesetVersion := "main"
+	prb := builder.NewPipelineRunBuilder(fmt.Sprintf("%s%s-%s-", pipelineRunPrefix, codeset.Project, codeset.Name))
+
+	for _, param := range p.Spec.Params {
+		if param.Default == nil {
+			switch param.Name {
+			case codesetNameParam:
+				prb.Param(param.Name, codeset.Name)
+			case codesetVersion:
+				prb.Param(param.Name, codesetVersion)
+			default:
+				return nil, fmt.Errorf("pipeline run failed: could not set parameter value for %q", param.Name)
+			}
+		} else {
+			prb.Param(param.Name, param.Default.StringVal)
+		}
+	}
+
+	prb.Meta(builder.Label("fuseml/codeset-name", codeset.Name), builder.Label("fuseml/codeset-version", codesetVersion))
+	prb.ServiceAccount(pipelineRunServiceAccount)
+	prb.PipelineRef(p.Name)
+	for _, ws := range p.Spec.Workspaces {
+		prb.Workspace(ws.Name, workspaceAccessMode, workspaceSize)
+	}
+
+	for _, res := range p.Spec.Resources {
+		if res.Type == "git" {
+			prb.ResourceGit(res.Name, *codeset.URL, codesetVersion)
+		}
+	}
+	return &prb.PipelineRun, nil
 }
 
 func generateTriggerTemplate(p *v1beta1.Pipeline) *v1alpha1.TriggerTemplate {
