@@ -6,8 +6,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/fuseml/fuseml-core/gen/codeset"
-
-	config "github.com/fuseml/fuseml-core/pkg/core/config"
 )
 
 // GitAdmin is an inteface to git administration clients
@@ -59,9 +57,7 @@ func (cs *GitCodesetStore) CreateWebhook(ctx context.Context, c *codeset.Codeset
 
 // Add creates new codeset
 func (cs *GitCodesetStore) Add(ctx context.Context, c *codeset.Codeset) (*codeset.Codeset, error) {
-	var listenerURL *string
-	listenerURL = &config.StagingEventListenerURL
-	err := cs.gitAdmin.PrepareRepository(c, listenerURL)
+	err := cs.gitAdmin.PrepareRepository(c, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "Preparing Repository failed")
 	}

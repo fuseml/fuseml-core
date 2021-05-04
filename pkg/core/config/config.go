@@ -10,9 +10,6 @@ var (
 
 	// HookSecret is the default secret used when creating repository hooks
 	HookSecret = "generatedsecret"
-
-	// StagingEventListenerURL is the default name of event listener
-	StagingEventListenerURL = "http://el-mlflow-listener.fuseml-workloads:8080"
 )
 
 // DefaultUserName returns default user name for new per-project user
