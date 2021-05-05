@@ -36,7 +36,7 @@ generate:
 
 # Lint code
 lint: fmt vet tidy
-	golint ./...
+	golint `go list ./... | grep -v "/design"`
 
 # Run go fmt against code
 fmt:
