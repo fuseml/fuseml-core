@@ -12,6 +12,7 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/fuseml/fuseml-core/gen/application"
 	"github.com/fuseml/fuseml-core/gen/codeset"
 	"github.com/fuseml/fuseml-core/gen/runnable"
 	"github.com/fuseml/fuseml-core/gen/workflow"
@@ -49,13 +50,14 @@ func main() {
 
 	// Initialize the services.
 	var (
-		runnableSvc runnable.Service
-		codesetSvc  codeset.Service
-		workflowSvc workflow.Service
+		applicationSvc application.Service
+		runnableSvc    runnable.Service
+		codesetSvc     codeset.Service
+		workflowSvc    workflow.Service
 	)
 	{
 		codesetStore := core.NewGitCodesetStore(gitAdmin)
-
+		applicationSvc = svc.NewApplicationService(logger, core.NewApplicationStore())
 		runnableSvc = svc.NewRunnableService(logger, core.NewRunnableStore())
 		codesetSvc = svc.NewCodesetService(logger, codesetStore)
 		workflowSvc = svc.NewWorkflowService(logger, core.NewWorkflowStore(), codesetStore)
@@ -64,11 +66,13 @@ func main() {
 	// Wrap the services in endpoints that can be invoked from other services
 	// potentially running in different processes.
 	var (
-		runnableEndpoints *runnable.Endpoints
-		codesetEndpoints  *codeset.Endpoints
-		workflowEndpoints *workflow.Endpoints
+		applicationEndpoints *application.Endpoints
+		runnableEndpoints    *runnable.Endpoints
+		codesetEndpoints     *codeset.Endpoints
+		workflowEndpoints    *workflow.Endpoints
 	)
 	{
+		applicationEndpoints = application.NewEndpoints(applicationSvc)
 		runnableEndpoints = runnable.NewEndpoints(runnableSvc)
 		codesetEndpoints = codeset.NewEndpoints(codesetSvc)
 		workflowEndpoints = workflow.NewEndpoints(workflowSvc)
@@ -115,7 +119,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "80")
 			}
-			handleHTTPServer(ctx, u, runnableEndpoints, codesetEndpoints, workflowEndpoints, &wg, errc, logger, *dbgF)
+			handleHTTPServer(ctx, u, runnableEndpoints, codesetEndpoints, workflowEndpoints, applicationEndpoints, &wg, errc, logger, *dbgF)
 		}
 
 		{
@@ -141,7 +145,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "8080")
 			}
-			handleGRPCServer(ctx, u, runnableEndpoints, codesetEndpoints, workflowEndpoints, &wg, errc, logger, *dbgF)
+			handleGRPCServer(ctx, u, runnableEndpoints, codesetEndpoints, workflowEndpoints, applicationEndpoints, &wg, errc, logger, *dbgF)
 		}
 
 	case "prod":
@@ -168,7 +172,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "80")
 			}
-			handleHTTPServer(ctx, u, runnableEndpoints, codesetEndpoints, workflowEndpoints, &wg, errc, logger, *dbgF)
+			handleHTTPServer(ctx, u, runnableEndpoints, codesetEndpoints, workflowEndpoints, applicationEndpoints, &wg, errc, logger, *dbgF)
 		}
 
 		{
@@ -194,7 +198,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "8080")
 			}
-			handleGRPCServer(ctx, u, runnableEndpoints, codesetEndpoints, workflowEndpoints, &wg, errc, logger, *dbgF)
+			handleGRPCServer(ctx, u, runnableEndpoints, codesetEndpoints, workflowEndpoints, applicationEndpoints, &wg, errc, logger, *dbgF)
 		}
 
 	default:
