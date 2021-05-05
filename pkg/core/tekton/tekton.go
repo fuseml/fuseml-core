@@ -187,18 +187,28 @@ func generatePipeline(w workflow.Workflow, namespace string) *v1beta1.Pipeline {
 STEPS:
 	for _, step := range w.Steps {
 		for _, output := range step.Outputs {
-			// image type output parameters serve as input for the tekton builder task (kaniko)
+			// image type output parameters serve as input for the tekton builder-prep and builder tasks (kaniko).
+			// Note that the builder represents two tasks in tekton, the first one (builder-prep) uses the image defined
+			// on the step to provide a Dockerfile that will be used by the following task (kaniko) to build the image
+			// expected by the step output.
 			if output.Image != nil {
-				dockerfile := resolver.resolve(*output.Image.Dockerfile)
-				codesetPath := getInputCodesetPath(step.Inputs)
-				// in FuseML workflow the dockerfile path is a full path including the codeset.path, however
-				// the kaniko task mounts the codeset at workingDir and expects the dockerfile path to be referenced
-				// from it. So, remove the codeset.path from image.dockerfile input
-				if codesetPath != "" {
-					dockerfile = strings.Replace(dockerfile, fmt.Sprintf("%s/", codesetPath), "", 1)
+				var dockerfile string
+				if output.Image.Dockerfile != nil {
+					dockerfile = resolver.resolve(*output.Image.Dockerfile)
+					codesetPath := getInputCodesetPath(step.Inputs)
+					// in FuseML workflow the dockerfile path is a full path including the codeset.path, however
+					// the kaniko task mounts the codeset at workingDir and expects the dockerfile path to be referenced
+					// from it. So, remove the codeset.path from image.dockerfile input
+					if codesetPath != "" {
+						dockerfile = strings.Replace(dockerfile, fmt.Sprintf("%s/", codesetPath), "", 1)
+					}
 				}
-				pb.Task(*step.Name, builderTaskName, map[string]string{"IMAGE": resolver.resolve(*output.Image.Name),
+				prepTaskName := fmt.Sprintf("%s-prep", *step.Name)
+				pb.Task(prepTaskName, builderPrepTaskName, map[string]string{"IMAGE": resolver.resolve(*step.Image),
 					"DOCKERFILE": dockerfile}, map[string]string{codesetWorkspaceName: codesetWorkspaceName}, nil)
+				pb.Task(*step.Name, builderTaskName, map[string]string{"IMAGE": resolver.resolve(*output.Image.Name),
+					"DOCKERFILE": fmt.Sprintf("$(tasks.%s.results.DOCKERFILE-PATH)", prepTaskName)},
+					map[string]string{codesetWorkspaceName: codesetWorkspaceName}, nil)
 				resolver.addReference(fmt.Sprintf("steps.%s.outputs.%s", *step.Name, *output.Name), *output.Image.Name)
 				continue STEPS
 			}

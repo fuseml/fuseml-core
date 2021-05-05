@@ -8,6 +8,7 @@ const (
 	inputTypeCodeset          = "codeset"
 	codesetWorkspaceName      = "source"
 	builderTaskName           = "kaniko"
+	builderPrepTaskName       = "builder-prep"
 	cloneTaskName             = "clone"
 	codesetNameParam          = "codeset-name"
 	codesetVersionParam       = "codeset-version"

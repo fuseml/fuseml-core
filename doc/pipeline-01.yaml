@@ -17,7 +17,7 @@ outputs:
     type: string
 steps:
   - name: builder
-    image: ghcr.io/fuseml/mlflow-builder:1.0
+    image: ghcr.io/fuseml/mlflow-dockerfile:0.1
     inputs:
       - codeset:
           name: '{{ inputs.mlflow-codeset }}'
@@ -25,7 +25,6 @@ steps:
     outputs:
       - name: mlflow-env
         image:
-          dockerfile: '/project/.fuseml/Dockerfile'
           name: 'registry.fuseml-registry/mlflow-builder/{{ inputs.mlflow-codeset.name }}:{{ inputs.mlflow-codeset.version }}'
   - name: trainer
     image: '{{ steps.builder.outputs.mlflow-env }}'
@@ -41,11 +40,11 @@ steps:
       - name: MLFLOW_S3_ENDPOINT_URL
         value: "http://mlflow-minio:9000"
       - name: AWS_ACCESS_KEY_ID
-        value: CdkokHmIRZZ4s8PAQ1RI
+        value: gABTE5DmmLgjJypJzGFs
       - name: AWS_SECRET_ACCESS_KEY
-        value: LyXpfxpJ58B0nkQEopknq0h3lwV1jivv2MlWFM8R
+        value: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
   - name: predictor
-    image: 'ghcr.io/fuseml/kfserving-predictor:v0.1'
+    image: ghcr.io/fuseml/kfserving-predictor:0.1
     inputs:
       - name: model
         value: '{{ steps.trainer.outputs.mlflow-model-url }}'
@@ -58,6 +57,6 @@ steps:
       - name: prediction-url
     env:
       - name: AWS_ACCESS_KEY_ID
-        value: CdkokHmIRZZ4s8PAQ1RI
+        value: gABTE5DmmLgjJypJzGFs
       - name: AWS_SECRET_ACCESS_KEY
-        value: LyXpfxpJ58B0nkQEopknq0h3lwV1jivv2MlWFM8R
+        value: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
