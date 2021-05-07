@@ -4,6 +4,10 @@ import (
 	. "goa.design/goa/v3/dsl"
 )
 
+const (
+	identifierPattern = `^[A-Za-z0-9_][A-Za-z0-9-_]*$`
+)
+
 var _ = Service("runnable", func() {
 	Description("The runable service performs operations on runnables.")
 
@@ -25,7 +29,7 @@ var _ = Service("runnable", func() {
 				"List of values or regular expressions used filter results by their labels.",
 				func() {
 					Key(func() {
-						Pattern(`^[A-Za-z0-9-_]+$`)
+						Pattern(identifierPattern)
 					})
 					Example(map[string]string{
 						"library":  "pytorch",
@@ -96,6 +100,7 @@ var _ = Service("runnable", func() {
 
 		Payload(func() {
 			Field(1, "id", String, "Unique runnable identifier", func() {
+				Pattern(identifierPattern)
 				Example("model-trainer-1234")
 			})
 			Required("id")
@@ -120,176 +125,65 @@ var _ = Service("runnable", func() {
 	})
 })
 
-// RunnableContainer describes the container flavor of implementation of a runnable
-var RunnableContainer = Type("RunnableContainer", func() {
-	Field(1, "image", String, "Container image location",
-		func() {
-			Example("myregistry.io:tag")
-		})
-	Field(2, "entrypoint", String, "Container entrypoint. Expressions may be used to specify values.",
-		func() {
-			Example("/usr/local/bin/train-model.sh")
-			Example("python {{inputs[codeset].path}}/data_transform.py")
-		})
-	Field(3, "env", MapOf(String, String),
-		"List of environment variables and their values. Expressions may be used to specify values.",
-		func() {
-			Example(map[string]string{
-				"EXPERIMENT_NAME":   "first-experiment",
-				"INPUT_CODE_PATH":   "{{inputs[code].path}}",
-				"OUTPUT_MODEL_PATH": "{{outputs[model].path}}",
-			})
-		})
-	Field(4, "args", ArrayOf(String),
-		"List of command line arguments. Expressions may be used to specify values.",
-		func() {
-			Example([6]string{
-				"--experiment",
-				"first-experiment",
-				"--code-path",
-				"{{inputs[code].path}}",
-				"--model-out-file",
-				"{{outputs[model].path}}",
-			})
-		})
-	Required("image")
-})
-
-// InputPassByStrategy describes the strategy used to pass values from the framework to the container
-var InputPassByStrategy = Type("InputPassByStrategy", func() {
-	Field(1, "toPath", String, "Custom container path where the input value or reference is provided by the framework.", func() {
-		Example("/workspace/myproject")
-	})
-})
-
-// OutputPassByStrategy describes the strategy used to pass values from the container to the framework
-var OutputPassByStrategy = Type("OutputPassByStrategy", func() {
-	Field(1, "fromPath", String, "Custom container path where the output value or reference is provided by the container.", func() {
-		Example("/workspace/outputs/model-url")
-	})
-})
-
-// ArtifactArgSpec holds the attributes describing artifacts inputs and outputs
-var ArtifactArgSpec = Type("ArtifactArgSpec", func() {
-	Field(1, "store", String, "Artifact store name")
-	Field(2, "name", String, "Artifact name or wildcard")
-	Field(3, "project", String, "Artifact project name or wildcard")
-	Field(4, "version", String, "Artifact version or wildcard")
-	Field(5, "minCount", Int, "Minimum number of artifacts")
-	Field(6, "maxCount", Int, "Maximum number of artifacts")
-	Field(7, "storeType", String, "Artifact store type")
-})
-
-// RunnableInput describes a runnable input
-var RunnableInput = Type("RunnableInput", func() {
-	Field(1, "type", String, "The type of input", func() {
-		Enum("parameter", "opaque", "codeset", "model", "dataset", "runnable")
-		Example("parameter")
-		Default("parameter")
-	})
-	Field(2, "description", String, "Input description", func() {
-		MaxLength(1000)
-		Default("")
-	})
-	Field(3, "optional", Boolean, "Optional input", func() {
-		Default(false)
-	})
-	Field(4, "defaultValue", String, "Default value for optional input parameters")
-	Field(5, "artifact", ArtifactArgSpec, "Artifact attributes. Valid only for artifact inputs.")
-	Field(6, "passByValue", InputPassByStrategy, "Pass inputs by value to the container.")
-	Field(7, "passByReference", InputPassByStrategy, "Pass inputs by reference to the container.")
-	Field(8, "labels", MapOf(String, String),
-		"List of custom labels used to determine how to connect this input to outputs of other runnables.",
-		func() {
-			Key(func() {
-				Pattern(`^[A-Za-z0-9-_]+$`)
-			})
-			Example(map[string]string{
-				"library":  "pytorch",
-				"function": "predict",
-			})
-		})
-})
-
-// RunnableInput describes a runnable output
-var RunnableOutput = Type("RunnableOutput", func() {
-	Field(1, "type", String, "The type of output", func() {
-		Enum("parameter", "opaque", "codeset", "model", "dataset", "runnable")
-		Example("parameter")
-		Default("parameter")
-	})
-	Field(2, "description", String, "Output description", func() {
-		MaxLength(1000)
-		Default("")
-	})
-	Field(3, "optional", Boolean, "Optional output", func() {
-		Default(false)
-	})
-	Field(4, "defaultValue", String, "Default value for optional output parameter")
-	Field(5, "artifact", ArtifactArgSpec, "Artifact attributes. Valid only for artifact outputs.")
-	Field(6, "passByValue", OutputPassByStrategy, "Pass outputs by value from the container.")
-	Field(7, "passByReference", OutputPassByStrategy, "Pass outputs by reference from the container.")
-	Field(8, "labels", MapOf(String, String),
-		"List of custom labels used to determine how to connect this output to inputs of other runnables.",
-		func() {
-			Key(func() {
-				Pattern(`^[A-Za-z0-9-_]+$`)
-			})
-			Example(map[string]string{
-				"library":  "pytorch",
-				"function": "predict",
-			})
-		})
-})
-
 // Runnable description
 var Runnable = Type("Runnable", func() {
-	Field(1, "id", String, "The unique runnable identifier", func() {
-		Pattern(`^[A-Za-z0-9-_]+$`)
+	tag := 1
+	Field(tag, "id", String, "The unique runnable identifier", func() {
+		Pattern(identifierPattern)
 		MinLength(1)
 		MaxLength(100)
+		Example("PyTorch-model-trainer__with_GPU_Acceleration_axW45s")
 	})
-	Field(2, "description", String, "Runnable description", func() {
+	tag++
+	Field(tag, "created", String, "The runnable creation time", func() {
+		Format(FormatDateTime)
+		Example("2021-04-09T06:17:25Z")
+	})
+	tag++
+	Field(tag, "description", String, "Runnable description", func() {
 		MaxLength(1000)
 		Default("")
 	})
-	Field(3, "kind", String, "The kind of runnable (builder, trainer, predictor etc.)", func() {
+	tag++
+	Field(tag, "author", String, "Runnable author", func() {
+		MaxLength(1000)
+		Default("")
+	})
+	tag++
+	Field(tag, "source", String, "URL for the sources used to build this runnable", func() {
+		MaxLength(1000)
+		Default("")
+	})
+	tag++
+	Field(tag, "kind", String, "The kind of runnable (builder, trainer, predictor etc.)", func() {
 		Enum("custom", "builder", "trainer", "predictor")
 		Example("trainer")
 		Default("custom")
 	})
-	Field(4, "container", RunnableContainer, "Runnable implementation")
-	Field(5, "defaultInputPath", String,
+	tag++
+	Field(tag, "container", RunnableContainer, "Runnable container implementation")
+	tag++
+	Field(tag, "input", RunnableInput, "Input (artifacts, parameters) accepted by this runnable, grouped by category")
+	tag++
+	Field(tag, "output", RunnableOutput, "Output (artifacts, parameters) generated by this runnable, grouped by category")
+	tag++
+	Field(tag, "defaultInputPath", String,
 		"The default container path where the container expects values of inputs passed by value to be provided as files or directories",
 		func() {
 			Example("/opt/inputs")
-			Default("/workspace")
 		})
-	Field(6, "inputs", MapOf(String, RunnableInput), "Map of inputs (artifacts, parameters) accepted by this runnable, indexed by name", func() {
-		Key(func() {
-			Pattern(`^[A-Za-z0-9-_]+$`)
-		})
-	})
-	Field(7, "defaultOutputPath", String,
+	tag++
+	Field(tag, "defaultOutputPath", String,
 		"The default container path where the container generates the values of outputs as files or directories",
 		func() {
 			Example("/opt/outputs")
-			Default("/workspace/output")
 		})
-	Field(8, "outputs", MapOf(String, RunnableOutput), "Map of outputs (artifacts, parameters) generated by this runnable, indexed by name", func() {
-		Key(func() {
-			Pattern(`^[A-Za-z0-9-_]+$`)
-		})
-	})
-	Field(9, "created", String, "The runnable's creation time", func() {
-		Format(FormatDateTime)
-		Example("2021-04-09T06:17:25Z")
-	})
-	Field(10, "labels", MapOf(String, String),
+	tag++
+	Field(tag, "labels", MapOf(String, String),
 		"List of labels associated with the runnable.",
 		func() {
 			Key(func() {
-				Pattern(`^[A-Za-z0-9-_]+$`)
+				Pattern(identifierPattern)
 			})
 			Example(map[string]string{
 				"vendor":       "acme",
@@ -297,5 +191,486 @@ var Runnable = Type("Runnable", func() {
 				"acceleration": "GPU",
 			})
 		})
-	Required("container")
+	tag++
+	Required("id", "container")
+})
+
+// RunnableInput describes a runnable input
+var RunnableInput = Type("RunnableInput", func() {
+	Field(1, "parameters", MapOf(String, RunnableInputParameter),
+		"Input parameters indexed by name.",
+		func() {
+			Key(func() {
+				Pattern(identifierPattern)
+			})
+		})
+	Field(2, "artifacts", MapOf(String, RunnableInputArtifact),
+		"Input artifacts indexed by name.",
+		func() {
+			Key(func() {
+				Pattern(identifierPattern)
+			})
+		})
+})
+
+// RunnableOutput describes a runnable output
+var RunnableOutput = Type("RunnableOutput", func() {
+	Field(1, "parameters", MapOf(String, RunnableOutputParameter),
+		"Output parameters indexed by name.",
+		func() {
+			Key(func() {
+				Pattern(identifierPattern)
+			})
+		})
+	Field(2, "artifacts", MapOf(String, RunnableOutputArtifact),
+		"Output artifacts indexed by name.",
+		func() {
+			Key(func() {
+				Pattern(identifierPattern)
+			})
+		})
+})
+
+// RunnableContainer describes the container flavor of implementation of a runnable
+var RunnableContainer = Type("RunnableContainer", func() {
+	Field(1, "image", String, "Container image URI",
+		func() {
+			Example("myregistry.io/repo123/pytorch_trainer:v2.4")
+		})
+	Field(2, "entrypoint", String, "Container entrypoint. Expressions referencing inputs and outputs by name may be used to specify values.",
+		func() {
+			Example("/usr/local/bin/train-model.sh")
+			Example("python {{inputs.ml-project}}/data_transform.py")
+		})
+	Field(3, "env", MapOf(String, String),
+		"List of environment variables and their values. Expressions referencing inputs and outputs by name may be used to specify values.",
+		func() {
+			Example(map[string]string{
+				"EXPERIMENT_NAME":   "first-experiment",
+				"INPUT_CODE_PATH":   "{{inputs.ml-project}}",
+				"OUTPUT_MODEL_PATH": "{{outputs.model-uri}}",
+			})
+		})
+	Field(4, "args", ArrayOf(String),
+		"List of command line arguments. Expressions referencing inputs and outputs by name may be used to specify values.",
+		func() {
+			Example([6]string{
+				"--experiment",
+				"first-experiment",
+				"--code-path",
+				"{{inputs.ml-project}}",
+				"--model-out-file",
+				"{{outputs.ml_model}}",
+			})
+		})
+	Required("image")
+})
+
+// RunnableInputParameter describes a runnable input parameter
+var RunnableInputParameter = Type("RunnableInputParameter", func() {
+	Field(1, "description", String, "Parameter description", func() {
+		MaxLength(1000)
+		Default("")
+		Example("Input parameter description")
+	})
+	Field(2, "optional", Boolean, "Optional input parameter", func() {
+		Default(false)
+	})
+	Field(3, "defaultValue", String, "Default value for optional input parameters")
+	Field(4, "path", String,
+		"Specify a custom container path where the input parameter value is provided to the container as a file",
+		func() {
+			Example("/workspace/input/configuration.txt")
+		})
+	Field(5, "labels", MapOf(String, String),
+		"List of custom labels used to determine how to connect this input parameter to outputs of other runnables.",
+		func() {
+			Key(func() {
+				Pattern(identifierPattern)
+			})
+			Example(map[string]string{
+				"library":  "pytorch",
+				"function": "predict",
+			})
+		})
+})
+
+// RunnableOutputParameter describes a runnable output parameter
+var RunnableOutputParameter = Type("RunnableOutputParameter", func() {
+	Field(1, "description", String, "Parameter description", func() {
+		MaxLength(1000)
+		Default("")
+		Example("Output parameter description")
+	})
+	Field(2, "optional", Boolean, "Optional output parameter", func() {
+		Default(false)
+	})
+	Field(3, "defaultValue", String, "Default value for optional output parameters")
+	Field(4, "path", String,
+		"Specify a custom container path where the output parameter value is provided by the container as a file",
+		func() {
+			Example("/workspace/output/model-url.txt")
+		})
+	Field(5, "labels", MapOf(String, String),
+		"List of custom labels used to determine how to connect this input parameter to outputs of other runnables.",
+		func() {
+			Key(func() {
+				Pattern(identifierPattern)
+			})
+			Example(map[string]string{
+				"library":  "pytorch",
+				"function": "predict",
+			})
+		})
+})
+
+// RunnableInputArtifact describes a runnable input artifact
+var RunnableInputArtifact = Type("RunnableInputArtifact", func() {
+	Field(1, "description", String, "Artifact description", func() {
+		MaxLength(1000)
+		Default("")
+		Example("Artifact description")
+	})
+	Field(2, "optional", Boolean, "Optional input artifact", func() {
+		Default(false)
+	})
+	Field(3, "provider", ArrayOf(String),
+		`Data passing mechanisms supported by the runnable implementation used to provide
+the artifact's contents to the container. The order is significant: the framework will choose the
+first mechanism in the supplied list that matches the concrete input artifact supplied at
+runtime as well as other conditions such as the workflow where this runnable is referenced,
+the way its inputs and outputs are connected to other runnables etc. 
+
+One or more of the following values may be supplied:
+
+ - local: the artifact's contents are provided using a local container path. Use this
+ mechanism when the runnable implementation doesn't have the capability to interact
+ directly with a storage backend service or an artifact store API and expects the
+ artifact to be available locally, as a file or a directory.
+ - inline: same as local, with the difference that the artifact's contents are
+ passed inline, similar to a regular string parameter (subject to a content size
+ limit). This mode can be used to pass the actual artifact contents to the runnable
+ implementation directly as an environment variable or command line argument
+ - fuseml: use this mechanism to indicate that the runnable is able to consume artifacts
+ that are tracked in one of the built-in FuseML artifact stores or one of the external
+ artifact stores registered with FuseML.
+ A FuseML artifact URL is provided to the container and the runnable implementation
+ must be able to interact with the FuseML API to retrieve information about the artifact,
+ such as the remote location where the artifact is stored in the backend storage service.
+ If the artifact's contents are required by the runnable implementation, the runnable also
+ needs to interact directly with the back-end storage service to download the artifact's
+ contents. This needs to be explicitly specified by listing additional 'provider' values
+ indicating the backend storage services and/or data transfer protocols the runnable is
+ compatible with, otherwise the framework will assume the artifact contents are either
+ not required by the runnable or can be retrieved without further aid from the framework
+ or other workflow steps.
+ - git, s3, gcs, azure, nfs, ftp, sftp, http, https, hdfs, oci, or another value representing
+ a data transfer protocol, persistent storage service or artifact store: with one of these mechanisms,
+ the location of the artifact's contents is provided as a URI of the form 'protocol://hostname/path'
+ indicating the type and location of a remote storage service (e.g. git server, S3, GCS or Azure
+ storage service, or a plain FTP, SFTP, HTTP or HTTPs server) where the artifact contents are stored.
+ The runnable implementation must be able to directly interact with the remote service to retrieve
+ the artifact contents. Depending on the storage service or protocol type, additional implicit
+ input parameters will be provided to the runnable, describing the configuration required to access
+ the resource (e.g. account names, access keys, access tokens, containers, buckets etc.). These
+ input parameters are automatically provided as environment variables, but may also be explicitly
+ referenced in the runnable definition using expressions. 
+ 
+Depending on the concrete provider type decided at runtime, the expression {{ input.<input-name> }}
+will be expanded differently:
+- local: the expression is resolved to the local container path where contents are mounted
+- inline: expression is expanded to the actual artifact contents
+- fuseml: the FuseML codeset resource URL
+- everything else: the remote URL where the artifact contents are stored`, func() {
+			Example([1]string{
+				"local",
+			})
+			Example([5]string{
+				"git",
+				"http",
+				"https",
+				"ftp",
+				"sftp",
+			})
+			Default([]string{"local"})
+		})
+	Field(4, "kind", RunnableInputArtifactKind,
+		`The kind of input artifact and its specific attributes. For generic resources and artifacts, this field is not set.
+These attributes describe requirements concerning the contents of artifacts that the runnable is able to process as input.`)
+	Field(5, "path", String,
+		"Specify a custom container path where the artifact contents or the artifact URL(s) are provided to the container", func() {
+			Example("/workspace/input/models")
+		})
+	Field(7, "dimension", String,
+		"Number of artifacts encoded by this input. Use 'single' to encode a single artifact and 'array' to encode multiple",
+		func() {
+			Enum("single", "array")
+			Example("single")
+			Default("single")
+		})
+	Field(8, "labels", MapOf(String, String),
+		`List of multi-purpose labels. Used to further filter the range of artifacts that can be supplied as input to this runnable.
+		Label values may be supplied as regular expressions.`,
+		func() {
+			Key(func() {
+				Pattern(identifierPattern)
+			})
+			Example(map[string]string{
+				"library":  "pytorch|sklearn",
+				"function": "predict",
+			})
+		})
+})
+
+// RunnableOutputArtifact describes a runnable output artifact
+var RunnableOutputArtifact = Type("RunnableOutputArtifact", func() {
+	Field(1, "description", String, "Artifact description", func() {
+		MaxLength(1000)
+		Default("")
+		Example("Artifact description")
+	})
+	Field(2, "optional", Boolean, "Optional output artifact", func() {
+		Default(false)
+	})
+	Field(3, "provider", ArrayOf(String),
+		`Data passing mechanisms supported by the runnable implementation used to provide
+the artifact's contents to the container. The order is significant: the framework will choose the
+first mechanism in the supplied list that matches the concrete input artifact supplied at
+runtime as well as other conditions such as the workflow where this runnable is referenced,
+the way its inputs and outputs are connected to other runnables etc. 
+
+One or more of the following values may be supplied:
+
+ - local: the artifact's contents are provided using a local container path. Use this
+ mechanism when the runnable implementation doesn't have the capability to interact
+ directly with a storage backend service or an artifact store API and is only able
+ to provide the artifact contents locally, as a file or a directory.
+ - inline: same as local, with the difference that the artifact's contents can
+ be passed inline, similar to an output string parameter (subject to a content size
+ limit).
+ - fuseml: use this mechanism to indicate that the runnable is able to register artifacts
+ in one of the built-in FuseML artifact stores or one of the external artifact stores
+ registered with FuseML.
+ A FuseML artifact URL is provided by the container as output, pointing to the location
+ of the registered FuseML artifact. The runnable implementation must be able to interact
+ with the FuseML API to register information about the artifact, such as the remote
+ location where the artifact is stored in the backend storage service.
+ If the artifact's contents are also generated by the runnable implementation, the runnable
+ also needs to interact directly with the back-end storage service to upload the artifact's
+ contents. This must be explicitly specified by listing additional 'provider' values
+ indicating the backend storage services and/or data transfer protocols the runnable is
+ compatible with, otherwise the framework will assume the artifact contents are either
+ not generated by the runnable or can be uploaded in persistent storage without further
+ aid from the framework or other workflow steps.
+ - git, s3, gcs, azure, nfs, ftp, sftp, http, https, hdfs, oci or another value representing
+ a data transfer protocol, persistent storage service or artifact store: use one of these mechanisms
+ when the runnable implementation is able to interact directly with a remote storage service to upload
+ the artifact contents. A concrete persistent storage backend (e.g. git server, S3, GCS or
+ Azure storage service, or a plain FTP, SFTP, HTTP or HTTPs server) is selected by the framework at
+ runtime and the details describing the configuration required to upload the resource (e.g. 
+ base URL, account names, access keys, access tokens, containers, buckets etc.) are provided
+ to the runnable as additional implicit input parameters. These input parameters are automatically
+ provided as environment variables, but may also be explicitly referenced in the runnable
+ definition using expressions. 
+ The runnable must provide an output URI of the form 'protocol://hostname/path' indicating
+ the location where the artifact's contents are uploaded. 
+
+Depending on the concrete provider type decided at runtime, the expression {{ output.<output-name> }}
+will be expanded differently:
+- local: the expression is resolved to the local container path where contents are expected by
+the framework
+- inline: expression is expanded to the actual artifact contents
+- fuseml: the FuseML codeset resource URL
+- everything else: the remote URL where the artifact contents are stored
+The expression {{ output.<output-name>.path }} will be expanded to the container path where the
+framework expects the artifact contents or URL value to be provided by the runnable implementation.
+`, func() {
+			Example([]string{
+				"local",
+			})
+			Example([]string{
+				"fuseml",
+				"s3",
+			})
+			Example([]string{
+				"git",
+				"http",
+				"https",
+				"ftp",
+				"sftp",
+			})
+			Default([]string{"local"})
+		})
+	Field(4, "kind", RunnableOutputArtifactKind,
+		`The kind of output artifact and its specific attributes. For general resources and artifacts, this field is not set.
+These attributes describe the contents of artifacts generated by the runnable as output.`)
+	Field(5, "path", String,
+		"Specify a custom container path where the artifact contents or the artifact URL(s) are provided by the container", func() {
+			Example("/workspace/output/models")
+		})
+	Field(7, "dimension", String,
+		"Number of artifacts encoded by this output. Use 'single' to encode a single artifact and 'array' to encode multiple",
+		func() {
+			Enum("single", "array")
+			Example("single")
+			Default("single")
+		})
+	Field(8, "labels", MapOf(String, String),
+		`List of multi-purpose labels. Used to further label the artifacts that are generated as output by this runnable.`,
+		func() {
+			Key(func() {
+				Pattern(identifierPattern)
+			})
+			Example(map[string]string{
+				"library":  "pytorch",
+				"function": "predict",
+			})
+		})
+})
+
+// RunnableInputArtifactKind encodes the type of input artifact as well as type-specific attributes
+var RunnableInputArtifactKind = Type("RunnableInputArtifactKind", func() {
+	Field(1, "codeset", CodesetArgumentDesc,
+		"Input codeset attributes.")
+	Field(2, "model", ModelArgumentDesc,
+		"Input machine learning model attributes.")
+	Field(3, "dataset", DatasetArgumentDesc,
+		"Input dataset attributes.")
+	Field(4, "runnable", RunnableArgumentDesc,
+		"Input runnable attributes.")
+})
+
+// RunnableOutputArtifactKind encodes the type of output artifact as well as type-specific attributes
+var RunnableOutputArtifactKind = Type("RunnableOutputArtifactKind", func() {
+	Field(1, "codeset", CodesetArgumentDesc,
+		"Output codeset description.")
+	Field(2, "model", ModelArgumentDesc,
+		"Input machine learning model attributes.")
+	Field(3, "dataset", DatasetArgumentDesc,
+		"Input dataset attributes.")
+	Field(4, "runnable", RunnableArgumentDesc,
+		"Input runnable attributes.")
+})
+
+// CodesetArgumentDesc describes the contents of codesets either accepted as input or generated as output by a runnable
+var CodesetArgumentDesc = Type("CodesetArgumentDesc", func() {
+	Field(1, "type", ArrayOf(String),
+		"The type of information contained in the codeset",
+		func() {
+			Elem(func() {
+				Enum("code", "configuration", "data", "artifact", "container", "other")
+			})
+			Example([]string{"code"})
+		})
+	Field(2, "function", ArrayOf(String),
+		"The intended function of the codeset's contents",
+		func() {
+			Elem(func() {
+				Enum("data-extraction", "data-transformation", "data-loading", "data-conversion", "data-labeling",
+					"data-validation", "data-split", "data-classification", "model-definition", "model-loading",
+					"model-training", "model-validation", "model-exporting", "model-conversion", "model-prediction",
+					"model-explanation", "data-visualization", "model-monitoring", "container-building", "model", "runnable",
+					"workflow", "dataset", "other")
+			})
+			Example([]string{"model-loading", "model-training"})
+		})
+	Field(3, "format", ArrayOf(String),
+		"The format(s) used for the codeset's contents",
+		func() {
+			Example([]string{"MLProject", "conda"})
+		})
+	Field(4, "software", MapOf(String, String),
+		"Software packages, modules, libraries, toolkits etc. and optional semantic version or version requirements",
+		func() {
+			Example(map[string]string{
+				"mlflow":       ">=1.15",
+				"scikit-learn": "0.22.*,!=0.22.5",
+			})
+			Example(map[string]string{
+				"mlflow":       "1.15",
+				"scikit-learn": "0.22.3",
+			})
+		})
+})
+
+// ModelArgumentDesc describes the machine learning models either accepted as input or generated as output by a runnable
+var ModelArgumentDesc = Type("ModelArgumentDesc", func() {
+	Field(1, "format", ArrayOf(String),
+		"The format used to package the model",
+		func() {
+			Elem(func() {
+				Enum("PMML", "PFA", "ONNX", "SKLearn/PKL", "XGBoost/JSON", "XGBoost/PKL", "XGBoost/RDS",
+					"MLeap", "TensorFlow/protobuf", "PyTorch/PKL", "PyTorch/PTH", "Keras/H5", "MLModel", "Spark/MLib",
+					"other")
+			})
+			Example([]string{"SKLearn/PKL", "PyTorch/PKL"})
+		})
+	Field(2, "pretrained", Boolean,
+		"Denotes a pre-trained model that is ready to use. Not applicable to all learning methods (unsupervised)", func() {
+			Default(true)
+		})
+	Field(3, "method", String, "Learning method used to train the model",
+		func() {
+			Enum("supervised", "unsupervised", "reinforcement", "semi-supervised", "other")
+			Example("supervised")
+		})
+	Field(4, "class", String, "Class of algorithm implemented by the model",
+		func() {
+			Enum("regression", "classification", "clustering", "dimension-reduction", "instance-based",
+				"decision-tree", "bayesian", "association-rule-learning", "neutral-networks", "deep-learning",
+				"ensemble", "other")
+			Example("regression")
+		})
+	Field(5, "function", String, "The intended function for the model",
+		func() {
+			Example("object-detection")
+			Example("sentiment-analysis")
+			Example("text-to-image")
+			Example("text-generation")
+		})
+	Field(6, "software", MapOf(String, String),
+		"Software packages, modules, libraries, toolkits etc. and optional semantic version or version requirements",
+		func() {
+			Example(map[string]string{
+				"pytorch":      ">=1.5",
+				"scikit-learn": ">=0.22.3,<0.23",
+			})
+			Example(map[string]string{
+				"pytorch": "1.5",
+			})
+		})
+})
+
+// DatasetArgumentDesc describes the datasets either accepted as input or generated as output by a runnable
+var DatasetArgumentDesc = Type("DatasetArgumentDesc", func() {
+	Field(1, "type", ArrayOf(String),
+		"The type of dataset",
+		func() {
+			Elem(func() {
+				Enum("tabular", "columnar", "nested", "array", "hierarchical", "media", "text", "other")
+			})
+			Example([]string{"tabular"})
+		})
+	Field(2, "format", ArrayOf(String),
+		"The dataset format",
+		func() {
+			Elem(func() {
+				Enum("CSV", "XLS/XSLX", "numpy/array", "pandas/dataframe", "text", "parquet", "orc", "petastorm", "json", "xml",
+					"yaml", "avro", "HDF5", "NetCDF", "other")
+			})
+			Example([]string{"tabular"})
+		})
+	Field(3, "compression", ArrayOf(String),
+		"The compression used for the dataset",
+		func() {
+			Example([]string{"zip"})
+		})
+})
+
+// RunnableArgumentDesc describes other runnables either accepted as input or generated as output by a runnable
+var RunnableArgumentDesc = Type("RunnableArgumentDesc", func() {
+	Field(1, "kind", String, "The kind of runnable (builder, trainer, predictor etc.)", func() {
+		Enum("custom", "builder", "trainer", "predictor")
+		Example("trainer")
+	})
 })
