@@ -25,12 +25,16 @@ func (as *ApplicationStore) Find(ctx context.Context, name string) *application.
 
 // GetAll returns all applications of a given type.
 // If type is not specified, return all applications.
-func (as *ApplicationStore) GetAll(ctx context.Context, applicationType *string) ([]*application.Application, error) {
+func (as *ApplicationStore) GetAll(ctx context.Context, applicationType *string, applicationWorkflow *string) ([]*application.Application, error) {
 	result := make([]*application.Application, 0, len(as.items))
 	for _, app := range as.items {
-		if applicationType == nil || app.Type == *applicationType {
-			result = append(result, app)
+		if applicationWorkflow != nil && app.Workflow != *applicationWorkflow {
+			continue
 		}
+		if applicationType != nil && app.Type != *applicationType {
+			continue
+		}
+		result = append(result, app)
 	}
 	return result, nil
 }

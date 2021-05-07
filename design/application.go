@@ -138,21 +138,15 @@ var Application = Type("Application", func() {
 	Field(4, "url", String, "The public URL for accessing the Application", func() {
 		Example("http://fuseml.example.org/mlflow-seldon-predictor-01/predict")
 	})
-	Field(5, "codeset", AppCodeset, "Codeset associated with the Application")
-	Field(6, "workflow", String, "Name of the Workflow used to create Application")
-	Field(7, "k8s_resources", ArrayOf(KubernetesResource), "Kubernetes resources describing the Application")
-
-	Required("name", "type", "url", "codeset")
-})
-
-// AppCodeset describes the codeset associated with the Application
-var AppCodeset = Type("AppCodeset", func() {
-	Field(1, "name", String, "The name of the Codeset", func() {
-		Example("mlflow-app-01")
+	Field(5, "workflow", String, "Name of the Workflow used to create Application", func() {
+		Example("mlflow-seldon-e2e")
 	})
-	Field(2, "project", String, "The project this Codeset belongs to", func() {
-		Example("mlflow-project-01")
+	Field(6, "k8s_resources", ArrayOf(KubernetesResource), "Kubernetes resources describing the Application")
+	Field(7, "k8s_namespace", String, "Kubernetes namespace where the resources are located", func() {
+		Example("fuseml-workloads")
 	})
+
+	Required("name", "type", "url", "workflow", "k8s_namespace")
 })
 
 // KubernetesResource describes the Kubernetes resource
@@ -160,11 +154,8 @@ var KubernetesResource = Type("KubernetesResource", func() {
 	Field(1, "name", String, "The name of the Kubernetes resource", func() {
 		Example("serving-pod-01")
 	})
-	Field(2, "namespace", String, "The namespace where the resource is located", func() {
-		Example("fuseml-workloads")
-	})
-	Field(3, "kind", String, "The kind of Kubernetes resource", func() {
+	Field(2, "kind", String, "The kind of Kubernetes resource", func() {
 		Example("Pod")
 	})
-	Required("name", "namespace", "kind")
+	Required("name", "kind")
 })

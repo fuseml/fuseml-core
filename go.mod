@@ -16,14 +16,10 @@ require (
 	github.com/tektoncd/pipeline v0.23.0
 	github.com/tektoncd/triggers v0.13.0
 	goa.design/goa/v3 v3.3.1
-	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
-	golang.org/x/sys v0.0.0-20210403161142-5e06dd20ab57 // indirect
-	golang.org/x/text v0.3.6 // indirect
-	google.golang.org/genproto v0.0.0-20210406143921-e86de6bf7a46 // indirect
 	google.golang.org/grpc v1.37.0
 	google.golang.org/protobuf v1.26.0
 	k8s.io/api v0.19.7
 	k8s.io/apimachinery v0.19.7
 	k8s.io/client-go v0.19.7
-	knative.dev/pkg v0.0.0-20210130001831-ca02ef752ac6
+	knative.dev/pkg v0.0.0-20210208131226-4b2ae073fa06
 )
