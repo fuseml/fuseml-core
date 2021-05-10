@@ -1,0 +1,62 @@
+name: mlflow-sklearn-e2e
+description: |
+  End-to-end pipeline template that takes in an MLFlow compatible codeset,
+  runs the MLFlow project to train a model, then creates a KFServing prediction
+  service that can be used to run predictions against the model."
+inputs:
+  - name: mlflow-codeset
+    description: an MLFlow compatible codeset
+    type: codeset
+  - name: predictor
+    description: type of predictor engine
+    type: string
+    default: auto
+outputs:
+  - name: prediction-url
+    description: "The URL where the exposed prediction service endpoint can be contacted to run predictions."
+    type: string
+steps:
+  - name: builder
+    image: ghcr.io/fuseml/mlflow-dockerfile:0.1
+    inputs:
+      - codeset:
+          name: '{{ inputs.mlflow-codeset }}'
+          path: /project
+    outputs:
+      - name: mlflow-env
+        image:
+          name: 'registry.fuseml-registry/mlflow-builder/{{ inputs.mlflow-codeset.name }}:{{ inputs.mlflow-codeset.version }}'
+  - name: trainer
+    image: '{{ steps.builder.outputs.mlflow-env }}'
+    inputs:
+      - codeset:
+          name: '{{ inputs.mlflow-codeset }}'
+          path: '/project'
+    outputs:
+      - name: mlflow-model-url
+    env:
+      - name: MLFLOW_TRACKING_URI
+        value: "http://mlflow"
+      - name: MLFLOW_S3_ENDPOINT_URL
+        value: "http://mlflow-minio:9000"
+      - name: AWS_ACCESS_KEY_ID
+        value: gABTE5DmmLgjJypJzGFs
+      - name: AWS_SECRET_ACCESS_KEY
+        value: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
+  - name: predictor
+    image: ghcr.io/fuseml/kfserving-predictor:0.1
+    inputs:
+      - name: model
+        value: '{{ steps.trainer.outputs.mlflow-model-url }}'
+      - name: predictor
+        value: '{{ inputs.predictor }}'
+      - codeset:
+          name: '{{ inputs.mlflow-codeset }}'
+          path: '/project'
+    outputs:
+      - name: prediction-url
+    env:
+      - name: AWS_ACCESS_KEY_ID
+        value: gABTE5DmmLgjJypJzGFs
+      - name: AWS_SECRET_ACCESS_KEY
+        value: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn

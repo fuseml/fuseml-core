@@ -1,5 +1,10 @@
 package config
 
+const (
+	// FuseMLNamespace is the kubernetes namespace where FuseML workfloads are created
+	FuseMLNamespace = "fuseml-workloads"
+)
+
 var (
 	// DefaultUserNamePrefix is the default prefix for user names created for each project
 	DefaultUserNamePrefix = "fuseml"
