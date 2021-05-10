@@ -19,10 +19,10 @@ import (
 	runnable "github.com/fuseml/fuseml-core/gen/runnable"
 	workflow "github.com/fuseml/fuseml-core/gen/workflow"
 
+	"github.com/goccy/go-yaml"
 	goahttp "goa.design/goa/v3/http"
 	httpmdlwr "goa.design/goa/v3/http/middleware"
 	"goa.design/goa/v3/middleware"
-	"gopkg.in/yaml.v2"
 )
 
 // handleHTTPServer starts configures and starts a HTTP server on the given
@@ -147,8 +147,8 @@ func errorHandler(logger *log.Logger) func(context.Context, http.ResponseWriter,
 func requestDecoder(r *http.Request) goahttp.Decoder {
 	contentType := r.Header.Get("Content-Type")
 	if contentType == "" {
-		// default to JSON
-		contentType = "application/json"
+		// default to YAML
+		contentType = "application/x-yaml"
 	} else {
 		// sanitize
 		if mediaType, _, err := mime.ParseMediaType(contentType); err == nil {
@@ -197,7 +197,7 @@ func responseEncoder(ctx context.Context, w http.ResponseWriter) goahttp.Encoder
 	}
 
 	negotiate := func(a string) (goahttp.Encoder, string) {
-		if a == "application/x-yaml" {
+		if a == "" || a == "application/x-yaml" {
 			return yaml.NewEncoder(w), "application/x-yaml"
 		}
 		return goahttp.ResponseEncoder(ctx, w), a

@@ -6,9 +6,9 @@ import (
 	"time"
 
 	cli "github.com/fuseml/fuseml-core/gen/http/cli/fuseml_core"
+	"github.com/goccy/go-yaml"
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
-	"gopkg.in/yaml.v2"
 )
 
 func doHTTP(scheme, host string, timeout int, debug bool) (goa.Endpoint, interface{}, error) {
@@ -43,8 +43,8 @@ func httpUsageExamples() string {
 func responseDecoder(resp *http.Response) goahttp.Decoder {
 	contentType := resp.Header.Get("Content-Type")
 	if contentType == "" {
-		// default to JSON
-		contentType = "application/json"
+		// default to YAML
+		contentType = "application/x-yaml"
 	} else {
 		// sanitize
 		if mediaType, _, err := mime.ParseMediaType(contentType); err == nil {
