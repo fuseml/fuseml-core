@@ -1,0 +1,13 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerBinding
+metadata:
+  name: mlflow-sklearn-e2e
+  namespace: "test-namespace"
+spec:
+  params:
+    - name: codeset-name
+      value: $(body.repository.name)
+    - name: codeset-url
+      value: $(body.repository.clone_url)
+    - name: codeset-version
+      value: '$(body.commits[0].id)'

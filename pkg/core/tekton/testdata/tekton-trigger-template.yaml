@@ -1,0 +1,54 @@
+apiVersion: triggers.tekton.dev/v1alpha1
+kind: TriggerTemplate
+metadata:
+  name: mlflow-sklearn-e2e
+  namespace: "test-namespace"
+spec:
+  params:
+    - description: Reference to the codeset (git project)
+      name: codeset-name
+    - description: The codeset URL (git repository URL)
+      name: codeset-url
+    - default: main
+      description: Codeset version (git revision)
+      name: codeset-version
+    - default: auto
+      description: type of predictor engine
+      name: predictor
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: fuseml-$(tt.params.codeset-name)-
+        labels:
+          fuseml/codeset-name: $(tt.params.codeset-name)
+          fuseml/codeset-version: $(tt.params.codeset-version)
+      spec:
+        params:
+          - name: codeset-name
+            value: $(tt.params.codeset-name)
+          - name: codeset-version
+            value: $(tt.params.codeset-version)
+          - name: predictor
+            value: $(tt.params.predictor)
+        pipelineRef:
+          name: mlflow-sklearn-e2e
+        resources:
+          - name: source-repo
+            resourceSpec:
+              params:
+                - name: url
+                  value: $(tt.params.codeset-url)
+                - name: revision
+                  value: $(tt.params.codeset-version)
+              type: git
+        serviceAccountName: staging-triggers-admin
+        workspaces:
+          - name: source
+            volumeClaimTemplate:
+              spec:
+                accessModes:
+                  - ReadWriteOnce
+                resources:
+                  requests:
+                    storage: 2Gi

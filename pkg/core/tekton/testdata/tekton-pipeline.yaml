@@ -1,0 +1,152 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  labels:
+    fuseml/generated-from: mlflow-sklearn-e2e
+  name: mlflow-sklearn-e2e
+  namespace: test-namespace
+spec:
+  description: >
+    End-to-end pipeline template that takes in an MLFlow compatible codeset,
+
+    runs the MLFlow project to train a model, then creates a KFServing
+    prediction
+
+    service that can be used to run predictions against the model."
+  params:
+    - description: Reference to the codeset (git project)
+      name: codeset-name
+    - default: "main"
+      description: Codeset version (git revision)
+      name: codeset-version
+    - default: auto
+      description: type of predictor engine
+      name: predictor
+  resources:
+    - name: source-repo
+      type: git
+  results:
+    - description: >-
+        The URL where the exposed prediction service endpoint can be contacted
+        to run predictions.
+      name: prediction-url
+      value: $(tasks.predictor.results.prediction-url)
+  tasks:
+    - name: clone
+      resources:
+        inputs:
+          - name: source-repo
+            resource: source-repo
+      taskRef:
+        name: clone
+      workspaces:
+        - name: source
+          workspace: source
+    - name: builder-prep
+      params:
+        - name: IMAGE
+          value: 'ghcr.io/fuseml/mlflow-dockerfile:0.1'
+        - name: DOCKERFILE
+          value: ''
+      runAfter:
+        - clone
+      taskRef:
+        name: builder-prep
+      workspaces:
+        - name: source
+          workspace: source
+    - name: builder
+      params:
+        - name: IMAGE
+          value: >-
+            registry.fuseml-registry/mlflow-builder/$(params.codeset-name):$(params.codeset-version)
+        - name: DOCKERFILE
+          value: $(tasks.builder-prep.results.DOCKERFILE-PATH)
+      runAfter:
+        - builder-prep
+      taskRef:
+        name: kaniko
+      workspaces:
+        - name: source
+          workspace: source
+    - name: trainer
+      params:
+        - name: IMAGE
+          value: >-
+            127.0.0.1:30500/mlflow-builder/$(params.codeset-name):$(params.codeset-version)
+      runAfter:
+        - builder
+      taskSpec:
+        metadata: {}
+        params:
+          - description: Name (reference) of the image to run
+            name: IMAGE
+        results:
+          - description: ''
+            name: mlflow-model-url
+        steps:
+          - command:
+              - run
+            env:
+              - name: TASK_RESULT
+                value: mlflow-model-url
+              - name: MLFLOW_TRACKING_URI
+                value: 'http://mlflow'
+              - name: MLFLOW_S3_ENDPOINT_URL
+                value: 'http://mlflow-minio:9000'
+              - name: AWS_ACCESS_KEY_ID
+                value: gABTE5DmmLgjJypJzGFs
+              - name: AWS_SECRET_ACCESS_KEY
+                value: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
+            image: $(params.IMAGE)
+            name: trainer
+            resources: {}
+            workingDir: /project
+        workspaces:
+          - mountPath: /project
+            name: source
+      workspaces:
+        - name: source
+          workspace: source
+    - name: predictor
+      params:
+        - name: model
+          value: $(tasks.trainer.results.mlflow-model-url)
+        - name: predictor
+          value: $(params.predictor)
+      runAfter:
+        - trainer
+      taskSpec:
+        metadata: {}
+        params:
+          - name: model
+          - name: predictor
+        results:
+          - description: ''
+            name: prediction-url
+        steps:
+          - command:
+              - run
+            env:
+              - name: FUSEML_MODEL
+                value: $(params.model)
+              - name: FUSEML_PREDICTOR
+                value: $(params.predictor)
+              - name: TASK_RESULT
+                value: prediction-url
+              - name: AWS_ACCESS_KEY_ID
+                value: gABTE5DmmLgjJypJzGFs
+              - name: AWS_SECRET_ACCESS_KEY
+                value: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
+            image: 'ghcr.io/fuseml/kfserving-predictor:0.1'
+            name: predictor
+            resources: {}
+            workingDir: /project
+        workspaces:
+          - mountPath: /project
+            name: source
+      workspaces:
+        - name: source
+          workspace: source
+  workspaces:
+    - name: source
