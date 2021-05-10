@@ -23,6 +23,15 @@ import (
 	"github.com/fuseml/fuseml-core/pkg/core/tekton/builder"
 )
 
+const (
+	// ErrWorkflowExists represents a error returned when creating a workflow with the same name as one
+	// that already exists
+	ErrWorkflowExists = WorkflowBackendErr("workflow already exists")
+)
+
+// WorkflowBackendErr are expected errors returned from the WorkflowBackend
+type WorkflowBackendErr string
+
 // WorkflowBackend implements the FuseML WorkflowBackend interface for tekton
 type WorkflowBackend struct {
 	namespace     string
@@ -44,6 +53,9 @@ func (w *WorkflowBackend) CreateWorkflow(ctx context.Context, logger *log.Logger
 	logger.Printf("Creating tekton pipeline for workflow: %s...", workflow.Name)
 	_, err := w.tektonClients.PipelineClient.Create(ctx, pipeline, metav1.CreateOptions{})
 	if err != nil {
+		if k8serr.IsAlreadyExists(err) {
+			return ErrWorkflowExists
+		}
 		return fmt.Errorf("error creating tekton pipeline for workflow %q: %w", workflow.Name, err)
 	}
 
@@ -70,7 +82,7 @@ func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, workflowName st
 }
 
 // CreateListener creates tekton resources required to have a listener ready for triggering the pipeline
-func (w *WorkflowBackend) CreateListener(ctx context.Context, logger *log.Logger, workflowName string) (string, error) {
+func (w *WorkflowBackend) CreateListener(ctx context.Context, logger *log.Logger, workflowName string, wait bool) (string, error) {
 
 	pipeline, err := w.tektonClients.PipelineClient.Get(ctx, workflowName, metav1.GetOptions{})
 	if err != nil {
@@ -116,14 +128,21 @@ func (w *WorkflowBackend) CreateListener(ctx context.Context, logger *log.Logger
 		}
 	}
 
-	interval := 1 * time.Second
-	timeout := 1 * time.Minute
-	if err := waitFor(w.eventListenerReady(ctx, el.Name), interval, timeout); err != nil {
-		return "", fmt.Errorf("event listener %q did not get ready in the expected time: %w", el.Name, err)
-	}
+	if wait {
+		interval := 1 * time.Second
+		timeout := 1 * time.Minute
+		if err := waitFor(w.eventListenerReady(ctx, el.Name), interval, timeout); err != nil {
+			return "", fmt.Errorf("event listener %q did not get ready in the expected time: %w", el.Name, err)
+		}
 
-	el, _ = w.tektonClients.EventListenerClient.Get(ctx, workflowName, metav1.GetOptions{})
-	return el.Status.Address.URL.String(), nil
+		el, _ = w.tektonClients.EventListenerClient.Get(ctx, workflowName, metav1.GetOptions{})
+		return el.Status.Address.URL.String(), nil
+	}
+	return fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", workflowName, w.namespace), nil
+}
+
+func (e WorkflowBackendErr) Error() string {
+	return string(e)
 }
 
 func waitFor(waitFunc wait.ConditionFunc, interval, timeout time.Duration) error {
