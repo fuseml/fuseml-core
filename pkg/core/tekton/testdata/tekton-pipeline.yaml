@@ -19,6 +19,8 @@ spec:
     - default: "main"
       description: Codeset version (git revision)
       name: codeset-version
+    - description: Reference to the codeset project (git organization)
+      name: codeset-project
     - default: auto
       description: type of predictor engine
       name: predictor
