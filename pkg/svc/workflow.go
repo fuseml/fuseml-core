@@ -29,12 +29,12 @@ type workflowsrvc struct {
 }
 
 // NewWorkflowService returns the workflow service implementation.
-func NewWorkflowService(logger *log.Logger, store domain.WorkflowStore, codesetStore domain.CodesetStore) workflow.Service {
+func NewWorkflowService(logger *log.Logger, store domain.WorkflowStore, codesetStore domain.CodesetStore) (workflow.Service, error) {
 	backend, err := tekton.NewWorkflowBackend(config.FuseMLNamespace)
 	if err != nil {
-		logger.Print(err)
+		return nil, err
 	}
-	return &workflowsrvc{logger, store, codesetStore, backend}
+	return &workflowsrvc{logger, store, codesetStore, backend}, nil
 }
 
 // Retrieve information about workflows registered in FuseML.
