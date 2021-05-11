@@ -3,6 +3,7 @@ package main
 import (
 	"mime"
 	"net/http"
+	"strings"
 	"time"
 
 	cli "github.com/fuseml/fuseml-core/gen/http/cli/fuseml_core"
@@ -41,18 +42,20 @@ func httpUsageExamples() string {
 }
 
 func responseDecoder(resp *http.Response) goahttp.Decoder {
-	contentType := resp.Header.Get("Content-Type")
-	if contentType == "" {
-		// default to YAML
-		contentType = "application/x-yaml"
-	} else {
+	ct := resp.Header.Get("Content-Type")
+	if ct != "" {
 		// sanitize
-		if mediaType, _, err := mime.ParseMediaType(contentType); err == nil {
-			contentType = mediaType
+		if mediaType, _, err := mime.ParseMediaType(ct); err == nil {
+			ct = mediaType
 		}
 	}
-	if contentType == "application/x-yaml" {
+
+	switch {
+	case ct == "", ct == "application/x-yaml", ct == "text/x-yaml":
+		fallthrough
+	case strings.HasSuffix(ct, "+yaml"):
 		return yaml.NewDecoder(resp.Body)
+	default:
+		return goahttp.ResponseDecoder(resp)
 	}
-	return goahttp.ResponseDecoder(resp)
 }

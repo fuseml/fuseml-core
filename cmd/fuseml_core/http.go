@@ -145,20 +145,23 @@ func errorHandler(logger *log.Logger) func(context.Context, http.ResponseWriter,
 // than YAML is requested it returns the decoder from the Goa RequestDecoder
 // function.
 func requestDecoder(r *http.Request) goahttp.Decoder {
-	contentType := r.Header.Get("Content-Type")
-	if contentType == "" {
-		// default to YAML
-		contentType = "application/x-yaml"
-	} else {
+	ct := r.Header.Get("Content-Type")
+
+	if ct != "" {
 		// sanitize
-		if mediaType, _, err := mime.ParseMediaType(contentType); err == nil {
-			contentType = mediaType
+		if mediaType, _, err := mime.ParseMediaType(ct); err == nil {
+			ct = mediaType
 		}
 	}
-	if contentType == "application/x-yaml" {
+
+	switch {
+	case ct == "", ct == "application/x-yaml", ct == "text/x-yaml":
+		fallthrough
+	case strings.HasSuffix(ct, "+yaml"):
 		return yaml.NewDecoder(r.Body)
+	default:
+		return goahttp.RequestDecoder(r)
 	}
-	return goahttp.RequestDecoder(r)
 }
 
 // responseEncoder implements the goahttp.Encoder interface.
@@ -176,16 +179,24 @@ func responseEncoder(ctx context.Context, w http.ResponseWriter) goahttp.Encoder
 		err error
 	)
 
+	negotiate := func(ct string) (goahttp.Encoder, string) {
+		switch {
+		case ct == "", ct == "*/*", ct == "application/x-yaml":
+			return yaml.NewEncoder(w), "application/x-yaml"
+		case ct == "text/x-yaml":
+			return yaml.NewEncoder(w), ct
+		case strings.HasSuffix(ct, "+yaml"):
+			return yaml.NewEncoder(w), ct
+		default:
+			return goahttp.ResponseEncoder(ctx, w), ct
+		}
+	}
+
 	if ct != "" {
 		// If content type explicitly set in the DSL, infer the response encoder
 		// from the content type context key.
 		if mt, _, err = mime.ParseMediaType(ct); err == nil {
-			switch {
-			case ct == "application/x-yaml" || strings.HasSuffix(ct, "+yaml"):
-				enc = yaml.NewEncoder(w)
-			default:
-				enc = goahttp.ResponseEncoder(ctx, w)
-			}
+			enc, mt = negotiate(ct)
 		}
 		goahttp.SetContentType(w, mt)
 		return enc
@@ -194,13 +205,6 @@ func responseEncoder(ctx context.Context, w http.ResponseWriter) goahttp.Encoder
 	var accept string
 	if a := ctx.Value(goahttp.AcceptTypeKey); a != nil {
 		accept = a.(string)
-	}
-
-	negotiate := func(a string) (goahttp.Encoder, string) {
-		if a == "" || a == "application/x-yaml" {
-			return yaml.NewEncoder(w), "application/x-yaml"
-		}
-		return goahttp.ResponseEncoder(ctx, w), a
 	}
 
 	// If Accept header exists in the request, infer the response encoder
