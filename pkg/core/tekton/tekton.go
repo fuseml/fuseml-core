@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -24,9 +25,8 @@ import (
 )
 
 const (
-	// ErrWorkflowExists represents a error returned when creating a workflow with the same name as one
-	// that already exists
-	ErrWorkflowExists = WorkflowBackendErr("workflow already exists")
+	errWorkflowExists      = WorkflowBackendErr("workflow already exists")
+	errDashboardURLMissing = WorkflowBackendErr("Value for Tekton Dashboard URL (TEKTON_DASHBOARD_URL) was not provided.")
 )
 
 // EnvVar describes environment variable and its value that needs to be passed to tekton task
@@ -44,17 +44,22 @@ type WorkflowBackendErr string
 
 // WorkflowBackend implements the FuseML WorkflowBackend interface for tekton
 type WorkflowBackend struct {
+	dashboardURL  string
 	namespace     string
 	tektonClients *clients
 }
 
 // NewWorkflowBackend initializes Tekton backend
 func NewWorkflowBackend(namespace string) (*WorkflowBackend, error) {
+	dashbboardURL, exists := os.LookupEnv("TEKTON_DASHBOARD_URL")
+	if !exists {
+		return nil, errDashboardURLMissing
+	}
 	clients, err := newClients(namespace)
 	if err != nil {
 		return nil, fmt.Errorf("error initializing tekton workflow backend: %w", err)
 	}
-	return &WorkflowBackend{namespace, clients}, nil
+	return &WorkflowBackend{strings.TrimSuffix(dashbboardURL, "/"), namespace, clients}, nil
 }
 
 // CreateWorkflow receives a FuseML workflow and creates a Tekton pipeline from it
@@ -64,7 +69,7 @@ func (w *WorkflowBackend) CreateWorkflow(ctx context.Context, logger *log.Logger
 	_, err := w.tektonClients.PipelineClient.Create(ctx, pipeline, metav1.CreateOptions{})
 	if err != nil {
 		if k8serr.IsAlreadyExists(err) {
-			return ErrWorkflowExists
+			return errWorkflowExists
 		}
 		return fmt.Errorf("error creating tekton pipeline for workflow %q: %w", workflow.Name, err)
 	}

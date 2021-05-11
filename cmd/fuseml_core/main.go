@@ -60,7 +60,11 @@ func main() {
 		applicationSvc = svc.NewApplicationService(logger, core.NewApplicationStore())
 		runnableSvc = svc.NewRunnableService(logger, core.NewRunnableStore())
 		codesetSvc = svc.NewCodesetService(logger, codesetStore)
-		workflowSvc = svc.NewWorkflowService(logger, core.NewWorkflowStore(), codesetStore)
+		workflowSvc, err = svc.NewWorkflowService(logger, core.NewWorkflowStore(), codesetStore)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Failed to initialize Workflow service:", err.Error())
+			os.Exit(1)
+		}
 	}
 
 	// Wrap the services in endpoints that can be invoked from other services
