@@ -119,6 +119,48 @@ func TestCreateWorkflowRun(t *testing.T) {
 	}
 }
 
+func TestListWorkflowRuns(t *testing.T) {
+	ctx, b, logs, _ := initBackend(t)
+
+	w := workflow.Workflow{}
+	readYaml(t, fuseMLWorkflow, &w)
+
+	err := b.CreateWorkflow(ctx, logs, &w)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	csURL := "http://gitea.10.160.5.140.nip.io/workspace/mlflow-app-01.git"
+	cs := codeset.Codeset{Name: "mlflow-app-01", Project: "workspace", URL: &csURL}
+	err = b.CreateWorkflowRun(ctx, w.Name, cs)
+	if err != nil {
+		t.Fatalf("Failed to create workflow run %q: %s", w.Name, err)
+	}
+
+	got, err := b.ListWorkflowRuns(ctx, w)
+	if err != nil {
+		t.Fatalf("Failed to list Workflow runs: %s", err)
+	}
+
+	runName := ""
+	runStatus := "Unknown"
+	runCsInputValue := fmt.Sprintf("%s:main", *cs.URL)
+	runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/"
+	want := []*workflow.WorkflowRun{{
+		Name:        &runName,
+		WorkflowRef: &w.Name,
+		Inputs:      []*workflow.WorkflowRunInput{{Input: w.Inputs[0], Value: &runCsInputValue}, {Input: w.Inputs[1], Value: w.Inputs[1].Default}},
+		Outputs:     []*workflow.WorkflowRunOutput{{Output: w.Outputs[0]}},
+		Status:      &runStatus,
+		URL:         &runURL,
+	}}
+
+	if d := cmp.Diff(want, got); d != "" {
+		t.Errorf("Unexpected PipelineRun: %s", diff.PrintWantGot(d))
+	}
+
+}
+
 func TestCreateListener(t *testing.T) {
 	t.Run("new listener", func(t *testing.T) {
 
@@ -295,5 +337,5 @@ func fakeNewWorkflowBackend(context context.Context, t *testing.T, namespace str
 	t.Helper()
 
 	clients := newFakeClients(context, t, namespace)
-	return &WorkflowBackend{namespace, clients}
+	return &WorkflowBackend{"http://tekton.test", namespace, clients}
 }

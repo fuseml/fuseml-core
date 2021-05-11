@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
   labels:
-    fuseml/generated-from: mlflow-sklearn-e2e
+    fuseml/workflow-ref: mlflow-sklearn-e2e
   name: mlflow-sklearn-e2e
   namespace: test-namespace
 spec:

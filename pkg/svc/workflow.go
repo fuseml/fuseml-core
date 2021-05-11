@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/fuseml/fuseml-core/gen/codeset"
 	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/core/config"
 	"github.com/fuseml/fuseml-core/pkg/core/tekton"
@@ -15,7 +16,8 @@ import (
 type WorkflowBackend interface {
 	CreateListener(context.Context, *log.Logger, string, bool) (string, error)
 	CreateWorkflow(context.Context, *log.Logger, *workflow.Workflow) error
-	CreateWorkflowRun(context.Context, string, domain.Codeset) error
+	CreateWorkflowRun(context.Context, string, codeset.Codeset) error
+	ListWorkflowRuns(context.Context, workflow.Workflow) ([]*workflow.WorkflowRun, error)
 }
 
 // workflow service example implementation.
@@ -39,12 +41,23 @@ func NewWorkflowService(logger *log.Logger, store domain.WorkflowStore, codesetS
 // Retrieve information about workflows registered in FuseML.
 func (s *workflowsrvc) List(ctx context.Context, w *workflow.ListPayload) (res []*workflow.Workflow, err error) {
 	s.logger.Print("workflow.list")
-	name := "all"
-	if w.Name != nil {
-		name = *w.Name
+	return s.listWorkflows(ctx, w.Name), nil
+}
+
+func (s *workflowsrvc) ListRuns(ctx context.Context, w *workflow.ListRunsPayload) ([]*workflow.WorkflowRun, error) {
+	s.logger.Print("workflow.listWorkflowRuns")
+	workflowRuns := []*workflow.WorkflowRun{}
+	workflows := s.listWorkflows(ctx, w.WorkflowName)
+	for _, workflow := range workflows {
+		runs, err := s.backend.ListWorkflowRuns(ctx, *workflow)
+		if err != nil {
+			s.logger.Print(err)
+			return nil, err
+		}
+		workflowRuns = append(workflowRuns, runs...)
 	}
 
-	return s.store.GetAll(ctx, name), nil
+	return workflowRuns, nil
 }
 
 // Register a workflow with the FuseML workflow store.
@@ -105,4 +118,12 @@ func (s *workflowsrvc) getWorkflow(ctx context.Context, name string) (*workflow.
 		return nil, workflow.MakeNotFound(errors.New("could not find a workflow with the specified ID"))
 	}
 	return wf, nil
+}
+
+func (s *workflowsrvc) listWorkflows(ctx context.Context, workflowName *string) []*workflow.Workflow {
+	name := "all"
+	if workflowName != nil {
+		name = *workflowName
+	}
+	return s.store.GetAll(ctx, name)
 }
