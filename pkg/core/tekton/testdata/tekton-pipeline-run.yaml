@@ -5,6 +5,7 @@ metadata:
   labels:
     fuseml/codeset-name: mlflow-app-01
     fuseml/codeset-version: main
+    fuseml/workflow-ref: mlflow-sklearn-e2e
   namespace: "test-namespace"
 spec:
   params:
