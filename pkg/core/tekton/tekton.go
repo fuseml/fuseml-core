@@ -215,6 +215,8 @@ func generatePipeline(w workflow.Workflow, namespace string) *v1beta1.Pipeline {
 			resolver.addReference(fmt.Sprintf("inputs.%s.name", *input.Name), fmt.Sprintf("$(params.%s)", codesetNameParam))
 			pb.ParamWithDefaultValue(codesetVersionParam, "Codeset version (git revision)", "main")
 			resolver.addReference(fmt.Sprintf("inputs.%s.version", *input.Name), fmt.Sprintf("$(params.%s)", codesetVersionParam))
+			pb.Param(codesetProjectParam, "Reference to the codeset project (git organization)")
+			resolver.addReference(fmt.Sprintf("inputs.%s.project", *input.Name), fmt.Sprintf("$(params.%s)", codesetProjectParam))
 		} else {
 			pb.ParamWithDefaultValue(*input.Name, *input.Description, *input.Default)
 			resolver.addReference(fmt.Sprintf("inputs.%s", *input.Name), fmt.Sprintf("$(params.%s)", *input.Name))
@@ -297,8 +299,10 @@ func generatePipelineRun(p *v1beta1.Pipeline, codeset codeset.Codeset) (*v1beta1
 			switch param.Name {
 			case codesetNameParam:
 				prb.Param(param.Name, codeset.Name)
-			case codesetVersion:
+			case codesetVersionParam:
 				prb.Param(param.Name, codesetVersion)
+			case codesetProjectParam:
+				prb.Param(param.Name, codeset.Project)
 			default:
 				return nil, fmt.Errorf("pipeline run failed: could not set parameter value for %q", param.Name)
 			}
@@ -307,8 +311,8 @@ func generatePipelineRun(p *v1beta1.Pipeline, codeset codeset.Codeset) (*v1beta1
 		}
 	}
 
-	prb.Meta(builder.Label("fuseml/codeset-name", codeset.Name), builder.Label("fuseml/codeset-version", codesetVersion),
-		builder.Label("fuseml/workflow-ref", p.Labels["fuseml/workflow-ref"]))
+	prb.Meta(builder.Label("fuseml/codeset-name", codeset.Name), builder.Label("fuseml/codeset-project", codeset.Project),
+		builder.Label("fuseml/codeset-version", codesetVersion), builder.Label("fuseml/workflow-ref", p.Labels["fuseml/workflow-ref"]))
 	prb.ServiceAccount(pipelineRunServiceAccount)
 	prb.PipelineRef(p.Name)
 	for _, ws := range p.Spec.Workspaces {
@@ -327,6 +331,8 @@ func generateTriggerTemplate(p *v1beta1.Pipeline) *v1alpha1.TriggerTemplate {
 	ttb := builder.NewTriggerTemplateBuilder(p.Name, p.Namespace)
 	prb := builder.NewPipelineRunBuilder(pipelineRunPrefix)
 	resolver := newVariablesResolver()
+	var codesetProject string
+	var codesetName string
 	for _, param := range p.Spec.Params {
 		if param.Default != nil {
 			ttb.ParamWithDefaultValue(param.Name, param.Description, param.Default.StringVal)
@@ -336,17 +342,21 @@ func generateTriggerTemplate(p *v1beta1.Pipeline) *v1alpha1.TriggerTemplate {
 		// if there is a codeset paramter we also need to add the codeset-url as paramter to
 		// the template
 		resolver.addReference(param.Name, fmt.Sprintf("$(tt.params.%s)", param.Name))
-		if param.Name == codesetNameParam {
+		switch param.Name {
+		case codesetNameParam:
 			ttb.Param(codesetURLParam, "The codeset URL (git repository URL)")
 			resolver.addReference(codesetURLParam, fmt.Sprintf("$(tt.params.%s)", codesetURLParam))
-			prb.GenerateName(fmt.Sprintf("%s%s-", pipelineRunPrefix, resolver.resolve(codesetNameParam)))
-			prb.Meta(builder.Label("fuseml/codeset-name", resolver.resolve(codesetNameParam)))
-		} else if param.Name == codesetVersionParam {
-			prb.Meta(builder.Label("fuseml/codeset-version", resolver.resolve(codesetVersionParam)))
+			codesetName = resolver.resolve(param.Name)
+			prb.Meta(builder.Label(fmt.Sprintf("fuseml/%s", param.Name), codesetName))
+		case codesetProjectParam:
+			codesetProject = resolver.resolve(param.Name)
+			prb.Meta(builder.Label(fmt.Sprintf("fuseml/%s", param.Name), codesetProject))
+		case codesetVersionParam:
+			prb.Meta(builder.Label(fmt.Sprintf("fuseml/%s", param.Name), resolver.resolve(param.Name)))
 		}
-
 		prb.Param(param.Name, resolver.resolve(param.Name))
 	}
+	prb.GenerateName(fmt.Sprintf("%s%s-%s-", pipelineRunPrefix, codesetProject, codesetName))
 
 	for _, ws := range p.Spec.Workspaces {
 		prb.Workspace(ws.Name, workspaceAccessMode, workspaceSize)
@@ -374,6 +384,7 @@ func generateTriggerBinding(template *v1alpha1.TriggerTemplate) *v1alpha1.Trigge
 	webhookParamsMap := map[string]string{
 		codesetNameParam:    "$(body.repository.name)",
 		codesetVersionParam: "$(body.commits[0].id)",
+		codesetProjectParam: "$(body.repository.owner.username)",
 		codesetURLParam:     "$(body.repository.clone_url)",
 	}
 
