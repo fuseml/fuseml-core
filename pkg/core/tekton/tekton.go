@@ -97,22 +97,35 @@ func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, workflowName st
 }
 
 // ListWorkflowRuns returns a list of WorkflowRun for the given Workflow
-func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf workflow.Workflow) ([]*workflow.WorkflowRun, error) {
-	runs, err := w.tektonClients.PipelineRunClient.List(ctx, metav1.ListOptions{LabelSelector: fmt.Sprintf("fuseml/workflow-ref=%s", wf.Name)})
+func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf workflow.Workflow, filters domain.WorkflowRunFilter) ([]*workflow.WorkflowRun, error) {
+	labelSelector := fmt.Sprintf("%s=%s", LabelWorkflowRef, wf.Name)
+	if filters.ByLabel != nil && len(filters.ByLabel) > 0 {
+		labelSelector = fmt.Sprintf("%s,%s", labelSelector, strings.Join(filters.ByLabel, ","))
+	}
+	runs, err := w.tektonClients.PipelineRunClient.List(ctx, metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
 		return nil, fmt.Errorf("error getting tekton pipeline run %q: %w", wf.Name, err)
 	}
 	workflowRuns := []*workflow.WorkflowRun{}
 
-	for _, run := range runs.Items {
-		workflowRuns = append(workflowRuns, w.toWorkflowRun(wf, run))
+	if filters.ByStatus != nil && len(filters.ByStatus) > 0 {
+		for _, run := range runs.Items {
+			if len(run.Status.Conditions) > 0 && contains(filters.ByStatus,
+				pipelineReasonToWorkflowStatus(run.Status.Conditions[0].Reason)) {
+				workflowRuns = append(workflowRuns, w.toWorkflowRun(wf, run))
+			}
+		}
+	} else {
+		for _, run := range runs.Items {
+			workflowRuns = append(workflowRuns, w.toWorkflowRun(wf, run))
+		}
 	}
+
 	return workflowRuns, nil
 }
 
 // CreateListener creates tekton resources required to have a listener ready for triggering the pipeline
 func (w *WorkflowBackend) CreateListener(ctx context.Context, logger *log.Logger, workflowName string, wait bool) (string, error) {
-
 	pipeline, err := w.tektonClients.PipelineClient.Get(ctx, workflowName, metav1.GetOptions{})
 	if err != nil {
 		return "", fmt.Errorf("error getting tekton pipeline %q: %w", workflowName, err)
@@ -206,7 +219,7 @@ func (w *WorkflowBackend) eventListenerReady(ctx context.Context, name string) w
 func generatePipeline(w workflow.Workflow, namespace string) *v1beta1.Pipeline {
 	resolver := newVariablesResolver()
 	pb := builder.NewPipelineBuilder(w.Name, namespace)
-	pb.Meta(builder.Label("fuseml/workflow-ref", w.Name))
+	pb.Meta(builder.Label(LabelWorkflowRef, w.Name))
 	pb.Description(*w.Description)
 	globalEnvVars = []EnvVar{{"WORKFLOW_NAMESPACE", namespace}, {"WORKFLOW_NAME", w.Name}}
 
@@ -322,8 +335,8 @@ func generatePipelineRun(p *v1beta1.Pipeline, codeset domain.Codeset) (*v1beta1.
 		}
 	}
 
-	prb.Meta(builder.Label("fuseml/codeset-name", codeset.Name), builder.Label("fuseml/codeset-project", codeset.Project),
-		builder.Label("fuseml/codeset-version", codesetVersion), builder.Label("fuseml/workflow-ref", p.Labels["fuseml/workflow-ref"]))
+	prb.Meta(builder.Label(LabelCodesetName, codeset.Name), builder.Label(LabelCodesetProject, codeset.Project),
+		builder.Label(LabelCodesetVersion, codesetVersion), builder.Label(LabelWorkflowRef, p.Labels[LabelWorkflowRef]))
 	prb.ServiceAccount(pipelineRunServiceAccount)
 	prb.PipelineRef(p.Name)
 	for _, ws := range p.Spec.Workspaces {
@@ -358,12 +371,12 @@ func generateTriggerTemplate(p *v1beta1.Pipeline) *v1alpha1.TriggerTemplate {
 			ttb.Param(codesetURLParam, "The codeset URL (git repository URL)")
 			resolver.addReference(codesetURLParam, fmt.Sprintf("$(tt.params.%s)", codesetURLParam))
 			codesetName = resolver.resolve(param.Name)
-			prb.Meta(builder.Label(fmt.Sprintf("fuseml/%s", param.Name), codesetName))
+			prb.Meta(builder.Label(LabelCodesetName, codesetName))
 		case codesetProjectParam:
 			codesetProject = resolver.resolve(param.Name)
-			prb.Meta(builder.Label(fmt.Sprintf("fuseml/%s", param.Name), codesetProject))
+			prb.Meta(builder.Label(LabelCodesetProject, codesetProject))
 		case codesetVersionParam:
-			prb.Meta(builder.Label(fmt.Sprintf("fuseml/%s", param.Name), resolver.resolve(param.Name)))
+			prb.Meta(builder.Label(LabelCodesetVersion, resolver.resolve(param.Name)))
 		}
 		prb.Param(param.Name, resolver.resolve(param.Name))
 	}
@@ -511,13 +524,17 @@ func (w *WorkflowBackend) toWorkflowRun(wf workflow.Workflow, p v1beta1.Pipeline
 	}
 	status := "Unknown"
 	if len(p.Status.Conditions) > 0 {
-		status = p.Status.Conditions[0].Reason
+		status = pipelineReasonToWorkflowStatus(p.Status.Conditions[0].Reason)
 	}
 	wfr.Status = &status
 
 	url := fmt.Sprintf("%s/#/namespaces/%s/pipelineruns/%s", w.dashboardURL, w.namespace, *wfr.Name)
 	wfr.URL = &url
 	return &wfr
+}
+
+func pipelineReasonToWorkflowStatus(reason string) string {
+	return strings.TrimPrefix(reason, "PipelineRun")
 }
 
 func getPipelineResourceParamsValue(paramName string, resource v1beta1.PipelineResourceBinding) *string {
@@ -545,4 +562,14 @@ func getPipelineRunResultValue(resultName string, results []v1beta1.PipelineRunR
 		}
 	}
 	return nil
+}
+
+func contains(slice []string, item string) bool {
+	set := make(map[string]struct{}, len(slice))
+	for _, s := range slice {
+		set[s] = struct{}{}
+	}
+
+	_, ok := set[item]
+	return ok
 }

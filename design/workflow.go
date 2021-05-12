@@ -136,6 +136,16 @@ var _ = Service("workflow", func() {
 			Field(1, "workflowName", String, "Name of the Workflow to list runs from", func() {
 				Example("mlflow-sklearn-e2e")
 			})
+			Field(2, "codesetName", String, "Name of the codeset to list runs from", func() {
+				Example("mlflow-project-001")
+			})
+			Field(3, "codesetProject", String, "Name of the codeset project to list runs from", func() {
+				Example("workspace")
+			})
+			Field(4, "status", String, "status of the workflow runs to list", func() {
+				Enum("Started", "Running", "Cancelled", "Succeeded", "Failed", "Completed", "Timeout")
+				Example("Succeeded")
+			})
 		})
 
 		Error("NotFound", func() {
@@ -147,7 +157,17 @@ var _ = Service("workflow", func() {
 		HTTP(func() {
 			GET("/workflows/runs")
 			Param("workflowName", String, "List workflows runs from the specified workflow", func() {
-				Example("workflowA")
+				Example("mlflow-sklearn-e2e")
+			})
+			Param("codesetName", String, "Name of the codeset to list runs from", func() {
+				Example("mlflow-project-001")
+			})
+			Param("codesetProject", String, "Name of the codeset project to list runs from", func() {
+				Example("workspace")
+			})
+			Param("status", String, "status of the workflow runs to list", func() {
+				Enum("Started", "Running", "Cancelled", "Succeeded", "Failed", "Completed", "Timeout", "Unknown")
+				Example("Succeeded")
 			})
 			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
@@ -273,22 +293,26 @@ var StepEnv = Type("StepEnv", func() {
 	})
 })
 
+// WorkflowRun describes a workflow run returned when listed
 var WorkflowRun = Type("WorkflowRun", func() {
 	Field(1, "name", String, "Name of the run")
 	Field(2, "workflowRef", String, "Reference to the Workflow")
 	Field(3, "inputs", ArrayOf(WorkflowRunInput), "Workflow run inputs")
 	Field(4, "outputs", ArrayOf(WorkflowRunOutput), "Outputs from the workflow run")
 	Field(5, "status", String, "The current status of the workflow run", func() {
+		Enum("Started", "Running", "Cancelled", "Succeeded", "Failed", "Completed", "Timeout", "Unknown")
 		Example("Succeeded")
 	})
 	Field(6, "URL", String, "Dashboard URL to the workflow run")
 })
 
+// WorkflowRunInput describes a input from a WorkflowRun including its value
 var WorkflowRunInput = Type("WorkflowRunInput", func() {
 	Field(1, "input", WorkflowInput)
 	Field(2, "value", String)
 })
 
+// WorkflowRunInput describes the output from a WorkflowRun including its value
 var WorkflowRunOutput = Type("WorkflowRunOutput", func() {
 	Field(1, "output", WorkflowOutput)
 	Field(2, "value", String)

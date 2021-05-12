@@ -3,22 +3,14 @@ package svc
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 
-	"github.com/fuseml/fuseml-core/gen/codeset"
 	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/core/config"
 	"github.com/fuseml/fuseml-core/pkg/core/tekton"
 	"github.com/fuseml/fuseml-core/pkg/domain"
 )
-
-// WorkflowBackend is the interface for the FuseML workflows
-type WorkflowBackend interface {
-	CreateListener(context.Context, *log.Logger, string, bool) (string, error)
-	CreateWorkflow(context.Context, *log.Logger, *workflow.Workflow) error
-	CreateWorkflowRun(context.Context, string, codeset.Codeset) error
-	ListWorkflowRuns(context.Context, workflow.Workflow) ([]*workflow.WorkflowRun, error)
-}
 
 // workflow service example implementation.
 // The example methods log the requests and return zero values.
@@ -26,7 +18,7 @@ type workflowsrvc struct {
 	logger       *log.Logger
 	store        domain.WorkflowStore
 	codesetStore domain.CodesetStore
-	backend      WorkflowBackend
+	backend      domain.WorkflowBackend
 }
 
 // NewWorkflowService returns the workflow service implementation.
@@ -48,8 +40,19 @@ func (s *workflowsrvc) ListRuns(ctx context.Context, w *workflow.ListRunsPayload
 	s.logger.Print("workflow.listWorkflowRuns")
 	workflowRuns := []*workflow.WorkflowRun{}
 	workflows := s.listWorkflows(ctx, w.WorkflowName)
+	filters := domain.WorkflowRunFilter{}
+	if w.CodesetName != nil {
+		filters.ByLabel = append(filters.ByLabel, fmt.Sprintf("%s=%s", tekton.LabelCodesetName, *w.CodesetName))
+	}
+	if w.CodesetProject != nil {
+		filters.ByLabel = append(filters.ByLabel, fmt.Sprintf("%s=%s", tekton.LabelCodesetProject, *w.CodesetProject))
+	}
+	if w.Status != nil {
+		filters.ByStatus = append(filters.ByStatus, *w.Status)
+	}
+
 	for _, workflow := range workflows {
-		runs, err := s.backend.ListWorkflowRuns(ctx, *workflow)
+		runs, err := s.backend.ListWorkflowRuns(ctx, *workflow, filters)
 		if err != nil {
 			s.logger.Print(err)
 			return nil, err

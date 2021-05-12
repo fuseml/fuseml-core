@@ -20,6 +20,8 @@ import (
 	faketriggersclient "github.com/tektoncd/triggers/pkg/client/injection/client/fake"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"knative.dev/pkg/apis"
+	kn "knative.dev/pkg/apis/duck/v1beta1"
 	rtesting "knative.dev/pkg/reconciler/testing"
 
 	"github.com/fuseml/fuseml-core/gen/workflow"
@@ -120,44 +122,235 @@ func TestCreateWorkflowRun(t *testing.T) {
 }
 
 func TestListWorkflowRuns(t *testing.T) {
-	ctx, b, logs, _ := initBackend(t)
 
-	w := workflow.Workflow{}
-	readYaml(t, fuseMLWorkflow, &w)
+	t.Run("all", func(t *testing.T) {
+		ctx, b, logs, _ := initBackend(t)
 
-	err := b.CreateWorkflow(ctx, logs, &w)
-	if err != nil {
-		t.Fatal(err)
-	}
+		w := workflow.Workflow{}
+		readYaml(t, fuseMLWorkflow, &w)
 
-	csURL := "http://gitea.10.160.5.140.nip.io/workspace/mlflow-app-01.git"
-	cs := codeset.Codeset{Name: "mlflow-app-01", Project: "workspace", URL: &csURL}
-	err = b.CreateWorkflowRun(ctx, w.Name, cs)
-	if err != nil {
-		t.Fatalf("Failed to create workflow run %q: %s", w.Name, err)
-	}
+		err := b.CreateWorkflow(ctx, logs, &w)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	got, err := b.ListWorkflowRuns(ctx, w)
-	if err != nil {
-		t.Fatalf("Failed to list Workflow runs: %s", err)
-	}
+		runStatus := "Unknown"
+		want := []*workflow.WorkflowRun{}
 
-	runName := ""
-	runStatus := "Unknown"
-	runCsInputValue := fmt.Sprintf("%s:main", *cs.URL)
-	runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/"
-	want := []*workflow.WorkflowRun{{
-		Name:        &runName,
-		WorkflowRef: &w.Name,
-		Inputs:      []*workflow.WorkflowRunInput{{Input: w.Inputs[0], Value: &runCsInputValue}, {Input: w.Inputs[1], Value: w.Inputs[1].Default}},
-		Outputs:     []*workflow.WorkflowRunOutput{{Output: w.Outputs[0]}},
-		Status:      &runStatus,
-		URL:         &runURL,
-	}}
+		for i := 1; i < 3; i++ {
+			cs := createCodeset(t, i, i)
+			runName := fmt.Sprintf("%s-%d", w.Name, i)
+			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
+			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus)
+			runCsInputValue := fmt.Sprintf("%s:main", *cs.URL)
+			want = append(want, &workflow.WorkflowRun{
+				Name:        &runName,
+				WorkflowRef: &w.Name,
+				Inputs:      []*workflow.WorkflowRunInput{{Input: w.Inputs[0], Value: &runCsInputValue}, {Input: w.Inputs[1], Value: w.Inputs[1].Default}},
+				Outputs:     []*workflow.WorkflowRunOutput{{Output: w.Outputs[0]}},
+				Status:      &runStatus,
+				URL:         &runURL,
+			})
+		}
 
-	if d := cmp.Diff(want, got); d != "" {
-		t.Errorf("Unexpected PipelineRun: %s", diff.PrintWantGot(d))
-	}
+		filter := domain.WorkflowRunFilter{}
+		got, err := b.ListWorkflowRuns(ctx, w, filter)
+		if err != nil {
+			t.Fatalf("Failed to list PipelineRun: %s", err)
+		}
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
+		}
+	})
+
+	t.Run("filter by label", func(t *testing.T) {
+		ctx, b, logs, _ := initBackend(t)
+
+		w := workflow.Workflow{}
+		readYaml(t, fuseMLWorkflow, &w)
+
+		err := b.CreateWorkflow(ctx, logs, &w)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		runStatus := "Unknown"
+		codesets := []codeset.Codeset{}
+		wants := []*workflow.WorkflowRun{}
+		for i := 0; i < 2; i++ {
+			cs := createCodeset(t, i, i)
+			runName := fmt.Sprintf("%s-%d", w.Name, i)
+			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
+			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus)
+			runCsInputValue := fmt.Sprintf("%s:main", *cs.URL)
+			wants = append(wants, &workflow.WorkflowRun{
+				Name:        &runName,
+				WorkflowRef: &w.Name,
+				Inputs:      []*workflow.WorkflowRunInput{{Input: w.Inputs[0], Value: &runCsInputValue}, {Input: w.Inputs[1], Value: w.Inputs[1].Default}},
+				Outputs:     []*workflow.WorkflowRunOutput{{Output: w.Outputs[0]}},
+				Status:      &runStatus,
+				URL:         &runURL,
+			})
+			codesets = append(codesets, cs)
+		}
+
+		filterNil := domain.WorkflowRunFilter{ByLabel: nil}
+		want := wants
+		got, err := b.ListWorkflowRuns(ctx, w, filterNil)
+		if err != nil {
+			t.Fatalf("Failed to list WorkflowRun: %s", err)
+		}
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
+		}
+
+		filterEmpty := domain.WorkflowRunFilter{ByLabel: []string{}}
+		want = wants
+		got, err = b.ListWorkflowRuns(ctx, w, filterEmpty)
+		if err != nil {
+			t.Fatalf("Failed to list WorkflowRun: %s", err)
+		}
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
+		}
+
+		filterNoResult := domain.WorkflowRunFilter{ByLabel: []string{fmt.Sprintf("%s=%s", LabelCodesetName, "do-no-exist")}}
+		want = []*workflow.WorkflowRun{}
+		got, err = b.ListWorkflowRuns(ctx, w, filterNoResult)
+		if err != nil {
+			t.Fatalf("Failed to list WorkflowRun: %s", err)
+		}
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
+		}
+
+		for i := 0; i < len(codesets); i++ {
+			filterCodesetName := domain.WorkflowRunFilter{ByLabel: []string{fmt.Sprintf("%s=%s", LabelCodesetName, codesets[i].Name)}}
+			want := []*workflow.WorkflowRun{wants[i]}
+			got, err := b.ListWorkflowRuns(ctx, w, filterCodesetName)
+			if err != nil {
+				t.Fatalf("Failed to list WorkflowRun: %s", err)
+			}
+
+			if d := cmp.Diff(want, got); d != "" {
+				t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
+			}
+		}
+
+		for i := 0; i < len(codesets); i++ {
+			filterCodesetProject := domain.WorkflowRunFilter{ByLabel: []string{fmt.Sprintf("%s=%s", LabelCodesetProject, codesets[i].Project)}}
+			want := []*workflow.WorkflowRun{wants[i]}
+			got, err := b.ListWorkflowRuns(ctx, w, filterCodesetProject)
+			if err != nil {
+				t.Fatalf("Failed to list WorkflowRun: %s", err)
+			}
+
+			if d := cmp.Diff(want, got); d != "" {
+				t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
+			}
+		}
+
+		for i := 0; i < len(codesets); i++ {
+			filterCodesetNameProject := domain.WorkflowRunFilter{ByLabel: []string{fmt.Sprintf("%s=%s", LabelCodesetName, codesets[i].Name),
+				fmt.Sprintf("%s=%s", LabelCodesetProject, codesets[i].Project)}}
+			want := []*workflow.WorkflowRun{wants[i]}
+			got, err := b.ListWorkflowRuns(ctx, w, filterCodesetNameProject)
+			if err != nil {
+				t.Fatalf("Failed to list WorkflowRun: %s", err)
+			}
+
+			if d := cmp.Diff(want, got); d != "" {
+				t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
+			}
+		}
+	})
+
+	t.Run("filter by status", func(t *testing.T) {
+		ctx, b, logs, _ := initBackend(t)
+
+		w := workflow.Workflow{}
+		readYaml(t, fuseMLWorkflow, &w)
+
+		err := b.CreateWorkflow(ctx, logs, &w)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		runsStatus := []string{"Unknown", "PipelineRunCancelled", "Succeeded"}
+		wants := []*workflow.WorkflowRun{}
+		for i := 0; i < len(runsStatus); i++ {
+			cs := createCodeset(t, i, i)
+			runName := fmt.Sprintf("%s-%d", w.Name, i)
+			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
+			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runsStatus[i])
+			runCsInputValue := fmt.Sprintf("%s:main", *cs.URL)
+			status := pipelineReasonToWorkflowStatus(runsStatus[i])
+			wants = append(wants, &workflow.WorkflowRun{
+				Name:        &runName,
+				WorkflowRef: &w.Name,
+				Inputs:      []*workflow.WorkflowRunInput{{Input: w.Inputs[0], Value: &runCsInputValue}, {Input: w.Inputs[1], Value: w.Inputs[1].Default}},
+				Outputs:     []*workflow.WorkflowRunOutput{{Output: w.Outputs[0]}},
+				Status:      &status,
+				URL:         &runURL,
+			})
+		}
+
+		filterNil := domain.WorkflowRunFilter{ByStatus: nil}
+		want := wants
+		got, err := b.ListWorkflowRuns(ctx, w, filterNil)
+		if err != nil {
+			t.Fatalf("Failed to list WorkflowRun: %s", err)
+		}
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
+		}
+
+		filterEmpty := domain.WorkflowRunFilter{ByStatus: []string{}}
+		want = wants
+		got, err = b.ListWorkflowRuns(ctx, w, filterEmpty)
+		if err != nil {
+			t.Fatalf("Failed to list WorkflowRun: %s", err)
+		}
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
+		}
+
+		filterNoResult := domain.WorkflowRunFilter{ByStatus: []string{"Timeout"}}
+		want = []*workflow.WorkflowRun{}
+		got, err = b.ListWorkflowRuns(ctx, w, filterNoResult)
+		if err != nil {
+			t.Fatalf("Failed to list WorkflowRun: %s", err)
+		}
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
+		}
+
+		for i := 0; i < len(runsStatus); i++ {
+			filterStatus := domain.WorkflowRunFilter{ByStatus: []string{pipelineReasonToWorkflowStatus(runsStatus[i])}}
+			want := []*workflow.WorkflowRun{wants[i]}
+			got, err := b.ListWorkflowRuns(ctx, w, filterStatus)
+			if err != nil {
+				t.Fatalf("Failed to list WorkflowRun: %s", err)
+			}
+			if d := cmp.Diff(want, got); d != "" {
+				t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
+			}
+		}
+
+		filterMultipleStatus := domain.WorkflowRunFilter{}
+		for i := 0; i < len(runsStatus); i++ {
+			filterMultipleStatus.ByStatus = append(filterMultipleStatus.ByStatus, pipelineReasonToWorkflowStatus(runsStatus[i]))
+		}
+		want = wants
+		got, err = b.ListWorkflowRuns(ctx, w, filterMultipleStatus)
+		if err != nil {
+			t.Fatalf("Failed to list WorkflowRun: %s", err)
+		}
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
+		}
+
+	})
 
 }
 
@@ -338,4 +531,40 @@ func fakeNewWorkflowBackend(context context.Context, t *testing.T, namespace str
 
 	clients := newFakeClients(context, t, namespace)
 	return &WorkflowBackend{"http://tekton.test", namespace, clients}
+}
+
+func createCodeset(t *testing.T, nameID, projectID int) codeset.Codeset {
+	t.Helper()
+
+	name := fmt.Sprintf("mlflow-app-%d", nameID)
+	project := fmt.Sprintf("workspace-%d", projectID)
+	url := fmt.Sprintf("http://gitea.10.160.5.140.nip.io/%s/%s.git", name, project)
+	return codeset.Codeset{Name: name, Project: project, URL: &url}
+}
+
+func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T, workflow string, cs codeset.Codeset, runName string, status string) {
+	t.Helper()
+	err := b.CreateWorkflowRun(ctx, workflow, cs)
+	if err != nil {
+		t.Fatalf("Failed to create workflow run %q: %s", workflow, err)
+	}
+
+	// the fake pipeline run client does not generate a name for the pipeline run, in that
+	// way it is not possible to create multiple pipeline runs as they conflict on their name ("").
+	// To get around that, create the workflow run then change its name by recreating it with a
+	// another name
+	prun, err := b.tektonClients.PipelineRunClient.Get(ctx, "", metav1.GetOptions{})
+	if err != nil {
+		t.Fatalf("Failed to get pipeline run: %s", err)
+	}
+	prun.ObjectMeta.Name = runName
+	prun.Status.Conditions = kn.Conditions{apis.Condition{Reason: status}}
+	err = b.tektonClients.PipelineRunClient.Delete(ctx, "", metav1.DeleteOptions{})
+	if err != nil {
+		t.Fatalf("Failed to get delete run: %s", err)
+	}
+	_, err = b.tektonClients.PipelineRunClient.Create(ctx, prun, metav1.CreateOptions{})
+	if err != nil {
+		t.Fatalf("Failed to create pipeline run: %s", err)
+	}
 }
