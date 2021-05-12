@@ -14,7 +14,7 @@ import (
 
 // WorkflowBackend is the interface for the FuseML workflows
 type WorkflowBackend interface {
-	CreateListener(context.Context, *log.Logger, string) (string, error)
+	CreateListener(context.Context, *log.Logger, string, bool) (string, error)
 	CreateWorkflow(context.Context, *log.Logger, *workflow.Workflow) error
 	CreateWorkflowRun(context.Context, string, codeset.Codeset) error
 }
@@ -77,7 +77,7 @@ func (s *workflowsrvc) Assign(ctx context.Context, w *workflow.AssignPayload) (e
 		return err
 	}
 
-	url, err := s.backend.CreateListener(ctx, s.logger, w.WorkflowName)
+	url, err := s.backend.CreateListener(ctx, s.logger, w.WorkflowName, true)
 	if err != nil {
 		s.logger.Print(err)
 		return err
