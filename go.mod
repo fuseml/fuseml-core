@@ -6,6 +6,7 @@ require (
 	code.gitea.io/sdk/gitea v0.14.0
 	github.com/dimfeld/httptreemux/v5 v5.3.0 // indirect
 	github.com/ghodss/yaml v1.0.0
+	github.com/goccy/go-yaml v1.8.9
 	github.com/google/go-cmp v0.5.5
 	github.com/google/uuid v1.2.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
@@ -20,7 +21,6 @@ require (
 	google.golang.org/genproto v0.0.0-20210406143921-e86de6bf7a46 // indirect
 	google.golang.org/grpc v1.37.0
 	google.golang.org/protobuf v1.26.0
-	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/api v0.19.7
 	k8s.io/apimachinery v0.19.7
 	k8s.io/client-go v0.19.7

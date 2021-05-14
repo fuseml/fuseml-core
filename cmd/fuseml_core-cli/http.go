@@ -3,12 +3,13 @@ package main
 import (
 	"mime"
 	"net/http"
+	"strings"
 	"time"
 
 	cli "github.com/fuseml/fuseml-core/gen/http/cli/fuseml_core"
+	"github.com/goccy/go-yaml"
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
-	"gopkg.in/yaml.v2"
 )
 
 func doHTTP(scheme, host string, timeout int, debug bool) (goa.Endpoint, interface{}, error) {
@@ -41,18 +42,20 @@ func httpUsageExamples() string {
 }
 
 func responseDecoder(resp *http.Response) goahttp.Decoder {
-	contentType := resp.Header.Get("Content-Type")
-	if contentType == "" {
-		// default to JSON
-		contentType = "application/json"
-	} else {
+	ct := resp.Header.Get("Content-Type")
+	if ct != "" {
 		// sanitize
-		if mediaType, _, err := mime.ParseMediaType(contentType); err == nil {
-			contentType = mediaType
+		if mediaType, _, err := mime.ParseMediaType(ct); err == nil {
+			ct = mediaType
 		}
 	}
-	if contentType == "application/x-yaml" {
+
+	switch {
+	case ct == "", ct == "application/x-yaml", ct == "text/x-yaml":
+		fallthrough
+	case strings.HasSuffix(ct, "+yaml"):
 		return yaml.NewDecoder(resp.Body)
+	default:
+		return goahttp.ResponseDecoder(resp)
 	}
-	return goahttp.ResponseDecoder(resp)
 }
