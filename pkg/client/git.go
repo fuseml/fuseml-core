@@ -4,6 +4,7 @@ package git
 
 import (
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -14,6 +15,7 @@ import (
 	"github.com/pkg/errors"
 
 	config "github.com/fuseml/fuseml-core/pkg/core/config"
+	dircopy "github.com/otiai10/copy"
 )
 
 // Push the code from local dir to remote repo
@@ -23,6 +25,16 @@ func Push(org, name, location string) error {
 	gitURL, exists := os.LookupEnv("GITEA_URL")
 	if !exists {
 		return errors.New("Value for gitea URL (GITEA_URL) was not provided")
+	}
+
+	tmpDir, err := ioutil.TempDir("", "codeset-source")
+	if err != nil {
+		return errors.Wrap(err, "can't create temp directory")
+	}
+	defer os.Remove(tmpDir)
+	err = dircopy.Copy(location, tmpDir)
+	if err != nil {
+		return errors.Wrap(err, "can't copy source directory to temp")
 	}
 
 	u, err := url.Parse(gitURL)
@@ -50,7 +62,7 @@ git reset --soft fuseml/main
 git add --all
 git commit --no-gpg-sign -m "pushed at %s"
 git push fuseml master:main
-`, location, u.String(), time.Now().Format("20060102150405")))
+`, tmpDir, u.String(), time.Now().Format("20060102150405")))
 
 	_, err = cmd.CombinedOutput()
 	if err != nil {
