@@ -2,18 +2,18 @@ package kubernetes
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
-
-	"k8s.io/client-go/dynamic"
-	"k8s.io/client-go/tools/clientcmd"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/discovery/cached/memory"
+	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
+	"k8s.io/client-go/tools/clientcmd"
 )
 
 // Cluster holds the config information for Kubernetes cluster
@@ -21,20 +21,28 @@ type Cluster struct {
 	restConfig *rest.Config
 }
 
-// NewCluster returns new cluster struct initialized with KUBECONFIG from environment
-func NewCluster() (*Cluster, error) {
-
+// GetClientConfig fetchs the kubernetes config of current cluster
+func GetClientConfig() (*rest.Config, error) {
+	if _, inCluster := os.LookupEnv("KUBERNETES_SERVICE_HOST"); inCluster {
+		return rest.InClusterConfig()
+	}
 	kubeconfig := filepath.Join(
 		os.Getenv("HOME"), ".kube", "config",
 	)
 	if configEnv, fromEnv := os.LookupEnv("KUBECONFIG"); fromEnv {
 		kubeconfig = configEnv
 	}
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	return clientcmd.BuildConfigFromFlags("", kubeconfig)
+}
 
+// NewCluster returns new cluster struct initialized with KUBECONFIG from environment
+func NewCluster() (*Cluster, error) {
+
+	config, err := GetClientConfig()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting kubernetes client config: %w", err)
 	}
+
 	return &Cluster{config}, nil
 }
 
