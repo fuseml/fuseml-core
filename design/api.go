@@ -1,6 +1,7 @@
 package design
 
 import (
+	_ "github.com/fuseml/fuseml-core/design/cli"
 	. "goa.design/goa/v3/dsl"
 )
 
