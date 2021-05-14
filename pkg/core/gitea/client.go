@@ -173,7 +173,7 @@ func (gac giteaAdminClient) CreateRepo(c *codeset.Codeset) error {
 	_, _, err = gac.giteaClient.CreateOrgRepo(c.Project, gitea.CreateRepoOption{
 		Name:          c.Name,
 		AutoInit:      true,
-		Private:       true,
+		Private:       false,
 		DefaultBranch: "main",
 		Description:   *c.Description,
 	})
