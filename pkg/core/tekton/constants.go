@@ -18,5 +18,6 @@ const (
 	imageParamName            = "IMAGE"
 	stepOutputVarName         = "TASK_RESULT"
 	inputsVarPrefix           = "FUSEML_"
+	globalEnvVarPrefix        = "FUSEML_ENV_"
 	stepDefaultCmd            = "run"
 )
