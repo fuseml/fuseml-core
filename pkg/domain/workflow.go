@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 
-	"github.com/fuseml/fuseml-core/gen/codeset"
 	"github.com/fuseml/fuseml-core/gen/workflow"
 )
 
@@ -19,7 +18,7 @@ type WorkflowStore interface {
 type WorkflowBackend interface {
 	CreateListener(context.Context, *log.Logger, string, bool) (string, error)
 	CreateWorkflow(context.Context, *log.Logger, *workflow.Workflow) error
-	CreateWorkflowRun(context.Context, string, codeset.Codeset) error
+	CreateWorkflowRun(context.Context, string, Codeset) error
 	ListWorkflowRuns(context.Context, workflow.Workflow, WorkflowRunFilter) ([]*workflow.WorkflowRun, error)
 }
 

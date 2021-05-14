@@ -9,6 +9,7 @@ import (
 	"log"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/ghodss/yaml"
 	"github.com/google/go-cmp/cmp"
@@ -122,7 +123,6 @@ func TestCreateWorkflowRun(t *testing.T) {
 }
 
 func TestListWorkflowRuns(t *testing.T) {
-
 	t.Run("all", func(t *testing.T) {
 		ctx, b, logs, _ := initBackend(t)
 
@@ -141,15 +141,20 @@ func TestListWorkflowRuns(t *testing.T) {
 			cs := createCodeset(t, i, i)
 			runName := fmt.Sprintf("%s-%d", w.Name, i)
 			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
-			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus)
-			runCsInputValue := fmt.Sprintf("%s:main", *cs.URL)
+			runStartTime := metav1.Now()
+			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime)
+			runCsInputValue := fmt.Sprintf("%s:main", cs.URL)
+			startTime := runStartTime.Format(time.RFC3339)
+			completionTime := metav1.NewTime(runStartTime.Time.Add(time.Minute)).Format(time.RFC3339)
 			want = append(want, &workflow.WorkflowRun{
-				Name:        &runName,
-				WorkflowRef: &w.Name,
-				Inputs:      []*workflow.WorkflowRunInput{{Input: w.Inputs[0], Value: &runCsInputValue}, {Input: w.Inputs[1], Value: w.Inputs[1].Default}},
-				Outputs:     []*workflow.WorkflowRunOutput{{Output: w.Outputs[0]}},
-				Status:      &runStatus,
-				URL:         &runURL,
+				Name:           &runName,
+				WorkflowRef:    &w.Name,
+				Inputs:         []*workflow.WorkflowRunInput{{Input: w.Inputs[0], Value: &runCsInputValue}, {Input: w.Inputs[1], Value: w.Inputs[1].Default}},
+				Outputs:        []*workflow.WorkflowRunOutput{{Output: w.Outputs[0]}},
+				StartTime:      &startTime,
+				CompletionTime: &completionTime,
+				Status:         &runStatus,
+				URL:            &runURL,
 			})
 		}
 
@@ -175,21 +180,26 @@ func TestListWorkflowRuns(t *testing.T) {
 		}
 
 		runStatus := "Unknown"
-		codesets := []codeset.Codeset{}
+		codesets := []domain.Codeset{}
 		wants := []*workflow.WorkflowRun{}
 		for i := 0; i < 2; i++ {
 			cs := createCodeset(t, i, i)
 			runName := fmt.Sprintf("%s-%d", w.Name, i)
 			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
-			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus)
-			runCsInputValue := fmt.Sprintf("%s:main", *cs.URL)
+			runStartTime := metav1.Now()
+			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime)
+			runCsInputValue := fmt.Sprintf("%s:main", cs.URL)
+			startTime := runStartTime.Format(time.RFC3339)
+			completionTime := metav1.NewTime(runStartTime.Time.Add(time.Minute)).Format(time.RFC3339)
 			wants = append(wants, &workflow.WorkflowRun{
-				Name:        &runName,
-				WorkflowRef: &w.Name,
-				Inputs:      []*workflow.WorkflowRunInput{{Input: w.Inputs[0], Value: &runCsInputValue}, {Input: w.Inputs[1], Value: w.Inputs[1].Default}},
-				Outputs:     []*workflow.WorkflowRunOutput{{Output: w.Outputs[0]}},
-				Status:      &runStatus,
-				URL:         &runURL,
+				Name:           &runName,
+				WorkflowRef:    &w.Name,
+				Inputs:         []*workflow.WorkflowRunInput{{Input: w.Inputs[0], Value: &runCsInputValue}, {Input: w.Inputs[1], Value: w.Inputs[1].Default}},
+				Outputs:        []*workflow.WorkflowRunOutput{{Output: w.Outputs[0]}},
+				StartTime:      &startTime,
+				CompletionTime: &completionTime,
+				Status:         &runStatus,
+				URL:            &runURL,
 			})
 			codesets = append(codesets, cs)
 		}
@@ -276,22 +286,32 @@ func TestListWorkflowRuns(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		runsStatus := []string{"Unknown", "PipelineRunCancelled", "Succeeded"}
+		runsStatus := []string{"Unknown", "PipelineRunCancelled", "Succeeded", "Running"}
 		wants := []*workflow.WorkflowRun{}
 		for i := 0; i < len(runsStatus); i++ {
 			cs := createCodeset(t, i, i)
 			runName := fmt.Sprintf("%s-%d", w.Name, i)
 			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
-			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runsStatus[i])
-			runCsInputValue := fmt.Sprintf("%s:main", *cs.URL)
-			status := pipelineReasonToWorkflowStatus(runsStatus[i])
+			runStartTime := metav1.Now()
+			runStatus := runsStatus[i]
+			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime)
+			startTime := runStartTime.Format(time.RFC3339)
+			var completionTime *string
+			if runStatus != "Running" {
+				time := metav1.NewTime(runStartTime.Time.Add(time.Minute)).Format(time.RFC3339)
+				completionTime = &time
+			}
+			runCsInputValue := fmt.Sprintf("%s:main", cs.URL)
+			status := pipelineReasonToWorkflowStatus(runStatus)
 			wants = append(wants, &workflow.WorkflowRun{
-				Name:        &runName,
-				WorkflowRef: &w.Name,
-				Inputs:      []*workflow.WorkflowRunInput{{Input: w.Inputs[0], Value: &runCsInputValue}, {Input: w.Inputs[1], Value: w.Inputs[1].Default}},
-				Outputs:     []*workflow.WorkflowRunOutput{{Output: w.Outputs[0]}},
-				Status:      &status,
-				URL:         &runURL,
+				Name:           &runName,
+				WorkflowRef:    &w.Name,
+				Inputs:         []*workflow.WorkflowRunInput{{Input: w.Inputs[0], Value: &runCsInputValue}, {Input: w.Inputs[1], Value: w.Inputs[1].Default}},
+				Outputs:        []*workflow.WorkflowRunOutput{{Output: w.Outputs[0]}},
+				StartTime:      &startTime,
+				CompletionTime: completionTime,
+				Status:         &status,
+				URL:            &runURL,
 			})
 		}
 
@@ -533,16 +553,17 @@ func fakeNewWorkflowBackend(context context.Context, t *testing.T, namespace str
 	return &WorkflowBackend{"http://tekton.test", namespace, clients}
 }
 
-func createCodeset(t *testing.T, nameID, projectID int) codeset.Codeset {
+func createCodeset(t *testing.T, nameID, projectID int) domain.Codeset {
 	t.Helper()
 
 	name := fmt.Sprintf("mlflow-app-%d", nameID)
 	project := fmt.Sprintf("workspace-%d", projectID)
 	url := fmt.Sprintf("http://gitea.10.160.5.140.nip.io/%s/%s.git", name, project)
-	return codeset.Codeset{Name: name, Project: project, URL: &url}
+	return domain.Codeset{Name: name, Project: project, URL: url}
 }
 
-func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T, workflow string, cs codeset.Codeset, runName string, status string) {
+func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T, workflow string, cs domain.Codeset,
+	runName string, status string, startTime metav1.Time) {
 	t.Helper()
 	err := b.CreateWorkflowRun(ctx, workflow, cs)
 	if err != nil {
@@ -559,6 +580,11 @@ func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T
 	}
 	prun.ObjectMeta.Name = runName
 	prun.Status.Conditions = kn.Conditions{apis.Condition{Reason: status}}
+	completionTime := metav1.NewTime(startTime.Time.Add(time.Minute))
+	prun.Status.StartTime = &startTime
+	if status != "Running" {
+		prun.Status.CompletionTime = &completionTime
+	}
 	err = b.tektonClients.PipelineRunClient.Delete(ctx, "", metav1.DeleteOptions{})
 	if err != nil {
 		t.Fatalf("Failed to get delete run: %s", err)

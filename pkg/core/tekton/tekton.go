@@ -497,16 +497,23 @@ func getInputCodesetPath(inputs []*workflow.WorkflowStepInput) string {
 }
 
 func (w *WorkflowBackend) toWorkflowRun(wf workflow.Workflow, p v1beta1.PipelineRun) *workflow.WorkflowRun {
+	startTime := p.Status.StartTime.Format(time.RFC3339)
 	wfr := workflow.WorkflowRun{
 		Name:        &p.ObjectMeta.Name,
 		WorkflowRef: &wf.Name,
+		StartTime:   &startTime,
+	}
+
+	if p.Status.CompletionTime != nil {
+		completionTime := p.Status.CompletionTime.Format(time.RFC3339)
+		wfr.CompletionTime = &completionTime
 	}
 
 	for _, input := range wf.Inputs {
 		var value string
 		if *input.Type == inputTypeCodeset {
-			value = fmt.Sprintf("%s:%s", *getPipelineResourceParamsValue("url", p.Spec.Resources[0]),
-				*getPipelineResourceParamsValue("revision", p.Spec.Resources[0]))
+			value = fmt.Sprintf("%s:%s", *getPipelineResourceParamValue("url", p.Spec.Resources[0]),
+				*getPipelineResourceParamValue("revision", p.Spec.Resources[0]))
 		} else {
 			value = *getPipelineRunParamValue(*input.Name, p.Spec.Params)
 		}
@@ -533,11 +540,13 @@ func (w *WorkflowBackend) toWorkflowRun(wf workflow.Workflow, p v1beta1.Pipeline
 	return &wfr
 }
 
+// Some PipelineRun status starts with "PipelineRun" see:
+// https://github.com/tektoncd/pipeline/blob/main/docs/pipelineruns.md#monitoring-execution-status
 func pipelineReasonToWorkflowStatus(reason string) string {
 	return strings.TrimPrefix(reason, "PipelineRun")
 }
 
-func getPipelineResourceParamsValue(paramName string, resource v1beta1.PipelineResourceBinding) *string {
+func getPipelineResourceParamValue(paramName string, resource v1beta1.PipelineResourceBinding) *string {
 	for _, param := range resource.ResourceSpec.Params {
 		if param.Name == paramName {
 			return &param.Value
@@ -565,11 +574,10 @@ func getPipelineRunResultValue(resultName string, results []v1beta1.PipelineRunR
 }
 
 func contains(slice []string, item string) bool {
-	set := make(map[string]struct{}, len(slice))
 	for _, s := range slice {
-		set[s] = struct{}{}
+		if s == item {
+			return true
+		}
 	}
-
-	_, ok := set[item]
-	return ok
+	return false
 }
