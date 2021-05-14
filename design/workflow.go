@@ -93,7 +93,7 @@ var _ = Service("workflow", func() {
 		Description("Assigins a Workflow to a Codeset")
 
 		Payload(func() {
-			Field(1, "workflowName", String, "Name of the Workflow to be associated with the codeset", func() {
+			Field(1, "name", String, "Name of the Workflow to be associated with the codeset", func() {
 				Example("mlflow-sklearn-e2e")
 			})
 			Field(2, "codesetProject", String, "Project that hosts the codeset to assign the workflow to", func() {
@@ -102,7 +102,7 @@ var _ = Service("workflow", func() {
 			Field(3, "codesetName", String, "Codeset to assign the workflow to", func() {
 				Example("mlflow-project-001")
 			})
-			Required("workflowName", "codesetProject", "codesetName")
+			Required("name", "codesetProject", "codesetName")
 		})
 
 		Error("BadRequest", func() {
@@ -114,6 +114,9 @@ var _ = Service("workflow", func() {
 
 		HTTP(func() {
 			POST("/workflows/assign")
+			Param("name")
+			Param("codesetName")
+			Param("codesetProject")
 			Response(StatusCreated)
 			Response("BadRequest", StatusBadRequest)
 			Response("NotFound", StatusNotFound)

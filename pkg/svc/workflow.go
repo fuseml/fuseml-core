@@ -72,12 +72,12 @@ func (s *workflowsrvc) Assign(ctx context.Context, w *workflow.AssignPayload) (e
 		s.logger.Print(err)
 		return workflow.MakeNotFound(err)
 	}
-	if _, err = s.getWorkflow(ctx, w.WorkflowName); err != nil {
+	if _, err = s.getWorkflow(ctx, w.Name); err != nil {
 		s.logger.Print(err)
 		return err
 	}
 
-	url, err := s.backend.CreateListener(ctx, s.logger, w.WorkflowName, true)
+	url, err := s.backend.CreateListener(ctx, s.logger, w.Name, true)
 	if err != nil {
 		s.logger.Print(err)
 		return err
@@ -89,7 +89,7 @@ func (s *workflowsrvc) Assign(ctx context.Context, w *workflow.AssignPayload) (e
 		return err
 	}
 
-	err = s.backend.CreateWorkflowRun(ctx, w.WorkflowName, *codeset)
+	err = s.backend.CreateWorkflowRun(ctx, w.Name, *codeset)
 	if err != nil {
 		s.logger.Print(err)
 		return err
