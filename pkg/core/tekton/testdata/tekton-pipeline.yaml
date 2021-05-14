@@ -98,6 +98,10 @@ spec:
                 value: gABTE5DmmLgjJypJzGFs
               - name: AWS_SECRET_ACCESS_KEY
                 value: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
+              - name: FUSEML_ENV_WORKFLOW_NAMESPACE
+                value: test-namespace
+              - name: FUSEML_ENV_WORKFLOW_NAME
+                value: mlflow-sklearn-e2e
             image: $(params.IMAGE)
             name: trainer
             resources: {}
@@ -138,6 +142,10 @@ spec:
                 value: gABTE5DmmLgjJypJzGFs
               - name: AWS_SECRET_ACCESS_KEY
                 value: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
+              - name: FUSEML_ENV_WORKFLOW_NAMESPACE
+                value: test-namespace
+              - name: FUSEML_ENV_WORKFLOW_NAME
+                value: mlflow-sklearn-e2e
             image: 'ghcr.io/fuseml/kfserving-predictor:0.1'
             name: predictor
             resources: {}

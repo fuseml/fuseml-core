@@ -29,6 +29,16 @@ const (
 	ErrWorkflowExists = WorkflowBackendErr("workflow already exists")
 )
 
+// EnvVar describes environment variable and its value that needs to be passed to tekton task
+type EnvVar struct {
+	name  string
+	value string
+}
+
+var (
+	globalEnvVars []EnvVar
+)
+
 // WorkflowBackendErr are expected errors returned from the WorkflowBackend
 type WorkflowBackendErr string
 
@@ -179,6 +189,10 @@ func generatePipeline(w workflow.Workflow, namespace string) *v1beta1.Pipeline {
 	pb := builder.NewPipelineBuilder(w.Name, namespace)
 	pb.Meta(builder.Label("fuseml/generated-from", w.Name))
 	pb.Description(*w.Description)
+	globalEnvVars = []EnvVar{
+		EnvVar{"WORKFLOW_NAMESPACE", namespace},
+		EnvVar{"WORKFLOW_NAME", w.Name},
+	}
 
 	// process the FuseML workflow inputs
 	for _, input := range w.Inputs {
@@ -413,6 +427,10 @@ func toTektonTaskSpec(step workflow.WorkflowStep) v1beta1.TaskSpec {
 	// load environment variables
 	for _, stepEnv := range step.Env {
 		tb.Env(*stepEnv.Name, *stepEnv.Value)
+	}
+	// export useful env variables to all steps
+	for _, envVar := range globalEnvVars {
+		tb.Env(fmt.Sprintf("%s%s", globalEnvVarPrefix, envVar.name), envVar.value)
 	}
 
 	return tb.TaskSpec
