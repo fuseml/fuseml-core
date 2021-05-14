@@ -197,6 +197,7 @@ func payloadBuilders(genpkg string, svc *expr.HTTPServiceExpr, data *CommandData
 		{Path: "unicode/utf8"},
 		codegen.GoaImport(""),
 		codegen.GoaNamedImport("http", "goahttp"),
+		{Name: "yaml", Path: "github.com/goccy/go-yaml"},
 		{Path: genpkg + "/" + codegen.SnakeCase(sd.Service.VarName), Name: sd.Service.PkgName},
 	}
 	sections := []*codegen.SectionTemplate{
@@ -262,9 +263,9 @@ func makeFlags(e *http.EndpointData, args []*http.InitArgData, payload expr.Data
 		code, chek := FieldLoadCode(f, arg.VarName, arg.TypeName, arg.Validate, arg.DefaultValue, payload)
 		check = check || chek
 		tn := arg.TypeRef
-		if f.Type == "JSON" {
+		if f.Type == "YAML" {
 			// We need to declare the variable without
-			// a pointer to be able to unmarshal the JSON
+			// a pointer to be able to unmarshal the YAML
 			// using its address.
 			tn = arg.TypeName
 		}

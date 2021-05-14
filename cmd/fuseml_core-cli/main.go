@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/goccy/go-yaml"
 
 	codeset "github.com/fuseml/fuseml-core/gen/codeset"
 	gitc "github.com/fuseml/fuseml-core/pkg/client"
@@ -92,7 +93,7 @@ func main() {
 	}
 
 	if data != nil {
-		m, _ := json.MarshalIndent(data, "", "    ")
+		m, _ := yaml.Marshal(data)
 		fmt.Println(string(m))
 	}
 	// Pushing the code must be done from client, before passing the request to the server

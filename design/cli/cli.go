@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/goccy/go-yaml"
 	"goa.design/goa/v3/codegen"
 	"goa.design/goa/v3/codegen/service"
 	"goa.design/goa/v3/expr"
@@ -72,7 +73,7 @@ type (
 		Description string
 		// Required is true if the flag is required.
 		Required bool
-		// Example returns a JSON serialized example value.
+		// Example returns a YAML serialized example value.
 		Example string
 		// Default returns the default value if any.
 		Default interface{}
@@ -182,7 +183,7 @@ func BuildSubcommandData(svcName string, m *service.MethodData, buildFunction *B
 			// No build function, just convert the arg to the body type
 			var convPre, convSuff string
 			target := "data"
-			if flagType(m.Payload) == "JSON" {
+			if flagType(m.Payload) == "YAML" {
 				target = "val"
 				convPre = fmt.Sprintf("var val %s\n", m.Payload)
 				convSuff = "\ndata = val"
@@ -197,8 +198,8 @@ func BuildSubcommandData(svcName string, m *service.MethodData, buildFunction *B
 			if check {
 				conversion = "var err error\n" + conversion
 				conversion += "\nif err != nil {\n"
-				if flagType(m.Payload) == "JSON" {
-					conversion += fmt.Sprintf(`return nil, nil, fmt.Errorf("invalid JSON for %s, \nerror: %%s, \nexample of valid JSON:\n%%s", err, %q)`,
+				if flagType(m.Payload) == "YAML" {
+					conversion += fmt.Sprintf(`return nil, nil, fmt.Errorf("invalid YAML for %s, \nerror: %%s, \nexample of valid YAML:\n%%s", err, %q)`,
 						flags[0].FullName+"Flag", flags[0].Example)
 				} else {
 					conversion += fmt.Sprintf(`return nil, nil, fmt.Errorf("invalid value for %s, must be %s")`,
@@ -310,7 +311,7 @@ func PayloadBuilderSection(buildFunction *BuildFunctionData) *codegen.SectionTem
 // example is an example value for the flag
 //
 func NewFlagData(svcn, en, name, typeName, description string, required bool, example, def interface{}) *FlagData {
-	ex := jsonExample(example)
+	ex := yamlExample(example)
 	fn := goifyTerms(svcn, en, name)
 	return &FlagData{
 		Name:        codegen.KebabCase(name),
@@ -366,8 +367,8 @@ func FieldLoadCode(f *FlagData, argName, argTypeName, validate string, defaultVa
 			code, declErr, checkErr = conversionCode(f.FullName, argName, argTypeName, !f.Required && defaultValue == nil)
 			if checkErr {
 				code += "\nif err != nil {\n"
-				if flagType(argTypeName) == "JSON" {
-					code += fmt.Sprintf(`return %v, fmt.Errorf("invalid JSON for %s, \nerror: %%s, \nexample of valid JSON:\n%%s", err, %q)`,
+				if flagType(argTypeName) == "YAML" {
+					code += fmt.Sprintf(`return %v, fmt.Errorf("invalid YAML for %s, \nerror: %%s, \nexample of valid YAML:\n%%s", err, %q)`,
 						rval, argName, f.Example)
 				} else {
 					code += fmt.Sprintf(`return %v, fmt.Errorf("invalid value for %s, must be %s")`,
@@ -391,7 +392,7 @@ func flagType(tname string) string {
 	case bytesN:
 		return "STRING"
 	default: // Any, Array, Map, Object, User
-		return "JSON"
+		return "YAML"
 	}
 }
 
@@ -437,6 +438,48 @@ func jsonExample(v interface{}) string {
 	return ex
 }
 
+// yamlExample generates a yaml example
+func yamlExample(v interface{}) string {
+	// In YAML, keys must be a string. But goa allows map keys to be anything.
+	r := reflect.ValueOf(v)
+	if r.Kind() == reflect.Map {
+		keys := r.MapKeys()
+		if keys[0].Kind() != reflect.String {
+			a := make(map[string]interface{}, len(keys))
+			var kstr string
+			for _, k := range keys {
+				switch t := k.Interface().(type) {
+				case bool:
+					kstr = strconv.FormatBool(t)
+				case int32:
+					kstr = strconv.FormatInt(int64(t), 10)
+				case int64:
+					kstr = strconv.FormatInt(t, 10)
+				case int:
+					kstr = strconv.Itoa(t)
+				case float32:
+					kstr = strconv.FormatFloat(float64(t), 'f', -1, 32)
+				case float64:
+					kstr = strconv.FormatFloat(t, 'f', -1, 64)
+				default:
+					kstr = k.String()
+				}
+				a[kstr] = r.MapIndex(k).Interface()
+			}
+			v = a
+		}
+	}
+	b, err := yaml.Marshal(v)
+	ex := "?"
+	if err == nil {
+		ex = string(b)
+	}
+	if strings.Contains(ex, "\n") {
+		ex = "'" + strings.Replace(ex, "'", "\\'", -1) + "'"
+	}
+	return ex
+}
+
 var (
 	boolN    = codegen.GoNativeTypeName(expr.Boolean)
 	intN     = codegen.GoNativeTypeName(expr.Int)
@@ -463,7 +506,7 @@ func conversionCode(from, to, typeName string, pointer bool) (string, bool, bool
 		cast  string
 
 		target   = to
-		needCast = typeName != stringN && typeName != bytesN && flagType(typeName) != "JSON"
+		needCast = typeName != stringN && typeName != bytesN && flagType(typeName) != "YAML"
 		declErr  = true
 		checkErr = true
 		decl     = ""
@@ -511,7 +554,7 @@ func conversionCode(from, to, typeName string, pointer bool) (string, bool, bool
 		declErr = false
 		checkErr = false
 	default:
-		parse = fmt.Sprintf("err = json.Unmarshal([]byte(%s), &%s)", from, target)
+		parse = fmt.Sprintf("err = yaml.Unmarshal([]byte(%s), &%s)", from, target)
 	}
 	if !needCast {
 		return parse, declErr, checkErr
