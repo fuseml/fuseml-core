@@ -5,15 +5,15 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/fuseml/fuseml-core/gen/codeset"
+	"github.com/fuseml/fuseml-core/pkg/domain"
 )
 
 // GitAdmin is an inteface to git administration clients
 type GitAdmin interface {
-	PrepareRepository(*codeset.Codeset, *string) error
+	PrepareRepository(*domain.Codeset, *string) error
 	CreateRepoWebhook(string, string, *string) error
-	GetRepositories(org, label *string) ([]*codeset.Codeset, error)
-	GetRepository(org, name string) (*codeset.Codeset, error)
+	GetRepositories(org, label *string) ([]*domain.Codeset, error)
+	GetRepository(org, name string) (*domain.Codeset, error)
 }
 
 // GitCodesetStore describes a stucture that accesses codeset store implemented in git
@@ -29,7 +29,7 @@ func NewGitCodesetStore(gitAdmin GitAdmin) *GitCodesetStore {
 }
 
 // Find returns a codeset identified by project and name
-func (cs *GitCodesetStore) Find(ctx context.Context, project, name string) (*codeset.Codeset, error) {
+func (cs *GitCodesetStore) Find(ctx context.Context, project, name string) (*domain.Codeset, error) {
 	result, err := cs.gitAdmin.GetRepository(project, name)
 	if err != nil {
 		return nil, errors.Wrap(err, "Fetching Codeset failed")
@@ -38,7 +38,7 @@ func (cs *GitCodesetStore) Find(ctx context.Context, project, name string) (*cod
 }
 
 // GetAll returns all codesets matching given project and label
-func (cs *GitCodesetStore) GetAll(ctx context.Context, project, label *string) ([]*codeset.Codeset, error) {
+func (cs *GitCodesetStore) GetAll(ctx context.Context, project, label *string) ([]*domain.Codeset, error) {
 	result, err := cs.gitAdmin.GetRepositories(project, label)
 	if err != nil {
 		return nil, errors.Wrap(err, "Fetching Codesets failed")
@@ -47,7 +47,7 @@ func (cs *GitCodesetStore) GetAll(ctx context.Context, project, label *string) (
 }
 
 // CreateWebhook adds a new webhook to a codeset
-func (cs *GitCodesetStore) CreateWebhook(ctx context.Context, c *codeset.Codeset, listenerURL string) error {
+func (cs *GitCodesetStore) CreateWebhook(ctx context.Context, c *domain.Codeset, listenerURL string) error {
 	err := cs.gitAdmin.CreateRepoWebhook(c.Project, c.Name, &listenerURL)
 	if err != nil {
 		return errors.Wrap(err, "Creating webhook failed")
@@ -56,7 +56,7 @@ func (cs *GitCodesetStore) CreateWebhook(ctx context.Context, c *codeset.Codeset
 }
 
 // Add creates new codeset
-func (cs *GitCodesetStore) Add(ctx context.Context, c *codeset.Codeset) (*codeset.Codeset, error) {
+func (cs *GitCodesetStore) Add(ctx context.Context, c *domain.Codeset) (*domain.Codeset, error) {
 	err := cs.gitAdmin.PrepareRepository(c, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "Preparing Repository failed")

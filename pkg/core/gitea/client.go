@@ -7,16 +7,16 @@ import (
 	"code.gitea.io/sdk/gitea"
 	"github.com/pkg/errors"
 
-	codeset "github.com/fuseml/fuseml-core/gen/codeset"
 	config "github.com/fuseml/fuseml-core/pkg/core/config"
+	"github.com/fuseml/fuseml-core/pkg/domain"
 )
 
 // AdminClient describes the interface of Gitea Admin Client
 type AdminClient interface {
-	PrepareRepository(*codeset.Codeset, *string) error
+	PrepareRepository(*domain.Codeset, *string) error
 	CreateRepoWebhook(string, string, *string) error
-	GetRepositories(org, label *string) ([]*codeset.Codeset, error)
-	GetRepository(org, name string) (*codeset.Codeset, error)
+	GetRepositories(org, label *string) ([]*domain.Codeset, error)
+	GetRepository(org, name string) (*domain.Codeset, error)
 }
 
 // Client describes the interface of Gitea Client
@@ -158,7 +158,7 @@ func (gac giteaAdminClient) CreateUser(org string) error {
 }
 
 // create git repository with given name under given org
-func (gac giteaAdminClient) CreateRepo(c *codeset.Codeset) error {
+func (gac giteaAdminClient) CreateRepo(c *domain.Codeset) error {
 	_, resp, err := gac.giteaClient.GetRepo(c.Project, c.Name)
 	if resp == nil && err != nil {
 		return errors.Wrap(err, "Failed to make get repo request")
@@ -175,7 +175,7 @@ func (gac giteaAdminClient) CreateRepo(c *codeset.Codeset) error {
 		AutoInit:      true,
 		Private:       true,
 		DefaultBranch: "main",
-		Description:   *c.Description,
+		Description:   c.Description,
 	})
 
 	if err != nil {
@@ -232,7 +232,7 @@ func (gac giteaAdminClient) CreateRepoWebhook(org, name string, listenerURL *str
 }
 
 // Prepare the org, repository, and create user that clients can use for pushing
-func (gac giteaAdminClient) PrepareRepository(code *codeset.Codeset, listenerURL *string) error {
+func (gac giteaAdminClient) PrepareRepository(code *domain.Codeset, listenerURL *string) error {
 
 	err := gac.CreateOrganization(code.Project)
 	if err != nil {
@@ -272,8 +272,8 @@ func contains(s []string, str string) bool {
 }
 
 // Get all repositories for given project, filter them for label (if given)
-func (gac giteaAdminClient) GetReposForOrg(org string, label *string) ([]*codeset.Codeset, error) {
-	var codesets []*codeset.Codeset
+func (gac giteaAdminClient) GetReposForOrg(org string, label *string) ([]*domain.Codeset, error) {
+	var codesets []*domain.Codeset
 	gac.logger.Printf("Listing repos for org '%s'...", org)
 	repos, _, err := gac.giteaClient.ListOrgRepos(org, gitea.ListOrgReposOptions{})
 	if err != nil {
@@ -281,7 +281,6 @@ func (gac giteaAdminClient) GetReposForOrg(org string, label *string) ([]*codese
 	}
 	for _, repo := range repos {
 		var labels []string
-		var description *string
 		labels, _, err = gac.giteaClient.ListRepoTopics(org, repo.Name, gitea.ListRepoTopicsOptions{})
 		if err != nil {
 			return nil, errors.Wrap(err, "Failed to list repo topics")
@@ -290,25 +289,21 @@ func (gac giteaAdminClient) GetReposForOrg(org string, label *string) ([]*codese
 			continue
 		}
 
-		if repo.Description != "" {
-			description = &repo.Description
-		}
-
-		codesets = append(codesets, &codeset.Codeset{
+		codesets = append(codesets, &domain.Codeset{
 			Name:        repo.Name,
 			Project:     org,
 			Labels:      labels,
-			Description: description,
-			URL:         &repo.CloneURL,
+			Description: repo.Description,
+			URL:         repo.CloneURL,
 		})
 	}
 	return codesets, nil
 }
 
 // Find all repositories, optionally filtered by project
-func (gac giteaAdminClient) GetRepositories(org, label *string) ([]*codeset.Codeset, error) {
+func (gac giteaAdminClient) GetRepositories(org, label *string) ([]*domain.Codeset, error) {
 
-	var allRepos []*codeset.Codeset
+	var allRepos []*domain.Codeset
 	var orgs []*gitea.Organization
 
 	if org == nil {
@@ -333,7 +328,7 @@ func (gac giteaAdminClient) GetRepositories(org, label *string) ([]*codeset.Code
 }
 
 // Get the information about repository
-func (gac giteaAdminClient) GetRepository(org, name string) (*codeset.Codeset, error) {
+func (gac giteaAdminClient) GetRepository(org, name string) (*domain.Codeset, error) {
 	gac.logger.Printf("Get repo %s for org '%s'...", name, org)
 	repo, _, err := gac.giteaClient.GetRepo(org, name)
 	if err != nil {
@@ -343,21 +338,17 @@ func (gac giteaAdminClient) GetRepository(org, name string) (*codeset.Codeset, e
 		return nil, errors.New(errRepoNotFound)
 	}
 
-	ret := codeset.Codeset{
-		Name:    repo.Name,
-		Project: org,
-	}
-	if repo.Description == "" {
-		ret.Description = nil
-	} else {
-		ret.Description = &repo.Description
+	ret := domain.Codeset{
+		Name:        repo.Name,
+		Project:     org,
+		Description: repo.Description,
 	}
 	labels, _, err := gac.giteaClient.ListRepoTopics(org, name, gitea.ListRepoTopicsOptions{})
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to list repo topics")
 	}
 	ret.Labels = labels
-	ret.URL = &repo.CloneURL
+	ret.URL = repo.CloneURL
 
 	return &ret, nil
 }

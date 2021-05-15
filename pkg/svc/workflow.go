@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log"
 
-	"github.com/fuseml/fuseml-core/gen/codeset"
 	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/core/config"
 	"github.com/fuseml/fuseml-core/pkg/core/tekton"
@@ -16,7 +15,7 @@ import (
 type WorkflowBackend interface {
 	CreateListener(context.Context, *log.Logger, string, bool) (string, error)
 	CreateWorkflow(context.Context, *log.Logger, *workflow.Workflow) error
-	CreateWorkflowRun(context.Context, string, codeset.Codeset) error
+	CreateWorkflowRun(context.Context, string, domain.Codeset) error
 }
 
 // workflow service example implementation.

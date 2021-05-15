@@ -22,8 +22,8 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	rtesting "knative.dev/pkg/reconciler/testing"
 
-	"github.com/fuseml/fuseml-core/gen/codeset"
 	"github.com/fuseml/fuseml-core/gen/workflow"
+	"github.com/fuseml/fuseml-core/pkg/domain"
 )
 
 const (
@@ -90,8 +90,11 @@ func TestCreateWorkflowRun(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	csURL := "http://gitea.10.160.5.140.nip.io/workspace/mlflow-app-01.git"
-	cs := codeset.Codeset{Name: "mlflow-app-01", Project: "workspace", URL: &csURL}
+	cs := domain.Codeset{
+		Name:    "mlflow-app-01",
+		Project: "workspace",
+		URL:     "http://gitea.10.160.5.140.nip.io/workspace/mlflow-app-01.git",
+	}
 	err = b.CreateWorkflowRun(ctx, w.Name, cs)
 	if err != nil {
 		t.Fatalf("Failed to create workflow run %q: %s", w.Name, err)

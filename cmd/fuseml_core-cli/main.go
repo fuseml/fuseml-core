@@ -100,8 +100,7 @@ func main() {
 	// (Number and validity of args was already checked when creating payload)
 	if data != nil && flag.Arg(0) == "codeset" && flag.Arg(1) == "register" {
 		rp := payload.(*codeset.RegisterPayload)
-		codeset := rp.Codeset
-		err := gitc.Push(codeset.Project, codeset.Name, rp.Location)
+		err := gitc.Push(rp.Project, rp.Name, rp.Location)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err.Error())
 			os.Exit(1)

@@ -1,13 +1,14 @@
 package gitea
 
 import (
-	"code.gitea.io/sdk/gitea"
-	codeset "github.com/fuseml/fuseml-core/gen/codeset"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"testing"
+
+	"code.gitea.io/sdk/gitea"
+	"github.com/fuseml/fuseml-core/pkg/domain"
 )
 
 type TestStore struct {
@@ -73,7 +74,7 @@ func (tc testGiteaClient) AdminCreateUser(gitea.CreateUserOption) (*gitea.User, 
 }
 func (tc testGiteaClient) ListOrgTeams(string, gitea.ListTeamsOptions) ([]*gitea.Team, *gitea.Response, error) {
 	// return default team for any org
-	teams := []*gitea.Team{&gitea.Team{Name: "Owners", ID: 42}}
+	teams := []*gitea.Team{{Name: "Owners", ID: 42}}
 	return teams, nil, nil
 }
 func (tc testGiteaClient) AddTeamMember(id int64, username string) (*gitea.Response, error) {
@@ -126,13 +127,12 @@ var (
 	testListenerURL       = &testListenerStringURL
 )
 
-func getTestCodeset() *codeset.Codeset {
+func getTestCodeset() *domain.Codeset {
 
-	description := "Test description"
-	return &codeset.Codeset{
+	return &domain.Codeset{
 		Project:     project1,
 		Name:        name,
-		Description: &description,
+		Description: "Test description",
 		Labels:      []string{"mlflow", "test"},
 	}
 }
