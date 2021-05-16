@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	// LOCAL_REGISTRY_HOSTNAME - Container image location values may use this identifier as a hostname to indicate
+	// LocalRegistryHostname - Container image location values may use this identifier as a hostname to indicate
 	// that they are stored internally in the local OCI registry managed by fuseml
-	LOCAL_REGISTRY_HOSTNAME = "fuseml.local"
+	LocalRegistryHostname = "fuseml.local"
 )
 
 // RunnableKind encodes valid values that can be assigned to the Runnable.Kind field
@@ -16,10 +16,10 @@ type RunnableKind string
 
 // Valid values that can be used with RunnableKind
 const (
-	RK_CUSTOM    RunnableKind = "custom"
-	RK_BUILDER                = "builder"
-	RK_TRAINER                = "trainer"
-	RK_PREDICTOR              = "predictor"
+	RKCustom    RunnableKind = "custom"
+	RKBuilder                = "builder"
+	RKTrainer                = "trainer"
+	RKPredictor              = "predictor"
 )
 
 // ArtifactProvider encodes valid values that can be assigned to the RunnableArtifactArgDesc.Provider field
@@ -27,20 +27,20 @@ type ArtifactProvider string
 
 // Valid values that can be used with ArtifactProvider
 const (
-	AP_LOCAL  ArtifactProvider = "local"
-	AP_INLINE                  = "inline"
-	AP_FUSEML                  = "fuseml"
-	AP_S3                      = "s3"
-	AP_GS                      = "gcs"
-	AP_AZURE                   = "azure"
-	AP_GIT                     = "git"
-	AP_NFS                     = "nfs"
-	AP_FTP                     = "ftp"
-	AP_SFTP                    = "sftp"
-	AP_HTTP                    = "http"
-	AP_HTTPS                   = "https"
-	AP_HDFS                    = "hdfs"
-	AP_OCI                     = "oci"
+	APLocal  ArtifactProvider = "local"
+	APInline                  = "inline"
+	APFuseml                  = "fuseml"
+	APS3                      = "s3"
+	APGCS                     = "gcs"
+	APAzure                   = "azure"
+	APGIT                     = "git"
+	APNFS                     = "nfs"
+	APFTP                     = "ftp"
+	APSFTP                    = "sftp"
+	APHTTP                    = "http"
+	APHTTPS                   = "https"
+	APHDFS                    = "hdfs"
+	APOCI                     = "oci"
 )
 
 // RunnableArtifactArgDimension encodes valid values that can be assigned to the RunnableArtifactArgDesc.Dimension field
@@ -48,8 +48,8 @@ type RunnableArtifactArgDimension string
 
 // Valid values that can be used with RunnableArtifactArgDimension
 const (
-	RAAD_SINGLE RunnableArtifactArgDimension = "single"
-	RAAD_ARRAY                               = "array"
+	RAADSingle RunnableArtifactArgDimension = "single"
+	RAADArray                               = "array"
 )
 
 // Runnable descriptor
@@ -175,7 +175,7 @@ type RunnableCodesetArtifact struct {
 	// The format(s) used for the codeset's contents
 	Format []string
 	// Software packages, modules, libraries, toolkits etc. and optional semantic version or version requirements
-	Software map[string]string
+	Requirements map[string]string
 }
 
 // RunnableModelArtifact holds information about a model artifact used as input/output
@@ -191,7 +191,7 @@ type RunnableModelArtifact struct {
 	// The intended function for the model
 	Function string
 	// Software packages, modules, libraries, toolkits etc. and optional semantic version or version requirements
-	Software map[string]string
+	Requirements map[string]string
 }
 
 // RunnableDatasetArtifact holds information about a dataset artifact used as input/output

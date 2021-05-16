@@ -64,8 +64,8 @@ func restToDomain(r *runnable.Runnable) (res *domain.Runnable, err error) {
 	}
 
 	getLocalContainerImage := func(image string) (string, bool) {
-		if strings.HasPrefix(image, domain.LOCAL_REGISTRY_HOSTNAME+"/") {
-			return strings.TrimPrefix(image, domain.LOCAL_REGISTRY_HOSTNAME+"/"), true
+		if strings.HasPrefix(image, domain.LocalRegistryHostname+"/") {
+			return strings.TrimPrefix(image, domain.LocalRegistryHostname+"/"), true
 		}
 		return image, false
 	}
@@ -149,10 +149,10 @@ func restToDomain(r *runnable.Runnable) (res *domain.Runnable, err error) {
 				res.Inputs[aName] = &domain.RunnableInputCodeset{
 					RunnableInputArtifact: a,
 					RunnableCodesetArtifact: domain.RunnableCodesetArtifact{
-						Type:     artifact.Kind.Codeset.Type,
-						Function: artifact.Kind.Codeset.Function,
-						Format:   artifact.Kind.Codeset.Format,
-						Software: artifact.Kind.Codeset.Software,
+						Type:         artifact.Kind.Codeset.Type,
+						Function:     artifact.Kind.Codeset.Function,
+						Format:       artifact.Kind.Codeset.Format,
+						Requirements: artifact.Kind.Codeset.Requirements,
 					},
 				}
 			}
@@ -166,12 +166,12 @@ func restToDomain(r *runnable.Runnable) (res *domain.Runnable, err error) {
 				res.Inputs[aName] = &domain.RunnableInputModel{
 					RunnableInputArtifact: a,
 					RunnableModelArtifact: domain.RunnableModelArtifact{
-						Format:     artifact.Kind.Model.Format,
-						Pretrained: artifact.Kind.Model.Pretrained,
-						Method:     getStringValueOrDefault(artifact.Kind.Model.Method, ""),
-						Class:      getStringValueOrDefault(artifact.Kind.Model.Class, ""),
-						Function:   getStringValueOrDefault(artifact.Kind.Model.Function, ""),
-						Software:   artifact.Kind.Model.Software,
+						Format:       artifact.Kind.Model.Format,
+						Pretrained:   artifact.Kind.Model.Pretrained,
+						Method:       getStringValueOrDefault(artifact.Kind.Model.Method, ""),
+						Class:        getStringValueOrDefault(artifact.Kind.Model.Class, ""),
+						Function:     getStringValueOrDefault(artifact.Kind.Model.Function, ""),
+						Requirements: artifact.Kind.Model.Requirements,
 					},
 				}
 			}
@@ -269,10 +269,10 @@ func restToDomain(r *runnable.Runnable) (res *domain.Runnable, err error) {
 				res.Outputs[aName] = &domain.RunnableOutputCodeset{
 					RunnableOutputArtifact: a,
 					RunnableCodesetArtifact: domain.RunnableCodesetArtifact{
-						Type:     artifact.Kind.Codeset.Type,
-						Function: artifact.Kind.Codeset.Function,
-						Format:   artifact.Kind.Codeset.Format,
-						Software: artifact.Kind.Codeset.Software,
+						Type:         artifact.Kind.Codeset.Type,
+						Function:     artifact.Kind.Codeset.Function,
+						Format:       artifact.Kind.Codeset.Format,
+						Requirements: artifact.Kind.Codeset.Requirements,
 					},
 				}
 			}
@@ -286,12 +286,12 @@ func restToDomain(r *runnable.Runnable) (res *domain.Runnable, err error) {
 				res.Outputs[aName] = &domain.RunnableOutputModel{
 					RunnableOutputArtifact: a,
 					RunnableModelArtifact: domain.RunnableModelArtifact{
-						Format:     artifact.Kind.Model.Format,
-						Pretrained: artifact.Kind.Model.Pretrained,
-						Method:     getStringValueOrDefault(artifact.Kind.Model.Method, ""),
-						Class:      getStringValueOrDefault(artifact.Kind.Model.Class, ""),
-						Function:   getStringValueOrDefault(artifact.Kind.Model.Function, ""),
-						Software:   artifact.Kind.Model.Software,
+						Format:       artifact.Kind.Model.Format,
+						Pretrained:   artifact.Kind.Model.Pretrained,
+						Method:       getStringValueOrDefault(artifact.Kind.Model.Method, ""),
+						Class:        getStringValueOrDefault(artifact.Kind.Model.Class, ""),
+						Function:     getStringValueOrDefault(artifact.Kind.Model.Function, ""),
+						Requirements: artifact.Kind.Model.Requirements,
 					},
 				}
 			}
@@ -344,7 +344,7 @@ func domainToRest(r *domain.Runnable) (res *runnable.Runnable) {
 
 	getLocalContainerImage := func(image string, local bool) string {
 		if local {
-			return image + "/" + domain.LOCAL_REGISTRY_HOSTNAME
+			return image + "/" + domain.LocalRegistryHostname
 		}
 		return image
 	}
@@ -415,29 +415,29 @@ func domainToRest(r *domain.Runnable) (res *runnable.Runnable) {
 			artifact = getRestInputArtifact(input)
 		case *domain.RunnableInputCodeset:
 			artifact = getRestInputArtifact(&input.RunnableInputArtifact)
-			artifact.Kind = &runnable.RunnableInputArtifactKind{
+			artifact.Kind = &runnable.RunnableArtifactKind{
 				Codeset: &runnable.CodesetArgumentDesc{
-					Type:     input.Type,
-					Function: input.Function,
-					Format:   input.Format,
-					Software: input.Software,
+					Type:         input.Type,
+					Function:     input.Function,
+					Format:       input.Format,
+					Requirements: input.Requirements,
 				},
 			}
 		case *domain.RunnableInputModel:
 			artifact = getRestInputArtifact(&input.RunnableInputArtifact)
-			artifact.Kind = &runnable.RunnableInputArtifactKind{
+			artifact.Kind = &runnable.RunnableArtifactKind{
 				Model: &runnable.ModelArgumentDesc{
-					Format:     input.Format,
-					Pretrained: input.Pretrained,
-					Method:     getNilIfEmptyString(input.Method),
-					Class:      getNilIfEmptyString(input.Class),
-					Function:   getNilIfEmptyString(input.Function),
-					Software:   input.Software,
+					Format:       input.Format,
+					Pretrained:   input.Pretrained,
+					Method:       getNilIfEmptyString(input.Method),
+					Class:        getNilIfEmptyString(input.Class),
+					Function:     getNilIfEmptyString(input.Function),
+					Requirements: input.Requirements,
 				},
 			}
 		case *domain.RunnableInputDataset:
 			artifact = getRestInputArtifact(&input.RunnableInputArtifact)
-			artifact.Kind = &runnable.RunnableInputArtifactKind{
+			artifact.Kind = &runnable.RunnableArtifactKind{
 				Dataset: &runnable.DatasetArgumentDesc{
 					Type:        input.Type,
 					Format:      input.Format,
@@ -446,7 +446,7 @@ func domainToRest(r *domain.Runnable) (res *runnable.Runnable) {
 			}
 		case *domain.RunnableInputRunnable:
 			artifact = getRestInputArtifact(&input.RunnableInputArtifact)
-			artifact.Kind = &runnable.RunnableInputArtifactKind{
+			artifact.Kind = &runnable.RunnableArtifactKind{
 				Runnable: &runnable.RunnableArgumentDesc{
 					Kind: getNilIfEmptyString(input.Kind),
 				},
@@ -495,29 +495,29 @@ func domainToRest(r *domain.Runnable) (res *runnable.Runnable) {
 			artifact = getRestOutputArtifact(Output)
 		case *domain.RunnableOutputCodeset:
 			artifact = getRestOutputArtifact(&Output.RunnableOutputArtifact)
-			artifact.Kind = &runnable.RunnableOutputArtifactKind{
+			artifact.Kind = &runnable.RunnableArtifactKind{
 				Codeset: &runnable.CodesetArgumentDesc{
-					Type:     Output.Type,
-					Function: Output.Function,
-					Format:   Output.Format,
-					Software: Output.Software,
+					Type:         Output.Type,
+					Function:     Output.Function,
+					Format:       Output.Format,
+					Requirements: Output.Requirements,
 				},
 			}
 		case *domain.RunnableOutputModel:
 			artifact = getRestOutputArtifact(&Output.RunnableOutputArtifact)
-			artifact.Kind = &runnable.RunnableOutputArtifactKind{
+			artifact.Kind = &runnable.RunnableArtifactKind{
 				Model: &runnable.ModelArgumentDesc{
-					Format:     Output.Format,
-					Pretrained: Output.Pretrained,
-					Method:     getNilIfEmptyString(Output.Method),
-					Class:      getNilIfEmptyString(Output.Class),
-					Function:   getNilIfEmptyString(Output.Function),
-					Software:   Output.Software,
+					Format:       Output.Format,
+					Pretrained:   Output.Pretrained,
+					Method:       getNilIfEmptyString(Output.Method),
+					Class:        getNilIfEmptyString(Output.Class),
+					Function:     getNilIfEmptyString(Output.Function),
+					Requirements: Output.Requirements,
 				},
 			}
 		case *domain.RunnableOutputDataset:
 			artifact = getRestOutputArtifact(&Output.RunnableOutputArtifact)
-			artifact.Kind = &runnable.RunnableOutputArtifactKind{
+			artifact.Kind = &runnable.RunnableArtifactKind{
 				Dataset: &runnable.DatasetArgumentDesc{
 					Type:        Output.Type,
 					Format:      Output.Format,
@@ -526,7 +526,7 @@ func domainToRest(r *domain.Runnable) (res *runnable.Runnable) {
 			}
 		case *domain.RunnableOutputRunnable:
 			artifact = getRestOutputArtifact(&Output.RunnableOutputArtifact)
-			artifact.Kind = &runnable.RunnableOutputArtifactKind{
+			artifact.Kind = &runnable.RunnableArtifactKind{
 				Runnable: &runnable.RunnableArgumentDesc{
 					Kind: getNilIfEmptyString(Output.Kind),
 				},
