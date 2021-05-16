@@ -52,9 +52,11 @@ git commit --no-gpg-sign -m "pushed at %s"
 git push fuseml master:main
 `, location, u.String(), time.Now().Format("20060102150405")))
 
-	_, err = cmd.CombinedOutput()
+	stdout, err := cmd.CombinedOutput()
 	if err != nil {
-		return errors.Wrap(err, "Pushing the code has failed")
+		return errors.Wrap(err,
+			fmt.Sprintf("Pushing the code has failed with:\n%s\n",
+				string(stdout)))
 	}
 	return nil
 }
