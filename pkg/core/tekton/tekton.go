@@ -189,10 +189,7 @@ func generatePipeline(w workflow.Workflow, namespace string) *v1beta1.Pipeline {
 	pb := builder.NewPipelineBuilder(w.Name, namespace)
 	pb.Meta(builder.Label("fuseml/generated-from", w.Name))
 	pb.Description(*w.Description)
-	globalEnvVars = []EnvVar{
-		EnvVar{"WORKFLOW_NAMESPACE", namespace},
-		EnvVar{"WORKFLOW_NAME", w.Name},
-	}
+	globalEnvVars = []EnvVar{{"WORKFLOW_NAMESPACE", namespace}, {"WORKFLOW_NAME", w.Name}}
 
 	// process the FuseML workflow inputs
 	for _, input := range w.Inputs {
