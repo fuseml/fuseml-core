@@ -42,7 +42,7 @@ func testLogger() *log.Logger {
 	return logger
 }
 
-func NewTestGiteaAdminClient(testStore *TestStore) *giteaAdminClient {
+func newTestGiteaAdminClient(testStore *TestStore) *giteaAdminClient {
 	return &giteaAdminClient{
 		giteaClient: &testGiteaClient{testStore},
 		logger:      testLogger(),
@@ -151,7 +151,7 @@ func assertError(t testing.TB, got error, want string) {
 func TestPrepareRepository(t *testing.T) {
 
 	testStore := NewTestStore()
-	testGiteaAdminClient := NewTestGiteaAdminClient(testStore)
+	testGiteaAdminClient := newTestGiteaAdminClient(testStore)
 	code := getTestCodeset()
 
 	// checking initial state of owners team members
@@ -185,7 +185,7 @@ func TestPrepareRepository(t *testing.T) {
 
 func TestGetRepository(t *testing.T) {
 
-	testGiteaAdminClient := NewTestGiteaAdminClient(NewTestStore())
+	testGiteaAdminClient := newTestGiteaAdminClient(NewTestStore())
 
 	// Reading repo that was not added should throw error
 	_, err := testGiteaAdminClient.GetRepository(project1, name)
@@ -207,7 +207,7 @@ func TestGetRepository(t *testing.T) {
 
 func TestGetRepositories(t *testing.T) {
 
-	testGiteaAdminClient := NewTestGiteaAdminClient(NewTestStore())
+	testGiteaAdminClient := newTestGiteaAdminClient(NewTestStore())
 
 	repos, err := testGiteaAdminClient.GetRepositories(&project1, nil)
 	if len(repos) > 0 {
