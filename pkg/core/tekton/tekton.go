@@ -18,9 +18,9 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"knative.dev/pkg/apis"
 
-	"github.com/fuseml/fuseml-core/gen/codeset"
 	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/core/tekton/builder"
+	"github.com/fuseml/fuseml-core/pkg/domain"
 )
 
 const (
@@ -73,7 +73,7 @@ func (w *WorkflowBackend) CreateWorkflow(ctx context.Context, logger *log.Logger
 }
 
 // CreateWorkflowRun creates a PipelineRun with its default values for received workflow and codeset
-func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, workflowName string, codeset codeset.Codeset) error {
+func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, workflowName string, codeset domain.Codeset) error {
 	pipeline, err := w.tektonClients.PipelineClient.Get(ctx, workflowName, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("error getting tekton pipeline %q: %w", workflowName, err)
@@ -283,7 +283,7 @@ STEPS:
 	return &pb.Pipeline
 }
 
-func generatePipelineRun(p *v1beta1.Pipeline, codeset codeset.Codeset) (*v1beta1.PipelineRun, error) {
+func generatePipelineRun(p *v1beta1.Pipeline, codeset domain.Codeset) (*v1beta1.PipelineRun, error) {
 	codesetVersion := "main"
 	prb := builder.NewPipelineRunBuilder(fmt.Sprintf("%s%s-%s-", pipelineRunPrefix, codeset.Project, codeset.Name))
 
@@ -311,7 +311,7 @@ func generatePipelineRun(p *v1beta1.Pipeline, codeset codeset.Codeset) (*v1beta1
 
 	for _, res := range p.Spec.Resources {
 		if res.Type == "git" {
-			prb.ResourceGit(res.Name, *codeset.URL, codesetVersion)
+			prb.ResourceGit(res.Name, codeset.URL, codesetVersion)
 		}
 	}
 	return &prb.PipelineRun, nil
