@@ -5,12 +5,17 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/core/config"
 	"github.com/fuseml/fuseml-core/pkg/core/tekton"
 	"github.com/fuseml/fuseml-core/pkg/domain"
 )
+
+// createWorkflowListenerTimeout is the time (in minutes) that FuseML waits for the workflow listener
+// to be available
+const createWorkflowListenerTimeout = 1
 
 // workflow service example implementation.
 // The example methods log the requests and return zero values.
@@ -103,7 +108,7 @@ func (s *workflowsrvc) Assign(ctx context.Context, w *workflow.AssignPayload) (e
 		return workflow.MakeNotFound(err)
 	}
 
-	wfListener, err := s.backend.CreateWorkflowListener(ctx, s.logger, w.Name, true)
+	wfListener, err := s.backend.CreateWorkflowListener(ctx, s.logger, w.Name, createWorkflowListenerTimeout*time.Minute)
 	if err != nil {
 		s.logger.Print(err)
 		return err

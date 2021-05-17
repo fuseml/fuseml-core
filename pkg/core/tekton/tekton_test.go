@@ -157,7 +157,7 @@ func TestCreateWorkflowRun(t *testing.T) {
 	}
 
 	if len(runs.Items) > 1 {
-		t.Errorf("Expected 1 PipelineRun, got %q", len(runs.Items))
+		t.Errorf("Expected 1 PipelineRun, got %d", len(runs.Items))
 	}
 
 	got := runs.Items[0]
@@ -425,7 +425,7 @@ func TestListWorkflowRuns(t *testing.T) {
 
 }
 
-func TestCreateListener(t *testing.T) {
+func TestCreateWorkflowListener(t *testing.T) {
 	t.Run("new listener", func(t *testing.T) {
 		ctx, b, logs, logsOutput := initBackend(t)
 
@@ -439,7 +439,7 @@ func TestCreateListener(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		wfListener, err := b.CreateWorkflowListener(ctx, logs, w.Name, false)
+		wfListener, err := b.CreateWorkflowListener(ctx, logs, w.Name, 0)
 		assertError(t, err, nil)
 
 		wantURL := fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", w.Name, b.namespace)
@@ -521,12 +521,12 @@ Creating tekton event listener for workflow: mlflow-sklearn-e2e...
 			t.Fatal(err)
 		}
 
-		_, err = b.CreateWorkflowListener(ctx, discardLogs, w.Name, false)
+		_, err = b.CreateWorkflowListener(ctx, discardLogs, w.Name, 0)
 		if err != nil {
 			t.Fatalf("Failed to create listener for workflow %q: %s", w.Name, err)
 		}
 
-		wfListener, err := b.CreateWorkflowListener(ctx, logs, w.Name, false)
+		wfListener, err := b.CreateWorkflowListener(ctx, logs, w.Name, 0)
 		assertError(t, err, nil)
 
 		wantURL := fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", w.Name, b.namespace)
@@ -545,9 +545,60 @@ Creating tekton event listener for workflow: mlflow-sklearn-e2e...
 		expectedLog := ""
 		assertStrings(t, logsOutput.String(), expectedLog)
 	})
+
+	t.Run("clean if fail", func(t *testing.T) {
+		ctx, b, logs, logsOutput := initBackend(t)
+
+		discardOutput := bytes.Buffer{}
+		discardLogs := log.New(&discardOutput, "[tekton-test] ", log.Ltime)
+		w := workflow.Workflow{}
+		readYaml(t, fuseMLWorkflow, &w)
+
+		err := b.CreateWorkflow(ctx, discardLogs, &w)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		_, err = b.CreateWorkflowListener(ctx, logs, w.Name, 1*time.Nanosecond)
+		assertError(t, err, errWaitListenerTimeout)
+
+		templates, err := b.tektonClients.TriggerTemplateClient.List(ctx, metav1.ListOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(templates.Items) > 0 {
+			t.Errorf("Expected 0 Trigger Templates, got %d", len(templates.Items))
+		}
+
+		bindings, err := b.tektonClients.TriggerBindingClient.List(ctx, metav1.ListOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(bindings.Items) > 0 {
+			t.Errorf("Expected 0 Trigger Bindings, got %d", len(bindings.Items))
+		}
+
+		eventListeners, err := b.tektonClients.EventListenerClient.List(ctx, metav1.ListOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(eventListeners.Items) > 0 {
+			t.Errorf("Expected 0 Event Listeners, got %d", len(eventListeners.Items))
+		}
+
+		expectedLog := `Creating tekton trigger template for workflow: mlflow-sklearn-e2e...
+Creating tekton trigger binding for workflow: mlflow-sklearn-e2e...
+Creating tekton event listener for workflow: mlflow-sklearn-e2e...
+Deleting EventListener: mlflow-sklearn-e2e... (creating listener failed)
+Deleting TriggerBinding: mlflow-sklearn-e2e... (creating listener failed)
+Deleting TriggerTemplate: mlflow-sklearn-e2e... (creating listener failed)
+`
+		assertStrings(t, logsOutput.String(), expectedLog)
+	})
+
 }
 
-func TestDeleteListener(t *testing.T) {
+func TestDeleteWorkflowListener(t *testing.T) {
 	t.Run("delete", func(t *testing.T) {
 		ctx, b, logs, logsOutput := initBackend(t)
 
@@ -561,7 +612,7 @@ func TestDeleteListener(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		wfListener, err := b.CreateWorkflowListener(ctx, discardLogs, w.Name, false)
+		wfListener, err := b.CreateWorkflowListener(ctx, discardLogs, w.Name, 0)
 		if err != nil {
 			t.Fatalf("Failed to create listener for workflow %q: %s", w.Name, err)
 		}
@@ -784,7 +835,7 @@ func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T
 func (b WorkflowBackend) createTestListener(ctx context.Context, t *testing.T, logger *log.Logger, workflow string, available bool) {
 	t.Helper()
 
-	_, err := b.CreateWorkflowListener(ctx, logger, workflow, false)
+	_, err := b.CreateWorkflowListener(ctx, logger, workflow, 0)
 	if err != nil {
 		t.Fatalf("Failed to create listener %q: %s", workflow, err)
 	}
