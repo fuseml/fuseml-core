@@ -7,7 +7,7 @@ import (
 	"time"
 
 	cli "github.com/fuseml/fuseml-core/gen/http/cli/fuseml_core"
-	"github.com/goccy/go-yaml"
+	yaml "github.com/goccy/go-yaml"
 	goahttp "goa.design/goa/v3/http"
 	goa "goa.design/goa/v3/pkg"
 )
@@ -54,7 +54,7 @@ func responseDecoder(resp *http.Response) goahttp.Decoder {
 	case ct == "", ct == "application/x-yaml", ct == "text/x-yaml":
 		fallthrough
 	case strings.HasSuffix(ct, "+yaml"):
-		return yaml.NewDecoder(resp.Body)
+		return yaml.NewDecoder(resp.Body, yaml.Strict())
 	default:
 		return goahttp.ResponseDecoder(resp)
 	}

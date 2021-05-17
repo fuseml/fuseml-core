@@ -554,7 +554,7 @@ func conversionCode(from, to, typeName string, pointer bool) (string, bool, bool
 		declErr = false
 		checkErr = false
 	default:
-		parse = fmt.Sprintf("err = yaml.Unmarshal([]byte(%s), &%s)", from, target)
+		parse = fmt.Sprintf("err = yaml.UnmarshalWithOptions([]byte(%s), &%s, yaml.Strict())", from, target)
 	}
 	if !needCast {
 		return parse, declErr, checkErr
@@ -728,12 +728,13 @@ Additional help:
 }
 
 {{- range .Subcommands }}
+{{ printf "%sUsage displays the usage of the %s %s subcommand." .FullName $.Name .Name | comment }}
 func {{ .FullName }}Usage() {
-	fmt.Fprintf(os.Stderr, ` + "`" + `%s [flags] {{ $.Name }} {{ .Name }}{{range .Flags }} -{{ .Name }} {{ .Type }}{{ end }}
+	fmt.Fprintf(os.Stderr, ` + "`" + `%s [flags] {{ $.Name }} {{ .Name }}{{range .Flags }} --{{ .Name }} {{ .Type }}{{ end }}
 
 {{ printDescription .Description}}
 	{{- range .Flags }}
-    -{{ .Name }} {{ .Type }}: {{ .Description }}
+    --{{ .Name }} {{ .Type }}: {{ .Description }}
 	{{- end }}
 
 Example:
