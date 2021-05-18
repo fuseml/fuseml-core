@@ -128,6 +128,47 @@ var _ = Service("workflow", func() {
 			Response("NotFound", CodeNotFound)
 		})
 	})
+
+	Method("listRuns", func() {
+		Description("List workflow runs")
+
+		Payload(func() {
+			Field(1, "workflowName", String, "Name of the Workflow to list runs from", func() {
+				Example("mlflow-sklearn-e2e")
+			})
+			Field(2, "codesetName", String, "Name of the codeset to list runs from", func() {
+				Example("mlflow-project-001")
+			})
+			Field(3, "codesetProject", String, "Name of the codeset project to list runs from", func() {
+				Example("workspace")
+			})
+			Field(4, "status", String, "status of the workflow runs to list", func() {
+				Enum("Started", "Running", "Cancelled", "Succeeded", "Failed", "Completed", "Timeout")
+				Example("Succeeded")
+			})
+		})
+
+		Error("NotFound", func() {
+			Description("If there is no workflow with the given name, should return 404 Not Found.")
+		})
+
+		Result(ArrayOf(WorkflowRun), "Return all runs for a workflow.")
+
+		HTTP(func() {
+			GET("/workflows/runs")
+			Param("workflowName")
+			Param("codesetName")
+			Param("codesetProject")
+			Param("status")
+			Response(StatusOK)
+			Response("NotFound", StatusNotFound)
+		})
+
+		GRPC(func() {
+			Response(CodeOK)
+			Response("NotFound", CodeNotFound)
+		})
+	})
 })
 
 // Workflow describes a FuseML workflow
@@ -241,4 +282,37 @@ var StepEnv = Type("StepEnv", func() {
 	Field(2, "value", String, "Value to set for the enviroment variable", func() {
 		Example("/project")
 	})
+})
+
+// WorkflowRun describes a workflow run returned when listed
+var WorkflowRun = Type("WorkflowRun", func() {
+	Field(1, "name", String, "Name of the run")
+	Field(2, "workflowRef", String, "Reference to the Workflow")
+	Field(3, "inputs", ArrayOf(WorkflowRunInput), "Workflow run inputs")
+	Field(4, "outputs", ArrayOf(WorkflowRunOutput), "Outputs from the workflow run")
+	Field(5, "startTime", String, "The time when the workflow run started", func() {
+		Format(FormatDateTime)
+		Example("2021-04-09T06:17:25Z")
+	})
+	Field(6, "completionTime", String, "The time when the workflow run completed", func() {
+		Format(FormatDateTime)
+		Example("2021-04-09T06:20:35Z")
+	})
+	Field(7, "status", String, "The current status of the workflow run", func() {
+		Enum("Started", "Running", "Cancelled", "Succeeded", "Failed", "Completed", "Timeout", "Unknown")
+		Example("Succeeded")
+	})
+	Field(8, "URL", String, "Dashboard URL to the workflow run")
+})
+
+// WorkflowRunInput describes a input from a WorkflowRun including its value
+var WorkflowRunInput = Type("WorkflowRunInput", func() {
+	Field(1, "input", WorkflowInput, "The workflow input")
+	Field(2, "value", String, "The input value set by the Workflow run")
+})
+
+// WorkflowRunInput describes the output from a WorkflowRun including its value
+var WorkflowRunOutput = Type("WorkflowRunOutput", func() {
+	Field(1, "output", WorkflowOutput, "The workflow output")
+	Field(2, "value", String, "The output value set by the Workflow run")
 })

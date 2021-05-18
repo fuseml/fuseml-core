@@ -4,7 +4,9 @@ metadata:
   generateName: fuseml-workspace-mlflow-app-01-
   labels:
     fuseml/codeset-name: mlflow-app-01
+    fuseml/codeset-project: workspace
     fuseml/codeset-version: main
+    fuseml/workflow-ref: mlflow-sklearn-e2e
   namespace: "test-namespace"
 spec:
   params:
@@ -12,6 +14,8 @@ spec:
       value: mlflow-app-01
     - name: codeset-version
       value: main
+    - name: codeset-project
+      value: workspace
     - name: predictor
       value: auto
   pipelineRef:

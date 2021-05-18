@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
   labels:
-    fuseml/generated-from: mlflow-sklearn-e2e
+    fuseml/workflow-ref: mlflow-sklearn-e2e
   name: mlflow-sklearn-e2e
   namespace: test-namespace
 spec:
@@ -19,6 +19,8 @@ spec:
     - default: "main"
       description: Codeset version (git revision)
       name: codeset-version
+    - description: Reference to the codeset project (git organization)
+      name: codeset-project
     - default: auto
       description: type of predictor engine
       name: predictor

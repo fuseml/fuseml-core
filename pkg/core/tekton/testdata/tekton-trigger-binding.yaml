@@ -11,3 +11,5 @@ spec:
       value: $(body.repository.clone_url)
     - name: codeset-version
       value: '$(body.commits[0].id)'
+    - name: codeset-project
+      value: '$(body.repository.owner.username)'

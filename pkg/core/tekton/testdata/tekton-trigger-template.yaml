@@ -12,6 +12,8 @@ spec:
     - default: main
       description: Codeset version (git revision)
       name: codeset-version
+    - description: Reference to the codeset project (git organization)
+      name: codeset-project
     - default: auto
       description: type of predictor engine
       name: predictor
@@ -19,16 +21,19 @@ spec:
     - apiVersion: tekton.dev/v1beta1
       kind: PipelineRun
       metadata:
-        generateName: fuseml-$(tt.params.codeset-name)-
+        generateName: fuseml-$(tt.params.codeset-project)-$(tt.params.codeset-name)-
         labels:
           fuseml/codeset-name: $(tt.params.codeset-name)
           fuseml/codeset-version: $(tt.params.codeset-version)
+          fuseml/codeset-project: "$(tt.params.codeset-project)"
       spec:
         params:
           - name: codeset-name
             value: $(tt.params.codeset-name)
           - name: codeset-version
             value: $(tt.params.codeset-version)
+          - name: codeset-project
+            value: $(tt.params.codeset-project)
           - name: predictor
             value: $(tt.params.predictor)
         pipelineRef:
