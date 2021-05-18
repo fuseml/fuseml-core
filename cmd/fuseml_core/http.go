@@ -11,7 +11,9 @@ import (
 	"sync"
 	"time"
 
+	application "github.com/fuseml/fuseml-core/gen/application"
 	codeset "github.com/fuseml/fuseml-core/gen/codeset"
+	applicationsvr "github.com/fuseml/fuseml-core/gen/http/application/server"
 	codesetsvr "github.com/fuseml/fuseml-core/gen/http/codeset/server"
 	openapisvr "github.com/fuseml/fuseml-core/gen/http/openapi/server"
 	runnablesvr "github.com/fuseml/fuseml-core/gen/http/runnable/server"
@@ -27,7 +29,7 @@ import (
 
 // handleHTTPServer starts configures and starts a HTTP server on the given
 // URL. It shuts down the server if any error is received in the error channel.
-func handleHTTPServer(ctx context.Context, u *url.URL, runnableEndpoints *runnable.Endpoints, codesetEndpoints *codeset.Endpoints, workflowEndpoints *workflow.Endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
+func handleHTTPServer(ctx context.Context, u *url.URL, runnableEndpoints *runnable.Endpoints, codesetEndpoints *codeset.Endpoints, workflowEndpoints *workflow.Endpoints, applicationEndpoints *application.Endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
 	// Setup goa log adapter.
 	var (
 		adapter middleware.Logger
@@ -57,19 +59,22 @@ func handleHTTPServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 	// the service input and output data structures to HTTP requests and
 	// responses.
 	var (
-		runnableServer *runnablesvr.Server
-		codesetServer  *codesetsvr.Server
-		openapiServer  *openapisvr.Server
-		workflowServer *workflowsvr.Server
+		applicationServer *applicationsvr.Server
+		runnableServer    *runnablesvr.Server
+		codesetServer     *codesetsvr.Server
+		openapiServer     *openapisvr.Server
+		workflowServer    *workflowsvr.Server
 	)
 	{
 		eh := errorHandler(logger)
+		applicationServer = applicationsvr.New(applicationEndpoints, mux, dec, enc, eh, nil)
 		runnableServer = runnablesvr.New(runnableEndpoints, mux, dec, enc, eh, nil)
 		codesetServer = codesetsvr.New(codesetEndpoints, mux, dec, enc, eh, nil)
 		openapiServer = openapisvr.New(nil, mux, dec, enc, eh, nil)
 		workflowServer = workflowsvr.New(workflowEndpoints, mux, dec, enc, eh, nil)
 		if debug {
 			servers := goahttp.Servers{
+				applicationServer,
 				runnableServer,
 				codesetServer,
 				openapiServer,
@@ -79,6 +84,7 @@ func handleHTTPServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 		}
 	}
 	// Configure the mux.
+	applicationsvr.Mount(mux, applicationServer)
 	runnablesvr.Mount(mux, runnableServer)
 	codesetsvr.Mount(mux, codesetServer)
 	openapisvr.Mount(mux)
@@ -95,6 +101,9 @@ func handleHTTPServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 	// Start HTTP server using default configuration, change the code to
 	// configure the server as required by your service.
 	srv := &http.Server{Addr: u.Host, Handler: handler}
+	for _, m := range applicationServer.Mounts {
+		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
+	}
 	for _, m := range runnableServer.Mounts {
 		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
 	}
