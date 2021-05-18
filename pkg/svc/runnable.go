@@ -54,7 +54,7 @@ func (e *RunnableOutputError) Error() string {
 	return fmt.Sprintf("output %s [%s]: %s", e.Type, e.Name, e.Err)
 }
 
-func restToDomain(r *runnable.Runnable) (res *domain.Runnable, err error) {
+func runnableRestToDomain(r *runnable.Runnable) (res *domain.Runnable, err error) {
 
 	getStringValueOrDefault := func(value *string, defaultValue string) string {
 		if value == nil {
@@ -333,7 +333,7 @@ func restToDomain(r *runnable.Runnable) (res *domain.Runnable, err error) {
 	return
 }
 
-func domainToRest(r *domain.Runnable) (res *runnable.Runnable) {
+func runnableDomainToRest(r *domain.Runnable) (res *runnable.Runnable) {
 
 	getNilIfEmptyString := func(value string) *string {
 		if value == "" {
@@ -553,7 +553,7 @@ func (s *runnablesrvc) List(ctx context.Context, p *runnable.ListPayload) (res [
 	items, err := s.store.Find(ctx, idQuery, kindQuery, p.Labels)
 	res = make([]*runnable.Runnable, 0, len(items))
 	for _, r := range items {
-		res = append(res, domainToRest(r))
+		res = append(res, runnableDomainToRest(r))
 	}
 	return res, err
 }
@@ -561,7 +561,7 @@ func (s *runnablesrvc) List(ctx context.Context, p *runnable.ListPayload) (res [
 // Register a runnable with the FuseML runnable runnableStore.
 func (s *runnablesrvc) Register(ctx context.Context, p *runnable.Runnable) (res *runnable.Runnable, err error) {
 	s.logger.Print("runnable.register")
-	r, err := restToDomain(p)
+	r, err := runnableRestToDomain(p)
 	if err != nil {
 		return p, runnable.MakeBadRequest(err)
 	}
@@ -569,7 +569,7 @@ func (s *runnablesrvc) Register(ctx context.Context, p *runnable.Runnable) (res 
 	if err != nil {
 		return nil, runnable.MakeBadRequest(err)
 	}
-	return domainToRest(r), nil
+	return runnableDomainToRest(r), nil
 }
 
 // Retrieve a Runnable from FuseML.
@@ -579,5 +579,5 @@ func (s *runnablesrvc) Get(ctx context.Context, p *runnable.GetPayload) (res *ru
 	if r == nil {
 		return nil, runnable.MakeNotFound(errors.New(err.Error()))
 	}
-	return domainToRest(r), nil
+	return runnableDomainToRest(r), nil
 }
