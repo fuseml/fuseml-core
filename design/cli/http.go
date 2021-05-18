@@ -52,15 +52,6 @@ func Generate(genpkg string, roots []eval.Root, files []*codegen.File) ([]*codeg
 					*file = *f
 					fmt.Printf("FuseML overriden file: %s\n", file.Path)
 				}
-				// fmt.Printf("FUSEML: file %s\n", file.Path)
-				// for _, template := range file.SectionTemplates {
-				// 	fmt.Printf("FUSEML:     template %s\n", template.Name)
-				// 	fmt.Printf("FUSEML:         source %s\n", template.Source)
-				// 	for fnc, _ := range template.FuncMap {
-				// 		fmt.Printf("FUSEML:         function %s\n", fnc)
-				// 	}
-
-				// }
 			}
 		}
 	}
