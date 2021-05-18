@@ -22,7 +22,8 @@ type workflowsrvc struct {
 }
 
 // NewWorkflowService returns the workflow service implementation.
-func NewWorkflowService(logger *log.Logger, store domain.WorkflowStore, codesetStore domain.CodesetStore) (workflow.Service, error) {
+func NewWorkflowService(logger *log.Logger, store domain.WorkflowStore,
+	codesetStore domain.CodesetStore) (workflow.Service, error) {
 	backend, err := tekton.NewWorkflowBackend(config.FuseMLNamespace)
 	if err != nil {
 		return nil, err
@@ -33,13 +34,13 @@ func NewWorkflowService(logger *log.Logger, store domain.WorkflowStore, codesetS
 // Retrieve information about workflows registered in FuseML.
 func (s *workflowsrvc) List(ctx context.Context, w *workflow.ListPayload) (res []*workflow.Workflow, err error) {
 	s.logger.Print("workflow.list")
-	return s.listWorkflows(ctx, w.Name), nil
+	return s.store.GetAllWorkflows(ctx, w.Name), nil
 }
 
 func (s *workflowsrvc) ListRuns(ctx context.Context, w *workflow.ListRunsPayload) ([]*workflow.WorkflowRun, error) {
-	s.logger.Print("workflow.listWorkflowRuns")
+	s.logger.Print("workflow.listRuns")
 	workflowRuns := []*workflow.WorkflowRun{}
-	workflows := s.listWorkflows(ctx, w.WorkflowName)
+	workflows := s.store.GetAllWorkflows(ctx, w.WorkflowName)
 	filters := domain.WorkflowRunFilter{}
 	if w.CodesetName != nil {
 		filters.ByLabel = append(filters.ByLabel, fmt.Sprintf("%s=%s", tekton.LabelCodesetName, *w.CodesetName))
@@ -71,7 +72,7 @@ func (s *workflowsrvc) Register(ctx context.Context, w *workflow.Workflow) (res 
 		s.logger.Print(err)
 		return nil, err
 	}
-	return s.store.Add(ctx, w)
+	return s.store.AddWorkflow(ctx, w)
 }
 
 // Retrieve a Workflow from FuseML.
@@ -82,29 +83,32 @@ func (s *workflowsrvc) Get(ctx context.Context, w *workflow.GetPayload) (res *wo
 // Assign a Workflow to a Codeset
 func (s *workflowsrvc) Assign(ctx context.Context, w *workflow.AssignPayload) (err error) {
 	s.logger.Print("workflow.assign")
-	codeset, err := s.codesetStore.Find(ctx, w.CodesetProject, w.CodesetName)
-	if err != nil {
-		s.logger.Print(err)
-		return workflow.MakeNotFound(err)
-	}
 	if _, err = s.getWorkflow(ctx, w.Name); err != nil {
 		s.logger.Print(err)
 		return err
 	}
 
-	url, err := s.backend.CreateListener(ctx, s.logger, w.Name, true)
+	codeset, err := s.codesetStore.Find(ctx, w.CodesetProject, w.CodesetName)
+	if err != nil {
+		s.logger.Print(err)
+		return workflow.MakeNotFound(err)
+	}
+
+	wfListener, err := s.backend.CreateWorkflowListener(ctx, s.logger, w.Name, true)
 	if err != nil {
 		s.logger.Print(err)
 		return err
 	}
 
-	err = s.codesetStore.CreateWebhook(ctx, codeset, url)
+	err = s.codesetStore.CreateWebhook(ctx, codeset, wfListener.URL)
 	if err != nil {
 		s.logger.Print(err)
 		return err
 	}
 
-	err = s.backend.CreateWorkflowRun(ctx, w.Name, *codeset)
+	s.store.AddCodesetAssignment(ctx, w.Name, codeset)
+
+	err = s.backend.CreateWorkflowRun(ctx, w.Name, codeset)
 	if err != nil {
 		s.logger.Print(err)
 		return err
@@ -112,21 +116,54 @@ func (s *workflowsrvc) Assign(ctx context.Context, w *workflow.AssignPayload) (e
 	return nil
 }
 
+// ListAssignments lists workflow assignments
+func (s *workflowsrvc) ListAssignments(ctx context.Context, w *workflow.ListAssignmentsPayload) (res []*workflow.WorkflowAssignment, err error) {
+	listeners := map[string]*domain.WorkflowListener{}
+	for wf, codesets := range s.store.GetAssignments(ctx, w.Name) {
+		var listener *domain.WorkflowListener
+		if l, ok := listeners[wf]; ok {
+			listener = l
+		} else {
+			listener, err = s.backend.GetWorkflowListener(ctx, s.logger, wf)
+			if err != nil {
+				s.logger.Print(err)
+				return nil, err
+			}
+			listeners[wf] = listener
+		}
+		assignment := newRestWorkflowAssignment(wf, codesets, listener)
+		res = append(res, assignment)
+	}
+	return
+}
+
 func (s *workflowsrvc) getWorkflow(ctx context.Context, name string) (*workflow.Workflow, error) {
 	if name == "" {
 		return nil, workflow.MakeBadRequest(errors.New("empty workflow name"))
 	}
-	wf := s.store.Find(ctx, name)
+	wf := s.store.GetWorkflow(ctx, name)
 	if wf == nil {
-		return nil, workflow.MakeNotFound(errors.New("could not find a workflow with the specified ID"))
+		return nil, workflow.MakeNotFound(errors.New("could not find a workflow with the specified name"))
 	}
 	return wf, nil
 }
 
-func (s *workflowsrvc) listWorkflows(ctx context.Context, workflowName *string) []*workflow.Workflow {
-	name := "all"
-	if workflowName != nil {
-		name = *workflowName
+func newRestWorkflowAssignment(workflowName string, codesets []*domain.Codeset, listener *domain.WorkflowListener) *workflow.WorkflowAssignment {
+	assignment := &workflow.WorkflowAssignment{
+		Workflow: &workflowName,
+		Status: &workflow.WorkflowAssignmentStatus{
+			Available: &listener.Available,
+			URL:       &listener.DashboardURL,
+		},
 	}
-	return s.store.GetAll(ctx, name)
+	for _, c := range codesets {
+		assignment.Codesets = append(assignment.Codesets, &workflow.Codeset{
+			Name:        c.Name,
+			Project:     c.Project,
+			Description: c.Description,
+			Labels:      c.Labels,
+			URL:         &c.URL,
+		})
+	}
+	return assignment
 }

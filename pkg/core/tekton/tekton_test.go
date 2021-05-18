@@ -22,7 +22,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/pkg/apis"
-	kn "knative.dev/pkg/apis/duck/v1beta1"
+	v1 "knative.dev/pkg/apis/duck/v1"
+	knalpha1 "knative.dev/pkg/apis/duck/v1alpha1"
+	knbeta1 "knative.dev/pkg/apis/duck/v1beta1"
 	rtesting "knative.dev/pkg/reconciler/testing"
 
 	"github.com/fuseml/fuseml-core/gen/workflow"
@@ -93,7 +95,7 @@ func TestCreateWorkflowRun(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	cs := domain.Codeset{
+	cs := &domain.Codeset{
 		Name:    "mlflow-app-01",
 		Project: "workspace",
 		URL:     "http://gitea.10.160.5.140.nip.io/workspace/mlflow-app-01.git",
@@ -180,7 +182,7 @@ func TestListWorkflowRuns(t *testing.T) {
 		}
 
 		runStatus := "Unknown"
-		codesets := []domain.Codeset{}
+		codesets := []*domain.Codeset{}
 		wants := []*workflow.WorkflowRun{}
 		for i := 0; i < 2; i++ {
 			cs := createCodeset(t, i, i)
@@ -376,7 +378,6 @@ func TestListWorkflowRuns(t *testing.T) {
 
 func TestCreateListener(t *testing.T) {
 	t.Run("new listener", func(t *testing.T) {
-
 		ctx, b, logs, logsOutput := initBackend(t)
 
 		discardOutput := bytes.Buffer{}
@@ -389,12 +390,23 @@ func TestCreateListener(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		url, err := b.CreateListener(ctx, logs, w.Name, false)
+		wfListener, err := b.CreateWorkflowListener(ctx, logs, w.Name, false)
 		if err != nil {
 			t.Fatalf("Failed to create listener for workflow %q: %s", w.Name, err)
 		}
 
-		assertStrings(t, url, fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", w.Name, b.namespace))
+		wantURL := fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", w.Name, b.namespace)
+		wantAvailable := false
+		wantListener := domain.WorkflowListener{
+			Name:         w.Name,
+			URL:          wantURL,
+			Available:    wantAvailable,
+			DashboardURL: fmt.Sprintf("%s/#/namespaces/%s/eventlisteners/%s", b.dashboardURL, b.namespace, w.Name),
+		}
+
+		if d := cmp.Diff(wantListener, *wfListener); d != "" {
+			t.Errorf("Unexpected WorkflowListener: %s", diff.PrintWantGot(d))
+		}
 
 		expectedLog := `Creating tekton trigger template for workflow: mlflow-sklearn-e2e...
 Creating tekton trigger binding for workflow: mlflow-sklearn-e2e...
@@ -462,21 +474,78 @@ Creating tekton event listener for workflow: mlflow-sklearn-e2e...
 			t.Fatal(err)
 		}
 
-		_, err = b.CreateListener(ctx, discardLogs, w.Name, false)
+		_, err = b.CreateWorkflowListener(ctx, discardLogs, w.Name, false)
 		if err != nil {
 			t.Fatalf("Failed to create listener for workflow %q: %s", w.Name, err)
 		}
 
-		url, err := b.CreateListener(ctx, logs, w.Name, false)
+		wfListener, err := b.CreateWorkflowListener(ctx, logs, w.Name, false)
 		if err != nil {
 			t.Fatalf("Failed to create listener for workflow %q: %s", w.Name, err)
 		}
 
-		assertStrings(t, url, fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", w.Name, b.namespace))
+		wantURL := fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", w.Name, b.namespace)
+		wantAvailable := false
+		wantListener := domain.WorkflowListener{
+			Name:         w.Name,
+			URL:          wantURL,
+			Available:    wantAvailable,
+			DashboardURL: fmt.Sprintf("%s/#/namespaces/%s/eventlisteners/%s", b.dashboardURL, b.namespace, w.Name),
+		}
+
+		if d := cmp.Diff(wantListener, *wfListener); d != "" {
+			t.Errorf("Unexpected WorkflowListener: %s", diff.PrintWantGot(d))
+		}
 
 		expectedLog := ""
 		assertStrings(t, logsOutput.String(), expectedLog)
 	})
+}
+
+func TestGetWorkflowListener(t *testing.T) {
+	ctx, b, _, _ := initBackend(t)
+
+	discardOutput := bytes.Buffer{}
+	discardLogs := log.New(&discardOutput, "[tekton-test] ", log.Ltime)
+	w := workflow.Workflow{}
+	readYaml(t, fuseMLWorkflow, &w)
+
+	wfName := w.Name
+	wants := []*domain.WorkflowListener{}
+	for i := 0; i < 2; i++ {
+		listenerName := fmt.Sprintf("%s-%d", wfName, i)
+		w.Name = listenerName
+		err := b.CreateWorkflow(ctx, discardLogs, &w)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		var url string
+		available := false
+		if i == 1 {
+			available = true
+			url = fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", listenerName, b.namespace)
+		}
+
+		b.createTestListener(ctx, t, discardLogs, listenerName, available)
+		wants = append(wants, &domain.WorkflowListener{
+			Name:         listenerName,
+			URL:          url,
+			Available:    available,
+			DashboardURL: fmt.Sprintf("%s/#/namespaces/%s/eventlisteners/%s", b.dashboardURL, b.namespace, w.Name),
+		})
+	}
+
+	for i := 0; i < len(wants); i++ {
+		got, err := b.GetWorkflowListener(ctx, discardLogs, wants[i].Name)
+		if err != nil {
+			t.Fatalf("Failed to get listener: %s", err)
+		}
+
+		if d := cmp.Diff(wants[i], got); d != "" {
+			t.Errorf("Unexpected listener: %s", diff.PrintWantGot(d))
+		}
+	}
 }
 
 func assertError(t testing.TB, got, want error) {
@@ -553,16 +622,16 @@ func fakeNewWorkflowBackend(context context.Context, t *testing.T, namespace str
 	return &WorkflowBackend{"http://tekton.test", namespace, clients}
 }
 
-func createCodeset(t *testing.T, nameID, projectID int) domain.Codeset {
+func createCodeset(t *testing.T, nameID, projectID int) *domain.Codeset {
 	t.Helper()
 
 	name := fmt.Sprintf("mlflow-app-%d", nameID)
 	project := fmt.Sprintf("workspace-%d", projectID)
 	url := fmt.Sprintf("http://gitea.10.160.5.140.nip.io/%s/%s.git", name, project)
-	return domain.Codeset{Name: name, Project: project, URL: url}
+	return &domain.Codeset{Name: name, Project: project, URL: url}
 }
 
-func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T, workflow string, cs domain.Codeset,
+func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T, workflow string, cs *domain.Codeset,
 	runName string, status string, startTime metav1.Time) {
 	t.Helper()
 	err := b.CreateWorkflowRun(ctx, workflow, cs)
@@ -579,7 +648,7 @@ func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T
 		t.Fatalf("Failed to get pipeline run: %s", err)
 	}
 	prun.ObjectMeta.Name = runName
-	prun.Status.Conditions = kn.Conditions{apis.Condition{Reason: status}}
+	prun.Status.Conditions = knbeta1.Conditions{apis.Condition{Reason: status}}
 	completionTime := metav1.NewTime(startTime.Time.Add(time.Minute))
 	prun.Status.StartTime = &startTime
 	if status != "Running" {
@@ -592,5 +661,32 @@ func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T
 	_, err = b.tektonClients.PipelineRunClient.Create(ctx, prun, metav1.CreateOptions{})
 	if err != nil {
 		t.Fatalf("Failed to create pipeline run: %s", err)
+	}
+}
+
+func (b WorkflowBackend) createTestListener(ctx context.Context, t *testing.T, logger *log.Logger, workflow string, available bool) {
+	t.Helper()
+
+	_, err := b.CreateWorkflowListener(ctx, logger, workflow, false)
+	if err != nil {
+		t.Fatalf("Failed to create listener %q: %s", workflow, err)
+	}
+	if available {
+		// The fake event listener client does not generate a status for the event listener.
+		// To get around that, create the event listener and update its status
+		el, err := b.tektonClients.EventListenerClient.Get(ctx, workflow, metav1.GetOptions{})
+		if err != nil {
+			t.Fatalf("Failed to get event listener: %s", err)
+		}
+		address := knalpha1.Addressable{Addressable: knbeta1.Addressable{
+			URL: &apis.URL{Scheme: "http", Host: fmt.Sprintf("el-%s.%s.svc.cluster.local:8080", workflow, b.namespace)},
+		}}
+		el.Status.AddressStatus.Address = &address
+		el.Status.Conditions = v1.Conditions{apis.Condition{Reason: "MinimumReplicasAvailable", Status: "True", Type: "Available"}}
+
+		_, err = b.tektonClients.EventListenerClient.UpdateStatus(ctx, el, metav1.UpdateOptions{})
+		if err != nil {
+			t.Fatalf("Failed to get update event listener: %s", err)
+		}
 	}
 }
