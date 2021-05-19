@@ -76,3 +76,8 @@ func (s *codesetsrvc) Get(ctx context.Context, p *codeset.GetPayload) (res *code
 	}
 	return codesetDomainToRest(c), nil
 }
+
+func (s *codesetsrvc) Delete(ctx context.Context, p *codeset.DeletePayload) error {
+	s.logger.Print("codeset.delete")
+	return s.store.Delete(ctx, p.Project, p.Name)
+}

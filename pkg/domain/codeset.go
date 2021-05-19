@@ -24,4 +24,5 @@ type CodesetStore interface {
 	GetAll(ctx context.Context, project, label *string) ([]*Codeset, error)
 	Add(ctx context.Context, c *Codeset) (*Codeset, error)
 	CreateWebhook(context.Context, *Codeset, string) error
+	Delete(ctx context.Context, project, name string) error
 }

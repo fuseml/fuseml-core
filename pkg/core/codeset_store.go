@@ -14,6 +14,7 @@ type GitAdmin interface {
 	CreateRepoWebhook(string, string, *string) error
 	GetRepositories(org, label *string) ([]*domain.Codeset, error)
 	GetRepository(org, name string) (*domain.Codeset, error)
+	DeleteRepository(org, name string) error
 }
 
 // GitCodesetStore describes a stucture that accesses codeset store implemented in git
@@ -35,6 +36,16 @@ func (cs *GitCodesetStore) Find(ctx context.Context, project, name string) (*dom
 		return nil, errors.Wrap(err, "Fetching Codeset failed")
 	}
 	return result, nil
+}
+
+// Delete removes a codeset identified by project and name
+func (cs *GitCodesetStore) Delete(ctx context.Context, project, name string) error {
+	err := cs.gitAdmin.DeleteRepository(project, name)
+	// TODO should we delete the project+user too? If it does not contain any repos?
+	if err != nil {
+		return errors.Wrap(err, "Deleting Codeset failed")
+	}
+	return nil
 }
 
 // GetAll returns all codesets matching given project and label

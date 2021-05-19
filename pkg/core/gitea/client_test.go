@@ -12,9 +12,8 @@ import (
 )
 
 type TestStore struct {
-	repositories   map[string]gitea.Repository
 	projects       map[string]gitea.Organization
-	projects2repos map[string][]*gitea.Repository
+	projects2repos map[string]map[string]gitea.Repository
 	teams          map[int64][]string
 }
 
@@ -26,9 +25,8 @@ type testGiteaClient struct {
 
 func NewTestStore() *TestStore {
 	return &TestStore{
-		repositories:   make(map[string]gitea.Repository),
 		projects:       make(map[string]gitea.Organization),
-		projects2repos: make(map[string][]*gitea.Repository),
+		projects2repos: make(map[string]map[string]gitea.Repository),
 		teams:          make(map[int64][]string),
 	}
 }
@@ -55,15 +53,14 @@ func (tc testGiteaClient) AddRepoTopic(string, string, string) (*gitea.Response,
 }
 func (tc testGiteaClient) GetOrg(orgname string) (*gitea.Organization, *gitea.Response, error) {
 	if org, ok := tc.testStore.projects[orgname]; ok {
-		httpResp := http.Response{StatusCode: 200}
-		return &org, &gitea.Response{Response: &httpResp}, nil
+		return &org, &gitea.Response{Response: &httpResp200}, nil
 	}
 	return nil, nil, nil
 }
 func (tc testGiteaClient) CreateOrg(opt gitea.CreateOrgOption) (*gitea.Organization, *gitea.Response, error) {
 	org := gitea.Organization{UserName: opt.Name}
 	tc.testStore.projects[opt.Name] = org
-	tc.testStore.projects2repos[opt.Name] = make([]*gitea.Repository, 0)
+	tc.testStore.projects2repos[opt.Name] = make(map[string]gitea.Repository)
 	return &org, nil, nil
 }
 func (tc testGiteaClient) GetUserInfo(string) (*gitea.User, *gitea.Response, error) {
@@ -82,26 +79,26 @@ func (tc testGiteaClient) AddTeamMember(id int64, username string) (*gitea.Respo
 	return nil, nil
 }
 func (tc testGiteaClient) GetRepo(owner, reponame string) (*gitea.Repository, *gitea.Response, error) {
-	if repo, ok := tc.testStore.repositories[reponame]; ok {
-		return &repo, nil, nil
+	if repo, ok := tc.testStore.projects2repos[owner][reponame]; ok {
+		return &repo, &gitea.Response{Response: &httpResp200}, nil
 	}
-	return nil, nil, nil
-
+	return nil, &gitea.Response{Response: &httpResp404}, nil
 }
 func (tc testGiteaClient) CreateOrgRepo(org string, repo gitea.CreateRepoOption) (*gitea.Repository, *gitea.Response, error) {
 	r := gitea.Repository{Name: repo.Name}
-	tc.testStore.repositories[repo.Name] = r
-	tc.testStore.projects2repos[org] = append(tc.testStore.projects2repos[org], &r)
+	tc.testStore.projects2repos[org][repo.Name] = r
 	return &r, nil, nil
 }
 func (tc testGiteaClient) ListRepoHooks(string, string, gitea.ListHooksOptions) ([]*gitea.Hook, *gitea.Response, error) {
 	return nil, nil, nil
 }
 func (tc testGiteaClient) ListOrgRepos(org string, opt gitea.ListOrgReposOptions) ([]*gitea.Repository, *gitea.Response, error) {
-	if repos, ok := tc.testStore.projects2repos[org]; ok {
-		return repos, nil, nil
+	repos := make([]*gitea.Repository, 0)
+	for _, repo := range tc.testStore.projects2repos[org] {
+		r := repo
+		repos = append(repos, &r)
 	}
-	return nil, nil, nil
+	return repos, nil, nil
 }
 
 func (tc testGiteaClient) CreateRepoHook(string, string, gitea.CreateHookOption) (*gitea.Hook, *gitea.Response, error) {
@@ -113,9 +110,15 @@ func (tc testGiteaClient) ListRepoTopics(org, repo string, opt gitea.ListRepoTop
 func (tc testGiteaClient) ListMyOrgs(gitea.ListOrgsOptions) ([]*gitea.Organization, *gitea.Response, error) {
 	allOrgs := make([]*gitea.Organization, 0)
 	for _, org := range tc.testStore.projects {
-		allOrgs = append(allOrgs, &org)
+		o := org
+		allOrgs = append(allOrgs, &o)
 	}
 	return allOrgs, nil, nil
+}
+
+func (tc testGiteaClient) DeleteRepo(owner, repo string) (*gitea.Response, error) {
+	delete(tc.testStore.projects2repos[owner], repo)
+	return nil, nil
 }
 
 var (
@@ -125,6 +128,8 @@ var (
 	testURL               = "http://gitea.example.io"
 	testListenerStringURL = "tekton-listener"
 	testListenerURL       = &testListenerStringURL
+	httpResp200           = http.Response{StatusCode: 200}
+	httpResp404           = http.Response{StatusCode: 404}
 )
 
 func getTestCodeset() *domain.Codeset {
@@ -202,6 +207,40 @@ func TestGetRepository(t *testing.T) {
 	}
 	if c.Name != name || c.Project != project1 {
 		t.Errorf("Wrong codeset returned: %v", c)
+	}
+}
+
+func TestDeleteRepository(t *testing.T) {
+
+	testGiteaAdminClient := newTestGiteaAdminClient(NewTestStore())
+
+	// Reading repo that was not added should throw error
+	_, err := testGiteaAdminClient.GetRepository(project1, name)
+
+	assertError(t, err, errRepoNotFound)
+
+	// Prepare new repo
+	testGiteaAdminClient.PrepareRepository(getTestCodeset(), testListenerURL)
+
+	// Get the repo now
+	_, err = testGiteaAdminClient.GetRepository(project1, name)
+	if err != nil {
+		t.Errorf("Error geting repository that was just created")
+	}
+
+	err = testGiteaAdminClient.DeleteRepository(project1, name)
+	if err != nil {
+		t.Errorf("Error deleting repository")
+	}
+
+	c, err := testGiteaAdminClient.GetRepository(project1, name)
+	if c != nil {
+		t.Errorf("Repository still present after deleting")
+	}
+
+	err = testGiteaAdminClient.DeleteRepository(project1, name)
+	if err != nil {
+		t.Errorf("Error: deleting non existent repository should not fail")
 	}
 }
 

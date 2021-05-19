@@ -17,6 +17,7 @@ type AdminClient interface {
 	CreateRepoWebhook(string, string, *string) error
 	GetRepositories(org, label *string) ([]*domain.Codeset, error)
 	GetRepository(org, name string) (*domain.Codeset, error)
+	DeleteRepository(org, name string) error
 }
 
 // Client describes the interface of Gitea Client
@@ -35,6 +36,7 @@ type Client interface {
 	CreateRepoHook(string, string, gitea.CreateHookOption) (*gitea.Hook, *gitea.Response, error)
 	ListRepoTopics(string, string, gitea.ListRepoTopicsOptions) ([]string, *gitea.Response, error)
 	ListMyOrgs(gitea.ListOrgsOptions) ([]*gitea.Organization, *gitea.Response, error)
+	DeleteRepo(string, string) (*gitea.Response, error)
 }
 
 // giteaAdminClient is the struct holding information about gitea client
@@ -351,4 +353,25 @@ func (gac giteaAdminClient) GetRepository(org, name string) (*domain.Codeset, er
 	ret.URL = repo.CloneURL
 
 	return &ret, nil
+}
+
+// Delete the repository
+func (gac giteaAdminClient) DeleteRepository(org, name string) error {
+	gac.logger.Printf("Going to delete repo %s for org '%s'...", name, org)
+
+	_, resp, err := gac.giteaClient.GetRepo(org, name)
+
+	if resp.StatusCode == 404 {
+		gac.logger.Printf("Repo does not exist, no need to delete")
+		return nil
+	}
+	if err != nil {
+		return errors.Wrap(err, "Failed to get repo")
+	}
+
+	_, err = gac.giteaClient.DeleteRepo(org, name)
+	if err != nil {
+		return errors.Wrap(err, "Failed to delete repository")
+	}
+	return nil
 }
