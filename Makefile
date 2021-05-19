@@ -29,24 +29,24 @@ build_server:
 	go build ${GO_LDFLAGS} -o bin/fuseml_core ./cmd/fuseml_core
 
 build_client_local:
-	go build ${GO_LDFLAGS} -o bin/fuseml_core-cli ./cmd/fuseml_core-cli
+	go build ${GO_LDFLAGS} -o bin/fuseml ./cmd/fuseml_cli
 
 build_client-amd64:
-	GOARCH="amd64" GOOS="linux" go build ${GO_LDFLAGS} -o bin/fuseml_core-cli-linux-amd64 ./cmd/fuseml_core-cli
+	GOARCH="amd64" GOOS="linux" go build ${GO_LDFLAGS} -o bin/fuseml-linux-amd64 ./cmd/fuseml_cli
 
 build_client-windows:
-	GOARCH="amd64" GOOS="windows" go build ${GO_LDFLAGS} -o bin/fuseml_core-cli-windows-amd64 ./cmd/fuseml_core-cli
+	GOARCH="amd64" GOOS="windows" go build ${GO_LDFLAGS} -o bin/fuseml-windows-amd64 ./cmd/fuseml_cli
 
 build_client-darwin-amd64:
-	GOARCH="amd64" GOOS="darwin" go build ${GO_LDFLAGS} -o bin/fuseml_core-cli-darwin-amd64 ./cmd/fuseml_core-cli
+	GOARCH="amd64" GOOS="darwin" go build ${GO_LDFLAGS} -o bin/fuseml-darwin-amd64 ./cmd/fuseml_cli
 
 # Run fuseml_core
 runcore: generate lint
 	go run ./cmd/fuseml_core
 
-# Run fuseml_core-cli
+# Run fuseml_cli
 runcli: generate lint
-	go run ./cmd/fuseml_core-cli
+	go run ./cmd/fuseml_cli
 
 # Generate code
 generate:
