@@ -7,7 +7,6 @@ import (
 	"log"
 
 	"github.com/fuseml/fuseml-core/gen/workflow"
-	"github.com/fuseml/fuseml-core/pkg/core/config"
 	"github.com/fuseml/fuseml-core/pkg/core/tekton"
 	"github.com/fuseml/fuseml-core/pkg/domain"
 )
@@ -18,16 +17,11 @@ type workflowsrvc struct {
 	logger       *log.Logger
 	store        domain.WorkflowStore
 	codesetStore domain.CodesetStore
-	backend      domain.WorkflowBackend
 }
 
 // NewWorkflowService returns the workflow service implementation.
-func NewWorkflowService(logger *log.Logger, store domain.WorkflowStore, codesetStore domain.CodesetStore) (workflow.Service, error) {
-	backend, err := tekton.NewWorkflowBackend(config.FuseMLNamespace)
-	if err != nil {
-		return nil, err
-	}
-	return &workflowsrvc{logger, store, codesetStore, backend}, nil
+func NewWorkflowService(logger *log.Logger, store domain.WorkflowStore, codesetStore domain.CodesetStore) workflow.Service {
+	return &workflowsrvc{logger, store, codesetStore}
 }
 
 // Retrieve information about workflows registered in FuseML.
@@ -52,7 +46,7 @@ func (s *workflowsrvc) ListRuns(ctx context.Context, w *workflow.ListRunsPayload
 	}
 
 	for _, workflow := range workflows {
-		runs, err := s.backend.ListWorkflowRuns(ctx, *workflow, filters)
+		runs, err := s.store.GetAllRuns(ctx, workflow, filters)
 		if err != nil {
 			s.logger.Print(err)
 			return nil, err
@@ -66,12 +60,11 @@ func (s *workflowsrvc) ListRuns(ctx context.Context, w *workflow.ListRunsPayload
 // Register a workflow with the FuseML workflow store.
 func (s *workflowsrvc) Register(ctx context.Context, w *workflow.Workflow) (res *workflow.Workflow, err error) {
 	s.logger.Print("workflow.register")
-	err = s.backend.CreateWorkflow(ctx, s.logger, w)
+	res, err = s.store.Add(ctx, w)
 	if err != nil {
 		s.logger.Print(err)
-		return nil, err
 	}
-	return s.store.Add(ctx, w)
+	return
 }
 
 // Retrieve a Workflow from FuseML.
@@ -87,24 +80,13 @@ func (s *workflowsrvc) Assign(ctx context.Context, w *workflow.AssignPayload) (e
 		s.logger.Print(err)
 		return workflow.MakeNotFound(err)
 	}
-	if _, err = s.getWorkflow(ctx, w.Name); err != nil {
-		s.logger.Print(err)
-		return err
-	}
-
-	url, err := s.backend.CreateListener(ctx, s.logger, w.Name, true)
+	workflow, err := s.getWorkflow(ctx, w.Name)
 	if err != nil {
 		s.logger.Print(err)
 		return err
 	}
 
-	err = s.codesetStore.CreateWebhook(ctx, codeset, url)
-	if err != nil {
-		s.logger.Print(err)
-		return err
-	}
-
-	err = s.backend.CreateWorkflowRun(ctx, w.Name, *codeset)
+	err = s.store.AssignCodeset(ctx, workflow, codeset)
 	if err != nil {
 		s.logger.Print(err)
 		return err

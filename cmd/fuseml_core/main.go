@@ -17,7 +17,9 @@ import (
 	"github.com/fuseml/fuseml-core/gen/runnable"
 	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/core"
+	"github.com/fuseml/fuseml-core/pkg/core/config"
 	"github.com/fuseml/fuseml-core/pkg/core/gitea"
+	"github.com/fuseml/fuseml-core/pkg/core/tekton"
 	"github.com/fuseml/fuseml-core/pkg/svc"
 )
 
@@ -48,6 +50,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	tektonBackend, err := tekton.NewWorkflowBackend(logger, config.FuseMLNamespace)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Failed to initialize Tekton workflow backend: ", err.Error())
+		os.Exit(1)
+	}
+
 	// Initialize the services.
 	var (
 		applicationSvc application.Service
@@ -60,11 +68,7 @@ func main() {
 		applicationSvc = svc.NewApplicationService(logger, core.NewApplicationStore())
 		runnableSvc = svc.NewRunnableService(logger, core.NewRunnableStore())
 		codesetSvc = svc.NewCodesetService(logger, codesetStore)
-		workflowSvc, err = svc.NewWorkflowService(logger, core.NewWorkflowStore(), codesetStore)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "Failed to initialize Workflow service:", err.Error())
-			os.Exit(1)
-		}
+		workflowSvc = svc.NewWorkflowService(logger, core.NewWorkflowStore(tektonBackend, codesetStore), codesetStore)
 	}
 
 	// Wrap the services in endpoints that can be invoked from other services

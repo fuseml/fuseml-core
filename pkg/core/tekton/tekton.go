@@ -44,13 +44,14 @@ type WorkflowBackendErr string
 
 // WorkflowBackend implements the FuseML WorkflowBackend interface for tekton
 type WorkflowBackend struct {
+	logger        *log.Logger
 	dashboardURL  string
 	namespace     string
 	tektonClients *clients
 }
 
 // NewWorkflowBackend initializes Tekton backend
-func NewWorkflowBackend(namespace string) (*WorkflowBackend, error) {
+func NewWorkflowBackend(logger *log.Logger, namespace string) (*WorkflowBackend, error) {
 	dashbboardURL, exists := os.LookupEnv("TEKTON_DASHBOARD_URL")
 	if !exists {
 		return nil, errDashboardURLMissing
@@ -59,13 +60,13 @@ func NewWorkflowBackend(namespace string) (*WorkflowBackend, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error initializing tekton workflow backend: %w", err)
 	}
-	return &WorkflowBackend{strings.TrimSuffix(dashbboardURL, "/"), namespace, clients}, nil
+	return &WorkflowBackend{logger, strings.TrimSuffix(dashbboardURL, "/"), namespace, clients}, nil
 }
 
 // CreateWorkflow receives a FuseML workflow and creates a Tekton pipeline from it
-func (w *WorkflowBackend) CreateWorkflow(ctx context.Context, logger *log.Logger, workflow *workflow.Workflow) error {
+func (w *WorkflowBackend) CreateWorkflow(ctx context.Context, workflow *workflow.Workflow) error {
 	pipeline := generatePipeline(*workflow, w.namespace)
-	logger.Printf("Creating tekton pipeline for workflow: %s...", workflow.Name)
+	w.logger.Printf("Creating tekton pipeline for workflow: %s...", workflow.Name)
 	_, err := w.tektonClients.PipelineClient.Create(ctx, pipeline, metav1.CreateOptions{})
 	if err != nil {
 		if k8serr.IsAlreadyExists(err) {
@@ -78,7 +79,7 @@ func (w *WorkflowBackend) CreateWorkflow(ctx context.Context, logger *log.Logger
 }
 
 // CreateWorkflowRun creates a PipelineRun with its default values for received workflow and codeset
-func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, workflowName string, codeset domain.Codeset) error {
+func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, workflowName string, codeset *domain.Codeset) error {
 	pipeline, err := w.tektonClients.PipelineClient.Get(ctx, workflowName, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("error getting tekton pipeline %q: %w", workflowName, err)
@@ -97,7 +98,7 @@ func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, workflowName st
 }
 
 // ListWorkflowRuns returns a list of WorkflowRun for the given Workflow
-func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf workflow.Workflow, filters domain.WorkflowRunFilter) ([]*workflow.WorkflowRun, error) {
+func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf *workflow.Workflow, filters domain.WorkflowRunFilter) ([]*workflow.WorkflowRun, error) {
 	labelSelector := fmt.Sprintf("%s=%s", LabelWorkflowRef, wf.Name)
 	if filters.ByLabel != nil && len(filters.ByLabel) > 0 {
 		labelSelector = fmt.Sprintf("%s,%s", labelSelector, strings.Join(filters.ByLabel, ","))
@@ -125,7 +126,7 @@ func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf workflow.Work
 }
 
 // CreateListener creates tekton resources required to have a listener ready for triggering the pipeline
-func (w *WorkflowBackend) CreateListener(ctx context.Context, logger *log.Logger, workflowName string, wait bool) (string, error) {
+func (w *WorkflowBackend) CreateListener(ctx context.Context, workflowName string, wait bool) (string, error) {
 	pipeline, err := w.tektonClients.PipelineClient.Get(ctx, workflowName, metav1.GetOptions{})
 	if err != nil {
 		return "", fmt.Errorf("error getting tekton pipeline %q: %w", workflowName, err)
@@ -137,7 +138,7 @@ func (w *WorkflowBackend) CreateListener(ctx context.Context, logger *log.Logger
 		if !k8serr.IsNotFound(err) {
 			return "", fmt.Errorf("error getting tekton trigger template %q: %w", workflowName, err)
 		}
-		logger.Printf("Creating tekton trigger template for workflow: %s...", workflowName)
+		w.logger.Printf("Creating tekton trigger template for workflow: %s...", workflowName)
 		_, err := w.tektonClients.TriggerTemplateClient.Create(ctx, triggerTemplate, metav1.CreateOptions{})
 		if err != nil {
 			return "", fmt.Errorf("error creating tekton trigger template %q: %w", workflowName, err)
@@ -150,7 +151,7 @@ func (w *WorkflowBackend) CreateListener(ctx context.Context, logger *log.Logger
 		if !k8serr.IsNotFound(err) {
 			return "", fmt.Errorf("error getting tekton trigger binding %q: %w", workflowName, err)
 		}
-		logger.Printf("Creating tekton trigger binding for workflow: %s...", workflowName)
+		w.logger.Printf("Creating tekton trigger binding for workflow: %s...", workflowName)
 		_, err := w.tektonClients.TriggerBindingClient.Create(ctx, triggerBinding, metav1.CreateOptions{})
 		if err != nil {
 			return "", fmt.Errorf("error creating tekton trigger binding %q: %w", workflowName, err)
@@ -163,7 +164,7 @@ func (w *WorkflowBackend) CreateListener(ctx context.Context, logger *log.Logger
 		if !k8serr.IsNotFound(err) {
 			return "", fmt.Errorf("error getting tekton event listener %q: %w", workflowName, err)
 		}
-		logger.Printf("Creating tekton event listener for workflow: %s...", workflowName)
+		w.logger.Printf("Creating tekton event listener for workflow: %s...", workflowName)
 		el, err = w.tektonClients.EventListenerClient.Create(ctx, eventListener, metav1.CreateOptions{})
 		if err != nil {
 			return "", fmt.Errorf("error creating tekton event listener %q: %w", workflowName, err)
@@ -314,7 +315,7 @@ STEPS:
 	return &pb.Pipeline
 }
 
-func generatePipelineRun(p *v1beta1.Pipeline, codeset domain.Codeset) (*v1beta1.PipelineRun, error) {
+func generatePipelineRun(p *v1beta1.Pipeline, codeset *domain.Codeset) (*v1beta1.PipelineRun, error) {
 	codesetVersion := "main"
 	prb := builder.NewPipelineRunBuilder(fmt.Sprintf("%s%s-%s-", pipelineRunPrefix, codeset.Project, codeset.Name))
 
@@ -496,7 +497,7 @@ func getInputCodesetPath(inputs []*workflow.WorkflowStepInput) string {
 	return ""
 }
 
-func (w *WorkflowBackend) toWorkflowRun(wf workflow.Workflow, p v1beta1.PipelineRun) *workflow.WorkflowRun {
+func (w *WorkflowBackend) toWorkflowRun(wf *workflow.Workflow, p v1beta1.PipelineRun) *workflow.WorkflowRun {
 	startTime := p.Status.StartTime.Format(time.RFC3339)
 	wfr := workflow.WorkflowRun{
 		Name:        &p.ObjectMeta.Name,
