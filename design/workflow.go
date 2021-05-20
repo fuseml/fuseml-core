@@ -145,6 +145,7 @@ var _ = Service("workflow", func() {
 			Field(4, "status", String, "status of the workflow runs to list", func() {
 				Enum("Started", "Running", "Cancelled", "Succeeded", "Failed", "Completed", "Timeout")
 				Example("Succeeded")
+
 			})
 		})
 
@@ -167,6 +168,29 @@ var _ = Service("workflow", func() {
 		GRPC(func() {
 			Response(CodeOK)
 			Response("NotFound", CodeNotFound)
+		})
+
+	})
+
+	Method("listAssignments", func() {
+		Description("List workflow assignments to codesets")
+
+		Payload(func() {
+			Field(1, "name", String, "Name of the workflow to list assignments", func() {
+				Example("mlflow-sklearn-e2e")
+			})
+		})
+
+		Result(ArrayOf(WorkflowAssignment), "Return a list of workflow assignments.")
+
+		HTTP(func() {
+			GET("/workflows/assignments")
+			Param("name")
+			Response(StatusOK)
+		})
+
+		GRPC(func() {
+			Response(CodeOK)
 		})
 	})
 })
@@ -315,4 +339,18 @@ var WorkflowRunInput = Type("WorkflowRunInput", func() {
 var WorkflowRunOutput = Type("WorkflowRunOutput", func() {
 	Field(1, "output", WorkflowOutput, "The workflow output")
 	Field(2, "value", String, "The output value set by the Workflow run")
+})
+
+// WorkflowAssignment describes the assignment between a workflow and codesets
+var WorkflowAssignment = Type("WorkflowAssignment", func() {
+	Field(1, "workflow", String, "Workflow assigned to the codeset")
+	Field(2, "status", WorkflowAssignmentStatus, "The status of the assignment")
+	Field(3, "codesets", ArrayOf(Codeset), "Codesets assigned to the workflow")
+})
+
+// WorkflowAssignmentStatus describes the status of the resource responsible for the
+// assignment between a workflow and codesets
+var WorkflowAssignmentStatus = Type("WorkflowAssignmentStatus", func() {
+	Field(1, "available", Boolean, "The state of the assignment")
+	Field(2, "URL", String, "Dashboard URL to the resource responsible for the assignment")
 })
