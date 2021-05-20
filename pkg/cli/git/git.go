@@ -55,6 +55,7 @@ func Push(org, name, location, gitURL string, uname, pass *string, debug bool) e
 	// TODO: use some real API instead...
 	cmd := exec.Command("/bin/sh", "-c", fmt.Sprintf(`
 cd "%s"
+rm -rf .git
 git init
 git config user.name "Fuseml"
 git config user.email cli@fuseml
