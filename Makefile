@@ -8,6 +8,9 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
+GOOS:=$(shell go env GOOS)
+GOARCH:=$(shell go env GOARCH)
+
 GO_LDFLAGS:=-ldflags '-s -w'
 
 all: fuseml_all
@@ -19,26 +22,34 @@ test: generate lint
 # Generate code, run linter and build FuseML binaries
 fuseml: generate lint build
 
-fuseml_all: generate lint build_all 
-
-build: build_server build_client_local
-
-build_all: build_server build_client-amd64 build_client-windows build_client-darwin-amd64
+build: build_server build_client
 
 build_server:
 	go build ${GO_LDFLAGS} -o bin/fuseml_core ./cmd/fuseml_core
 
-build_client_local:
-	go build ${GO_LDFLAGS} -o bin/fuseml ./cmd/fuseml_cli
+build_client:
+	GOOS=$(GOOS) GOARCH=$(GOARCH) go build ${GO_LDFLAGS} -o bin/fuseml ./cmd/fuseml_cli
 
-build_client-amd64:
-	GOARCH="amd64" GOOS="linux" go build ${GO_LDFLAGS} -o bin/fuseml-linux-amd64 ./cmd/fuseml_cli
+release: generate lint release_all
 
-build_client-windows:
-	GOARCH="amd64" GOOS="windows" go build ${GO_LDFLAGS} -o bin/fuseml-windows-amd64 ./cmd/fuseml_cli
+release_all: server_release client_release-amd64 client_release-windows client_release-darwin-amd64
 
-build_client-darwin-amd64:
-	GOARCH="amd64" GOOS="darwin" go build ${GO_LDFLAGS} -o bin/fuseml-darwin-amd64 ./cmd/fuseml_cli
+server_release: build_server
+	tar zcf bin/fuseml_core.tar.gz -C bin/ --remove-files --transform="s#\.\/##" ./fuseml_core
+	cd bin && sha256sum -b fuseml_core.tar.gz > fuseml_core.tar.gz.sha256
+
+client_release: build_client
+	tar zcf bin/fuseml-$(GOOS)-$(GOARCH).tar.gz -C bin/ --remove-files --transform="s#\.\/##" ./fuseml
+	cd bin && sha256sum -b fuseml-$(GOOS)-$(GOARCH).tar.gz > fuseml-$(GOOS)-$(GOARCH).tar.gz.sha256
+
+client_release-amd64:
+	$(MAKE) GOARCH="amd64" GOOS="linux" client_release
+
+client_release-windows:
+	$(MAKE) GOARCH="amd64" GOOS="windows" client_release
+
+client_release-darwin-amd64:
+	$(MAKE) GOARCH="amd64" GOOS="darwin" client_release
 
 # Run fuseml_core
 runcore: generate lint
