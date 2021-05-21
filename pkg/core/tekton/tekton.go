@@ -188,8 +188,39 @@ func (w *WorkflowBackend) CreateWorkflowListener(ctx context.Context, logger *lo
 		DashboardURL: fmt.Sprintf("%s/#/namespaces/%s/eventlisteners/%s", w.dashboardURL, w.namespace, el.Name)}, nil
 }
 
+// DeleteWorkflowListener deletes all tekton resources associated to the specified listener name
+func (w *WorkflowBackend) DeleteWorkflowListener(ctx context.Context, logger *log.Logger, name string) error {
+	logger.Printf("Deleting tekton event listener: %s...", name)
+	err := w.tektonClients.EventListenerClient.Delete(ctx, name, metav1.DeleteOptions{})
+	if err != nil {
+		if !k8serr.IsNotFound(err) {
+			return fmt.Errorf("error deleting tekton event listener %q: %w", name, err)
+		}
+		logger.Printf("Tekton event listener %q not found, skipping delete...", name)
+	}
+
+	logger.Printf("Deleting tekton trigger binding: %s...", name)
+	err = w.tektonClients.TriggerBindingClient.Delete(ctx, name, metav1.DeleteOptions{})
+	if err != nil {
+		if !k8serr.IsNotFound(err) {
+			return fmt.Errorf("error deleting tekton trigger binding %q: %w", name, err)
+		}
+		logger.Printf("Tekton trigger binding %q not found, skipping delete...", name)
+	}
+
+	logger.Printf("Deleting tekton trigger template: %s...", name)
+	err = w.tektonClients.TriggerTemplateClient.Delete(ctx, name, metav1.DeleteOptions{})
+	if err != nil {
+		if !k8serr.IsNotFound(err) {
+			return fmt.Errorf("error deleting tekton trigger template %q: %w", name, err)
+		}
+		logger.Printf("Tekton trigger template %q not found, skipping delete...", name)
+	}
+	return nil
+}
+
 // GetWorkflowListener returns the listener for a given workflow
-func (w *WorkflowBackend) GetWorkflowListener(ctx context.Context, logger *log.Logger, workflowName string) (wl *domain.WorkflowListener, err error) {
+func (w *WorkflowBackend) GetWorkflowListener(ctx context.Context, workflowName string) (wl *domain.WorkflowListener, err error) {
 	el, err := w.tektonClients.EventListenerClient.Get(ctx, workflowName, metav1.GetOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("error getting tekton event listener %q: %w", workflowName, err)

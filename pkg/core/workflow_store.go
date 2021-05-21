@@ -91,18 +91,43 @@ func (ws *WorkflowStore) GetAssignments(ctx context.Context, workflowName *strin
 func (ws *WorkflowStore) AddCodesetAssignment(ctx context.Context, workflowName string,
 	assignedCodeset *domain.AssignedCodeset) []*domain.AssignedCodeset {
 	assignedCodesets := ws.items[workflowName].assignedCodesets
-	if !containsCodeset(assignedCodesets, assignedCodeset.Codeset) {
+	if assigned, _ := getAssignedCodeset(assignedCodesets, assignedCodeset.Codeset); assigned == nil {
 		assignedCodesets = append(assignedCodesets, assignedCodeset)
 		ws.items[workflowName].assignedCodesets = assignedCodesets
 	}
 	return assignedCodesets
 }
 
-func containsCodeset(slice []*domain.AssignedCodeset, codeset *domain.Codeset) bool {
-	for _, c := range slice {
-		if c.Codeset.Project == codeset.Project && c.Codeset.Name == codeset.Name {
-			return true
+// DeleteCodesetAssignment deletes a codeset from the list of assigned codesets of a workflow if it exists
+func (ws *WorkflowStore) DeleteCodesetAssignment(ctx context.Context, workflowName string, codeset *domain.Codeset) []*domain.AssignedCodeset {
+	assignedCodesets := ws.items[workflowName].assignedCodesets
+	if _, i := getAssignedCodeset(assignedCodesets, codeset); i != -1 {
+		assignedCodesets = removeAssignedCodeset(assignedCodesets, i)
+		ws.items[workflowName].assignedCodesets = assignedCodesets
+	}
+	return assignedCodesets
+}
+
+// GetAssignedCodeset returns a AssignedCodeset for the Workflow and Codeset
+func (ws *WorkflowStore) GetAssignedCodeset(ctx context.Context, workflowName string, codeset *domain.Codeset) *domain.AssignedCodeset {
+	sw, exists := ws.items[workflowName]
+	if !exists {
+		return nil
+	}
+	ac, _ := getAssignedCodeset(sw.assignedCodesets, codeset)
+	return ac
+}
+
+func getAssignedCodeset(slice []*domain.AssignedCodeset, codeset *domain.Codeset) (*domain.AssignedCodeset, int) {
+	for i, ac := range slice {
+		if ac.Codeset.Project == codeset.Project && ac.Codeset.Name == codeset.Name {
+			return ac, i
 		}
 	}
-	return false
+	return nil, -1
+}
+
+func removeAssignedCodeset(codesets []*domain.AssignedCodeset, index int) []*domain.AssignedCodeset {
+	codesets[index] = codesets[len(codesets)-1]
+	return codesets[:len(codesets)-1]
 }

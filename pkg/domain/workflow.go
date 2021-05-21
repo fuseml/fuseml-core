@@ -12,18 +12,21 @@ type WorkflowStore interface {
 	GetWorkflow(ctx context.Context, name string) *workflow.Workflow
 	GetAllWorkflows(ctx context.Context, name *string) (result []*workflow.Workflow)
 	AddWorkflow(ctx context.Context, w *workflow.Workflow) (*workflow.Workflow, error)
+	GetAssignedCodeset(ctx context.Context, workflowName string, codeset *Codeset) *AssignedCodeset
 	GetAssignedCodesets(ctx context.Context, workflowName string) []*AssignedCodeset
 	GetAssignments(ctx context.Context, workflowName *string) map[string][]*AssignedCodeset
 	AddCodesetAssignment(ctx context.Context, workflowName string, assignedCodeset *AssignedCodeset) []*AssignedCodeset
+	DeleteCodesetAssignment(ctx context.Context, workflowName string, codeset *Codeset) []*AssignedCodeset
 }
 
 // WorkflowBackend is the interface for the FuseML workflows
 type WorkflowBackend interface {
-	CreateWorkflow(context.Context, *log.Logger, *workflow.Workflow) error
-	CreateWorkflowRun(context.Context, string, *Codeset) error
-	ListWorkflowRuns(context.Context, workflow.Workflow, WorkflowRunFilter) ([]*workflow.WorkflowRun, error)
-	CreateWorkflowListener(context.Context, *log.Logger, string, bool) (*WorkflowListener, error)
-	GetWorkflowListener(context.Context, *log.Logger, string) (*WorkflowListener, error)
+	CreateWorkflow(ctx context.Context, logger *log.Logger, workflow *workflow.Workflow) error
+	CreateWorkflowRun(ctx context.Context, workflowName string, codeset *Codeset) error
+	ListWorkflowRuns(ctx context.Context, workflow workflow.Workflow, filter WorkflowRunFilter) ([]*workflow.WorkflowRun, error)
+	CreateWorkflowListener(ctx context.Context, logger *log.Logger, workflowName string, wait bool) (*WorkflowListener, error)
+	DeleteWorkflowListener(ctx context.Context, logger *log.Logger, workflowName string) error
+	GetWorkflowListener(ctx context.Context, workflowName string) (*WorkflowListener, error)
 }
 
 // WorkflowRunFilter defines the available filter when listing workflow runs

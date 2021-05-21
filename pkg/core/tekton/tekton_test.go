@@ -49,10 +49,8 @@ func TestCreateWorkflow(t *testing.T) {
 		readYaml(t, fuseMLWorkflow, &w)
 
 		err := b.CreateWorkflow(ctx, logs, &w)
-		if err != nil {
-			t.Fatal(err)
-		}
 
+		assertError(t, err, nil)
 		assertStrings(t, strings.TrimSuffix(logsOutput.String(), "\n"), "Creating tekton pipeline for workflow: mlflow-sklearn-e2e...")
 
 		got, err := b.tektonClients.PipelineClient.Get(ctx, w.Name, metav1.GetOptions{})
@@ -391,9 +389,7 @@ func TestCreateListener(t *testing.T) {
 		}
 
 		wfListener, err := b.CreateWorkflowListener(ctx, logs, w.Name, false)
-		if err != nil {
-			t.Fatalf("Failed to create listener for workflow %q: %s", w.Name, err)
-		}
+		assertError(t, err, nil)
 
 		wantURL := fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", w.Name, b.namespace)
 		wantAvailable := false
@@ -480,9 +476,7 @@ Creating tekton event listener for workflow: mlflow-sklearn-e2e...
 		}
 
 		wfListener, err := b.CreateWorkflowListener(ctx, logs, w.Name, false)
-		if err != nil {
-			t.Fatalf("Failed to create listener for workflow %q: %s", w.Name, err)
-		}
+		assertError(t, err, nil)
 
 		wantURL := fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", w.Name, b.namespace)
 		wantAvailable := false
@@ -498,6 +492,77 @@ Creating tekton event listener for workflow: mlflow-sklearn-e2e...
 		}
 
 		expectedLog := ""
+		assertStrings(t, logsOutput.String(), expectedLog)
+	})
+}
+
+func TestDeleteListener(t *testing.T) {
+	t.Run("delete", func(t *testing.T) {
+		ctx, b, logs, logsOutput := initBackend(t)
+
+		discardOutput := bytes.Buffer{}
+		discardLogs := log.New(&discardOutput, "[tekton-test] ", log.Ltime)
+		w := workflow.Workflow{}
+		readYaml(t, fuseMLWorkflow, &w)
+
+		err := b.CreateWorkflow(ctx, discardLogs, &w)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		wfListener, err := b.CreateWorkflowListener(ctx, discardLogs, w.Name, false)
+		if err != nil {
+			t.Fatalf("Failed to create listener for workflow %q: %s", w.Name, err)
+		}
+
+		err = b.DeleteWorkflowListener(ctx, logs, wfListener.Name)
+		assertError(t, err, nil)
+
+		els, err := b.tektonClients.EventListenerClient.List(ctx, metav1.ListOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(els.Items) > 0 {
+			t.Errorf("Expected 0 EventListener, got %d", len(els.Items))
+		}
+
+		tbs, err := b.tektonClients.TriggerBindingClient.List(ctx, metav1.ListOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(tbs.Items) > 0 {
+			t.Errorf("Expected 0 TriggerBinding, got %d", len(tbs.Items))
+		}
+
+		tts, err := b.tektonClients.TriggerTemplateClient.List(ctx, metav1.ListOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(tts.Items) > 0 {
+			t.Errorf("Expected 0 TriggerTemplate, got %d", len(tts.Items))
+		}
+
+		expectedLog := fmt.Sprintf(`Deleting tekton event listener: %s...
+Deleting tekton trigger binding: %s...
+Deleting tekton trigger template: %s...
+`, wfListener.Name, wfListener.Name, wfListener.Name)
+		assertStrings(t, logsOutput.String(), expectedLog)
+	})
+
+	t.Run("skip not found", func(t *testing.T) {
+		ctx, b, logs, logsOutput := initBackend(t)
+
+		name := "TestListener"
+		err := b.DeleteWorkflowListener(ctx, logs, name)
+		assertError(t, err, nil)
+
+		expectedLog := fmt.Sprintf(`Deleting tekton event listener: %s...
+Tekton event listener %q not found, skipping delete...
+Deleting tekton trigger binding: %s...
+Tekton trigger binding %q not found, skipping delete...
+Deleting tekton trigger template: %s...
+Tekton trigger template %q not found, skipping delete...
+`, name, name, name, name, name, name)
 		assertStrings(t, logsOutput.String(), expectedLog)
 	})
 }
@@ -537,7 +602,7 @@ func TestGetWorkflowListener(t *testing.T) {
 	}
 
 	for i := 0; i < len(wants); i++ {
-		got, err := b.GetWorkflowListener(ctx, discardLogs, wants[i].Name)
+		got, err := b.GetWorkflowListener(ctx, wants[i].Name)
 		if err != nil {
 			t.Fatalf("Failed to get listener: %s", err)
 		}

@@ -22,8 +22,7 @@ type workflowsrvc struct {
 }
 
 // NewWorkflowService returns the workflow service implementation.
-func NewWorkflowService(logger *log.Logger, store domain.WorkflowStore,
-	codesetStore domain.CodesetStore) (workflow.Service, error) {
+func NewWorkflowService(logger *log.Logger, store domain.WorkflowStore, codesetStore domain.CodesetStore) (workflow.Service, error) {
 	backend, err := tekton.NewWorkflowBackend(config.FuseMLNamespace)
 	if err != nil {
 		return nil, err
@@ -99,7 +98,13 @@ func (s *workflowsrvc) Assign(ctx context.Context, w *workflow.AssignPayload) (e
 
 // Unassign a Workflow from a Codeset.
 func (s *workflowsrvc) Unassign(ctx context.Context, u *workflow.UnassignPayload) (err error) {
-	return nil
+	s.logger.Print("workflow.unassign")
+	codeset, err := s.codesetStore.Find(ctx, u.CodesetProject, u.CodesetName)
+	if err != nil {
+		s.logger.Print(err)
+		return workflow.MakeNotFound(err)
+	}
+	return s.unassignCodesetFromWorkflow(ctx, u.Name, codeset)
 }
 
 // ListAssignments lists Workflow assignments.
@@ -111,7 +116,7 @@ func (s *workflowsrvc) ListAssignments(ctx context.Context, w *workflow.ListAssi
 		if l, ok := listeners[wf]; ok {
 			listener = l
 		} else {
-			listener, err = s.backend.GetWorkflowListener(ctx, s.logger, wf)
+			listener, err = s.backend.GetWorkflowListener(ctx, wf)
 			if err != nil {
 				s.logger.Print(err)
 				return nil, err
@@ -181,4 +186,29 @@ func newRestWorkflowAssignment(workflowName string, codesets []*domain.AssignedC
 		})
 	}
 	return assignment
+}
+
+func (s *workflowsrvc) unassignCodesetFromWorkflow(ctx context.Context, workflowName string, codeset *domain.Codeset) (err error) {
+	assignment := s.store.GetAssignedCodeset(ctx, workflowName, codeset)
+	if assignment == nil {
+		err = fmt.Errorf("workflow not assigned to codeset")
+		s.logger.Print(err)
+		return workflow.MakeNotFound(err)
+	}
+
+	err = s.codesetStore.DeleteWebhook(ctx, codeset, assignment.WebhookID)
+	if err != nil {
+		s.logger.Print(err)
+		return err
+	}
+
+	if len(s.store.GetAssignedCodesets(ctx, workflowName)) == 1 {
+		err = s.backend.DeleteWorkflowListener(ctx, s.logger, workflowName)
+		if err != nil {
+			s.logger.Print(err)
+			return err
+		}
+	}
+	s.store.DeleteCodesetAssignment(ctx, workflowName, codeset)
+	return
 }
