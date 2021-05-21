@@ -13,8 +13,8 @@ import (
 type storableWorkflow struct {
 	// Workflow assigned to the codeset
 	workflow *workflow.Workflow
-	// Codesets assigned to the workflow
-	assignedCodesets []*domain.Codeset
+	// AssignedCodeset holds codesets assigned to the workflow and its hookID
+	assignedCodesets []*domain.AssignedCodeset
 }
 
 // WorkflowStore describes in memory store for workflows
@@ -63,7 +63,7 @@ func (ws *WorkflowStore) AddWorkflow(ctx context.Context, w *workflow.Workflow) 
 }
 
 // GetAssignedCodesets returns a list of codesets assigned to the specified workflow
-func (ws *WorkflowStore) GetAssignedCodesets(ctx context.Context, workflowName string) []*domain.Codeset {
+func (ws *WorkflowStore) GetAssignedCodesets(ctx context.Context, workflowName string) []*domain.AssignedCodeset {
 	if _, exists := ws.items[workflowName]; exists {
 		return ws.items[workflowName].assignedCodesets
 	}
@@ -71,33 +71,36 @@ func (ws *WorkflowStore) GetAssignedCodesets(ctx context.Context, workflowName s
 }
 
 // GetAssignments returns a map of workflows and its assigned codesets
-func (ws *WorkflowStore) GetAssignments(ctx context.Context, workflowName *string) (result map[string][]*domain.Codeset) {
-	result = make(map[string][]*domain.Codeset, len(ws.items))
+func (ws *WorkflowStore) GetAssignments(ctx context.Context, workflowName *string) (result map[string][]*domain.AssignedCodeset) {
+	result = make(map[string][]*domain.AssignedCodeset, len(ws.items))
 	if workflowName != nil {
-		if _, exists := ws.items[*workflowName]; exists {
-			result[*workflowName] = ws.items[*workflowName].assignedCodesets
+		if sw, exists := ws.items[*workflowName]; exists && len(sw.assignedCodesets) > 0 {
+			result[*workflowName] = sw.assignedCodesets
 		}
 		return
 	}
 	for _, sw := range ws.items {
-		result[sw.workflow.Name] = sw.assignedCodesets
+		if len(sw.assignedCodesets) > 0 {
+			result[sw.workflow.Name] = sw.assignedCodesets
+		}
 	}
 	return
 }
 
 // AddCodesetAssignment adds a codeset to the list of assigned codesets of a workflow if it does not already exists
-func (ws *WorkflowStore) AddCodesetAssignment(ctx context.Context, workflowName string, codeset *domain.Codeset) []*domain.Codeset {
+func (ws *WorkflowStore) AddCodesetAssignment(ctx context.Context, workflowName string,
+	assignedCodeset *domain.AssignedCodeset) []*domain.AssignedCodeset {
 	assignedCodesets := ws.items[workflowName].assignedCodesets
-	if !containsCodeset(assignedCodesets, codeset) {
-		assignedCodesets = append(assignedCodesets, codeset)
+	if !containsCodeset(assignedCodesets, assignedCodeset.Codeset) {
+		assignedCodesets = append(assignedCodesets, assignedCodeset)
 		ws.items[workflowName].assignedCodesets = assignedCodesets
 	}
 	return assignedCodesets
 }
 
-func containsCodeset(slice []*domain.Codeset, codeset *domain.Codeset) bool {
+func containsCodeset(slice []*domain.AssignedCodeset, codeset *domain.Codeset) bool {
 	for _, c := range slice {
-		if c.Project == codeset.Project && c.Name == codeset.Name {
+		if c.Codeset.Project == codeset.Project && c.Codeset.Name == codeset.Name {
 			return true
 		}
 	}

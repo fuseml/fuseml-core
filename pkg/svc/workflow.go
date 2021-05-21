@@ -81,13 +81,13 @@ func (s *workflowsrvc) Assign(ctx context.Context, w *workflow.AssignPayload) (e
 		return err
 	}
 
-	_, err = s.codesetStore.CreateWebhook(ctx, codeset, wfListener.URL)
+	webhookID, err := s.codesetStore.CreateWebhook(ctx, codeset, wfListener.URL)
 	if err != nil {
 		s.logger.Print(err)
 		return err
 	}
 
-	s.store.AddCodesetAssignment(ctx, w.Name, codeset)
+	s.store.AddCodesetAssignment(ctx, w.Name, &domain.AssignedCodeset{Codeset: codeset, WebhookID: webhookID})
 
 	err = s.backend.CreateWorkflowRun(ctx, w.Name, codeset)
 	if err != nil {
@@ -104,8 +104,9 @@ func (s *workflowsrvc) Unassign(ctx context.Context, u *workflow.UnassignPayload
 
 // ListAssignments lists Workflow assignments.
 func (s *workflowsrvc) ListAssignments(ctx context.Context, w *workflow.ListAssignmentsPayload) (res []*workflow.WorkflowAssignment, err error) {
+	s.logger.Print("workflow.listAssignments")
 	listeners := map[string]*domain.WorkflowListener{}
-	for wf, codesets := range s.store.GetAssignments(ctx, w.Name) {
+	for wf, acs := range s.store.GetAssignments(ctx, w.Name) {
 		var listener *domain.WorkflowListener
 		if l, ok := listeners[wf]; ok {
 			listener = l
@@ -117,7 +118,7 @@ func (s *workflowsrvc) ListAssignments(ctx context.Context, w *workflow.ListAssi
 			}
 			listeners[wf] = listener
 		}
-		assignment := newRestWorkflowAssignment(wf, codesets, listener)
+		assignment := newRestWorkflowAssignment(wf, acs, listener)
 		res = append(res, assignment)
 	}
 	return
@@ -162,7 +163,7 @@ func (s *workflowsrvc) getWorkflow(ctx context.Context, name string) (*workflow.
 	return wf, nil
 }
 
-func newRestWorkflowAssignment(workflowName string, codesets []*domain.Codeset, listener *domain.WorkflowListener) *workflow.WorkflowAssignment {
+func newRestWorkflowAssignment(workflowName string, codesets []*domain.AssignedCodeset, listener *domain.WorkflowListener) *workflow.WorkflowAssignment {
 	assignment := &workflow.WorkflowAssignment{
 		Workflow: &workflowName,
 		Status: &workflow.WorkflowAssignmentStatus{
@@ -172,11 +173,11 @@ func newRestWorkflowAssignment(workflowName string, codesets []*domain.Codeset, 
 	}
 	for _, c := range codesets {
 		assignment.Codesets = append(assignment.Codesets, &workflow.Codeset{
-			Name:        c.Name,
-			Project:     c.Project,
-			Description: c.Description,
-			Labels:      c.Labels,
-			URL:         &c.URL,
+			Name:        c.Codeset.Name,
+			Project:     c.Codeset.Project,
+			Description: c.Codeset.Description,
+			Labels:      c.Codeset.Labels,
+			URL:         &c.Codeset.URL,
 		})
 	}
 	return assignment

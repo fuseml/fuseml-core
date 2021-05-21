@@ -12,9 +12,9 @@ type WorkflowStore interface {
 	GetWorkflow(ctx context.Context, name string) *workflow.Workflow
 	GetAllWorkflows(ctx context.Context, name *string) (result []*workflow.Workflow)
 	AddWorkflow(ctx context.Context, w *workflow.Workflow) (*workflow.Workflow, error)
-	GetAssignedCodesets(ctx context.Context, workflowName string) []*Codeset
-	GetAssignments(ctx context.Context, workflowName *string) map[string][]*Codeset
-	AddCodesetAssignment(ctx context.Context, workflowName string, codeset *Codeset) []*Codeset
+	GetAssignedCodesets(ctx context.Context, workflowName string) []*AssignedCodeset
+	GetAssignments(ctx context.Context, workflowName *string) map[string][]*AssignedCodeset
+	AddCodesetAssignment(ctx context.Context, workflowName string, assignedCodeset *AssignedCodeset) []*AssignedCodeset
 }
 
 // WorkflowBackend is the interface for the FuseML workflows
@@ -38,4 +38,10 @@ type WorkflowListener struct {
 	Available    bool
 	URL          string
 	DashboardURL string
+}
+
+// AssignedCodeset describes an assigned codeset its webhook ID
+type AssignedCodeset struct {
+	Codeset   *Codeset
+	WebhookID *int64
 }
