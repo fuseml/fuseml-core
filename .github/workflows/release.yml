@@ -41,7 +41,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           pullRequests: "false"
-          onlyLastTag: "true"
           stripGeneratorNotice: "true"
           issuesWoLabels: "true"
           stripHeaders: "true"
@@ -51,6 +50,5 @@ jobs:
         with:
           files: ./bin/*
           body_path: ./CHANGELOG.md
-          prerelease: "true"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
