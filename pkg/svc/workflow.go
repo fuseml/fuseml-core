@@ -31,40 +31,13 @@ func NewWorkflowService(logger *log.Logger, store domain.WorkflowStore,
 	return &workflowsrvc{logger, store, codesetStore, backend}, nil
 }
 
-// Retrieve information about workflows registered in FuseML.
+// List Workflows.
 func (s *workflowsrvc) List(ctx context.Context, w *workflow.ListPayload) (res []*workflow.Workflow, err error) {
 	s.logger.Print("workflow.list")
 	return s.store.GetAllWorkflows(ctx, w.Name), nil
 }
 
-func (s *workflowsrvc) ListRuns(ctx context.Context, w *workflow.ListRunsPayload) ([]*workflow.WorkflowRun, error) {
-	s.logger.Print("workflow.listRuns")
-	workflowRuns := []*workflow.WorkflowRun{}
-	workflows := s.store.GetAllWorkflows(ctx, w.WorkflowName)
-	filters := domain.WorkflowRunFilter{}
-	if w.CodesetName != nil {
-		filters.ByLabel = append(filters.ByLabel, fmt.Sprintf("%s=%s", tekton.LabelCodesetName, *w.CodesetName))
-	}
-	if w.CodesetProject != nil {
-		filters.ByLabel = append(filters.ByLabel, fmt.Sprintf("%s=%s", tekton.LabelCodesetProject, *w.CodesetProject))
-	}
-	if w.Status != nil {
-		filters.ByStatus = append(filters.ByStatus, *w.Status)
-	}
-
-	for _, workflow := range workflows {
-		runs, err := s.backend.ListWorkflowRuns(ctx, *workflow, filters)
-		if err != nil {
-			s.logger.Print(err)
-			return nil, err
-		}
-		workflowRuns = append(workflowRuns, runs...)
-	}
-
-	return workflowRuns, nil
-}
-
-// Register a workflow with the FuseML workflow store.
+// Register a new Workflow.
 func (s *workflowsrvc) Register(ctx context.Context, w *workflow.Workflow) (res *workflow.Workflow, err error) {
 	s.logger.Print("workflow.register")
 	err = s.backend.CreateWorkflow(ctx, s.logger, w)
@@ -78,12 +51,17 @@ func (s *workflowsrvc) Register(ctx context.Context, w *workflow.Workflow) (res 
 	return s.store.AddWorkflow(ctx, w)
 }
 
-// Retrieve a Workflow from FuseML.
+// Get a Workflow.
 func (s *workflowsrvc) Get(ctx context.Context, w *workflow.GetPayload) (res *workflow.Workflow, err error) {
 	return s.getWorkflow(ctx, w.Name)
 }
 
-// Assign a Workflow to a Codeset
+// Delete a Workflow and its assignments.
+func (s *workflowsrvc) Delete(ctx context.Context, d *workflow.DeletePayload) (err error) {
+	return nil
+}
+
+// Assign a Workflow to a Codeset.
 func (s *workflowsrvc) Assign(ctx context.Context, w *workflow.AssignPayload) (err error) {
 	s.logger.Print("workflow.assign")
 	if _, err = s.getWorkflow(ctx, w.Name); err != nil {
@@ -119,7 +97,12 @@ func (s *workflowsrvc) Assign(ctx context.Context, w *workflow.AssignPayload) (e
 	return nil
 }
 
-// ListAssignments lists workflow assignments
+// Unassign a Workflow from a Codeset.
+func (s *workflowsrvc) Unassign(ctx context.Context, u *workflow.UnassignPayload) (err error) {
+	return nil
+}
+
+// ListAssignments lists Workflow assignments.
 func (s *workflowsrvc) ListAssignments(ctx context.Context, w *workflow.ListAssignmentsPayload) (res []*workflow.WorkflowAssignment, err error) {
 	listeners := map[string]*domain.WorkflowListener{}
 	for wf, codesets := range s.store.GetAssignments(ctx, w.Name) {
@@ -138,6 +121,34 @@ func (s *workflowsrvc) ListAssignments(ctx context.Context, w *workflow.ListAssi
 		res = append(res, assignment)
 	}
 	return
+}
+
+// List Workflow runs.
+func (s *workflowsrvc) ListRuns(ctx context.Context, w *workflow.ListRunsPayload) ([]*workflow.WorkflowRun, error) {
+	s.logger.Print("workflow.listRuns")
+	workflowRuns := []*workflow.WorkflowRun{}
+	workflows := s.store.GetAllWorkflows(ctx, w.WorkflowName)
+	filters := domain.WorkflowRunFilter{}
+	if w.CodesetName != nil {
+		filters.ByLabel = append(filters.ByLabel, fmt.Sprintf("%s=%s", tekton.LabelCodesetName, *w.CodesetName))
+	}
+	if w.CodesetProject != nil {
+		filters.ByLabel = append(filters.ByLabel, fmt.Sprintf("%s=%s", tekton.LabelCodesetProject, *w.CodesetProject))
+	}
+	if w.Status != nil {
+		filters.ByStatus = append(filters.ByStatus, *w.Status)
+	}
+
+	for _, workflow := range workflows {
+		runs, err := s.backend.ListWorkflowRuns(ctx, *workflow, filters)
+		if err != nil {
+			s.logger.Print(err)
+			return nil, err
+		}
+		workflowRuns = append(workflowRuns, runs...)
+	}
+
+	return workflowRuns, nil
 }
 
 func (s *workflowsrvc) getWorkflow(ctx context.Context, name string) (*workflow.Workflow, error) {
