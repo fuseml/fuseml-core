@@ -82,13 +82,61 @@ func TestCreateWorkflow(t *testing.T) {
 	})
 }
 
-func TestCreateWorkflowRun(t *testing.T) {
-	ctx, b, logs, _ := initBackend(t)
+func TestDeleteWorkflow(t *testing.T) {
+	t.Run("delete", func(t *testing.T) {
+		ctx, b, logs, logsOutput := initBackend(t)
 
+		discardOutput := bytes.Buffer{}
+		discardLogs := log.New(&discardOutput, "[tekton-test] ", log.Ltime)
+
+		w := workflow.Workflow{}
+		readYaml(t, fuseMLWorkflow, &w)
+
+		err := b.CreateWorkflow(ctx, discardLogs, &w)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		err = b.DeleteWorkflow(ctx, logs, w.Name)
+
+		assertError(t, err, nil)
+
+		pipelines, err := b.tektonClients.PipelineClient.List(ctx, metav1.ListOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(pipelines.Items) > 0 {
+			t.Errorf("Expected 0 Pipeline, got %d", len(pipelines.Items))
+		}
+
+		expectedLog := fmt.Sprintf("Deleting tekton pipeline: %s...\n", w.Name)
+		assertStrings(t, logsOutput.String(), expectedLog)
+	})
+
+	t.Run("skip not found", func(t *testing.T) {
+		ctx, b, logs, logsOutput := initBackend(t)
+
+		name := "TestWorkflow"
+		err := b.DeleteWorkflow(ctx, logs, name)
+
+		assertError(t, err, nil)
+
+		expectedLog := fmt.Sprintf(`Deleting tekton pipeline: %s...
+Tekton pipeline %q not found, skipping delete...
+`, name, name)
+		assertStrings(t, logsOutput.String(), expectedLog)
+	})
+}
+
+func TestCreateWorkflowRun(t *testing.T) {
+	ctx, b, logs, logsOutput := initBackend(t)
+
+	discardOutput := bytes.Buffer{}
+	discardLogs := log.New(&discardOutput, "[tekton-test] ", log.Ltime)
 	w := workflow.Workflow{}
 	readYaml(t, fuseMLWorkflow, &w)
 
-	err := b.CreateWorkflow(ctx, logs, &w)
+	err := b.CreateWorkflow(ctx, discardLogs, &w)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,7 +146,7 @@ func TestCreateWorkflowRun(t *testing.T) {
 		Project: "workspace",
 		URL:     "http://gitea.10.160.5.140.nip.io/workspace/mlflow-app-01.git",
 	}
-	err = b.CreateWorkflowRun(ctx, w.Name, cs)
+	err = b.CreateWorkflowRun(ctx, logs, w.Name, cs)
 	if err != nil {
 		t.Fatalf("Failed to create workflow run %q: %s", w.Name, err)
 	}
@@ -120,6 +168,9 @@ func TestCreateWorkflowRun(t *testing.T) {
 	if d := cmp.Diff(want, got, ignoreStatusField); d != "" {
 		t.Errorf("Unexpected PipelineRun: %s", diff.PrintWantGot(d))
 	}
+
+	expectedLog := fmt.Sprintf("Creating tekton pipeline run for workflow: %s...\n", w.Name)
+	assertStrings(t, logsOutput.String(), expectedLog)
 }
 
 func TestListWorkflowRuns(t *testing.T) {
@@ -142,7 +193,7 @@ func TestListWorkflowRuns(t *testing.T) {
 			runName := fmt.Sprintf("%s-%d", w.Name, i)
 			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
 			runStartTime := metav1.Now()
-			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime)
+			b.createTestWorkflowRun(ctx, t, logs, w.Name, cs, runName, runStatus, runStartTime)
 			runCsInputValue := fmt.Sprintf("%s:main", cs.URL)
 			startTime := runStartTime.Format(time.RFC3339)
 			completionTime := metav1.NewTime(runStartTime.Time.Add(time.Minute)).Format(time.RFC3339)
@@ -187,7 +238,7 @@ func TestListWorkflowRuns(t *testing.T) {
 			runName := fmt.Sprintf("%s-%d", w.Name, i)
 			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
 			runStartTime := metav1.Now()
-			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime)
+			b.createTestWorkflowRun(ctx, t, logs, w.Name, cs, runName, runStatus, runStartTime)
 			runCsInputValue := fmt.Sprintf("%s:main", cs.URL)
 			startTime := runStartTime.Format(time.RFC3339)
 			completionTime := metav1.NewTime(runStartTime.Time.Add(time.Minute)).Format(time.RFC3339)
@@ -294,7 +345,7 @@ func TestListWorkflowRuns(t *testing.T) {
 			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
 			runStartTime := metav1.Now()
 			runStatus := runsStatus[i]
-			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime)
+			b.createTestWorkflowRun(ctx, t, logs, w.Name, cs, runName, runStatus, runStartTime)
 			startTime := runStartTime.Format(time.RFC3339)
 			var completionTime *string
 			if runStatus != "Running" {
@@ -696,10 +747,11 @@ func createCodeset(t *testing.T, nameID, projectID int) *domain.Codeset {
 	return &domain.Codeset{Name: name, Project: project, URL: url}
 }
 
-func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T, workflow string, cs *domain.Codeset,
-	runName string, status string, startTime metav1.Time) {
+func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T, log *log.Logger,
+	workflow string, cs *domain.Codeset, runName string, status string, startTime metav1.Time) {
 	t.Helper()
-	err := b.CreateWorkflowRun(ctx, workflow, cs)
+
+	err := b.CreateWorkflowRun(ctx, log, workflow, cs)
 	if err != nil {
 		t.Fatalf("Failed to create workflow run %q: %s", workflow, err)
 	}

@@ -33,7 +33,7 @@ func NewWorkflowService(logger *log.Logger, store domain.WorkflowStore, codesetS
 // List Workflows.
 func (s *workflowsrvc) List(ctx context.Context, w *workflow.ListPayload) (res []*workflow.Workflow, err error) {
 	s.logger.Print("workflow.list")
-	return s.store.GetAllWorkflows(ctx, w.Name), nil
+	return s.store.GetWorkflows(ctx, w.Name), nil
 }
 
 // Register a new Workflow.
@@ -52,11 +52,40 @@ func (s *workflowsrvc) Register(ctx context.Context, w *workflow.Workflow) (res 
 
 // Get a Workflow.
 func (s *workflowsrvc) Get(ctx context.Context, w *workflow.GetPayload) (res *workflow.Workflow, err error) {
+	s.logger.Print("workflow.get")
 	return s.getWorkflow(ctx, w.Name)
 }
 
 // Delete a Workflow and its assignments.
 func (s *workflowsrvc) Delete(ctx context.Context, d *workflow.DeletePayload) (err error) {
+	s.logger.Print("workflow.delete")
+	if _, err := s.getWorkflow(ctx, d.Name); err != nil {
+		s.logger.Print(err)
+		return err
+	}
+
+	// unassign all assigned codesets, if there's any
+	assignedCodesets := s.store.GetAssignedCodesets(ctx, d.Name)
+	for _, ac := range assignedCodesets {
+		err := s.unassignCodesetFromWorkflow(ctx, d.Name, ac.Codeset)
+		if err != nil {
+			return err
+		}
+	}
+
+	// delete tekton pipeline
+	err = s.backend.DeleteWorkflow(ctx, s.logger, d.Name)
+	if err != nil {
+		s.logger.Print(err)
+		return err
+	}
+
+	// delete workflow
+	err = s.store.DeleteWorkflow(ctx, d.Name)
+	if err != nil {
+		s.logger.Print(err)
+		return err
+	}
 	return nil
 }
 
@@ -88,7 +117,7 @@ func (s *workflowsrvc) Assign(ctx context.Context, w *workflow.AssignPayload) (e
 
 	s.store.AddCodesetAssignment(ctx, w.Name, &domain.AssignedCodeset{Codeset: codeset, WebhookID: webhookID})
 
-	err = s.backend.CreateWorkflowRun(ctx, w.Name, codeset)
+	err = s.backend.CreateWorkflowRun(ctx, s.logger, w.Name, codeset)
 	if err != nil {
 		s.logger.Print(err)
 		return err
@@ -133,7 +162,7 @@ func (s *workflowsrvc) ListAssignments(ctx context.Context, w *workflow.ListAssi
 func (s *workflowsrvc) ListRuns(ctx context.Context, w *workflow.ListRunsPayload) ([]*workflow.WorkflowRun, error) {
 	s.logger.Print("workflow.listRuns")
 	workflowRuns := []*workflow.WorkflowRun{}
-	workflows := s.store.GetAllWorkflows(ctx, w.WorkflowName)
+	workflows := s.store.GetWorkflows(ctx, w.Name)
 	filters := domain.WorkflowRunFilter{}
 	if w.CodesetName != nil {
 		filters.ByLabel = append(filters.ByLabel, fmt.Sprintf("%s=%s", tekton.LabelCodesetName, *w.CodesetName))

@@ -77,8 +77,21 @@ func (w *WorkflowBackend) CreateWorkflow(ctx context.Context, logger *log.Logger
 	return nil
 }
 
-// CreateWorkflowRun creates a PipelineRun with its default values for received workflow and codeset
-func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, workflowName string, codeset *domain.Codeset) error {
+// DeleteWorkflow deletes a tekton pipeline with the specified name
+func (w *WorkflowBackend) DeleteWorkflow(ctx context.Context, logger *log.Logger, name string) error {
+	logger.Printf("Deleting tekton pipeline: %s...", name)
+	err := w.tektonClients.PipelineClient.Delete(ctx, name, metav1.DeleteOptions{})
+	if err != nil {
+		if !k8serr.IsNotFound(err) {
+			return fmt.Errorf("error deleting tekton pipeline %q: %w", name, err)
+		}
+		logger.Printf("Tekton pipeline %q not found, skipping delete...", name)
+	}
+	return nil
+}
+
+// CreateWorkflowRun creates a PipelineRun with its default values for the specified workflow and codeset
+func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, logger *log.Logger, workflowName string, codeset *domain.Codeset) error {
 	pipeline, err := w.tektonClients.PipelineClient.Get(ctx, workflowName, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("error getting tekton pipeline %q: %w", workflowName, err)
@@ -89,6 +102,7 @@ func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, workflowName st
 		return fmt.Errorf("error generating tekton pipeline run for workflow %q: %w", workflowName, err)
 	}
 
+	logger.Printf("Creating tekton pipeline run for workflow: %s...", workflowName)
 	_, err = w.tektonClients.PipelineRunClient.Create(ctx, pipelineRun, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("error creating tekton pipeline run %q: %w", pipelineRun.Name, err)
@@ -120,7 +134,6 @@ func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf workflow.Work
 			workflowRuns = append(workflowRuns, w.toWorkflowRun(wf, run))
 		}
 	}
-
 	return workflowRuns, nil
 }
 

@@ -10,8 +10,9 @@ import (
 // WorkflowStore is an inteface to workflow stores
 type WorkflowStore interface {
 	GetWorkflow(ctx context.Context, name string) *workflow.Workflow
-	GetAllWorkflows(ctx context.Context, name *string) (result []*workflow.Workflow)
+	GetWorkflows(ctx context.Context, name *string) (result []*workflow.Workflow)
 	AddWorkflow(ctx context.Context, w *workflow.Workflow) (*workflow.Workflow, error)
+	DeleteWorkflow(ctx context.Context, name string) error
 	GetAssignedCodeset(ctx context.Context, workflowName string, codeset *Codeset) *AssignedCodeset
 	GetAssignedCodesets(ctx context.Context, workflowName string) []*AssignedCodeset
 	GetAssignments(ctx context.Context, workflowName *string) map[string][]*AssignedCodeset
@@ -22,7 +23,8 @@ type WorkflowStore interface {
 // WorkflowBackend is the interface for the FuseML workflows
 type WorkflowBackend interface {
 	CreateWorkflow(ctx context.Context, logger *log.Logger, workflow *workflow.Workflow) error
-	CreateWorkflowRun(ctx context.Context, workflowName string, codeset *Codeset) error
+	DeleteWorkflow(ctx context.Context, logger *log.Logger, workflowName string) error
+	CreateWorkflowRun(ctx context.Context, logger *log.Logger, workflowName string, codeset *Codeset) error
 	ListWorkflowRuns(ctx context.Context, workflow workflow.Workflow, filter WorkflowRunFilter) ([]*workflow.WorkflowRun, error)
 	CreateWorkflowListener(ctx context.Context, logger *log.Logger, workflowName string, wait bool) (*WorkflowListener, error)
 	DeleteWorkflowListener(ctx context.Context, logger *log.Logger, workflowName string) error
@@ -43,7 +45,7 @@ type WorkflowListener struct {
 	DashboardURL string
 }
 
-// AssignedCodeset describes an assigned codeset its webhook ID
+// AssignedCodeset describes a assigned codeset its webhook ID
 type AssignedCodeset struct {
 	Codeset   *Codeset
 	WebhookID *int64

@@ -37,8 +37,8 @@ func (ws *WorkflowStore) GetWorkflow(ctx context.Context, name string) *workflow
 	return nil
 }
 
-// GetAllWorkflows returns all workflows or the one that matches a given name.
-func (ws *WorkflowStore) GetAllWorkflows(ctx context.Context, name *string) (result []*workflow.Workflow) {
+// GetWorkflows returns all workflows or the one that matches a given name.
+func (ws *WorkflowStore) GetWorkflows(ctx context.Context, name *string) (result []*workflow.Workflow) {
 	result = make([]*workflow.Workflow, 0, len(ws.items))
 	if name != nil {
 		result = append(result, ws.items[*name].workflow)
@@ -60,6 +60,19 @@ func (ws *WorkflowStore) AddWorkflow(ctx context.Context, w *workflow.Workflow) 
 	sw := storableWorkflow{workflow: w}
 	ws.items[w.Name] = &sw
 	return w, nil
+}
+
+// DeleteWorkflow deletes the workflow from the store
+func (ws *WorkflowStore) DeleteWorkflow(ctx context.Context, name string) error {
+	sw, found := ws.items[name]
+	if !found {
+		return nil
+	}
+	if len(sw.assignedCodesets) > 0 {
+		return fmt.Errorf("cannot delete workflow, there are codesets assigned to it")
+	}
+	delete(ws.items, name)
+	return nil
 }
 
 // GetAssignedCodesets returns a list of codesets assigned to the specified workflow
@@ -118,8 +131,8 @@ func (ws *WorkflowStore) GetAssignedCodeset(ctx context.Context, workflowName st
 	return ac
 }
 
-func getAssignedCodeset(slice []*domain.AssignedCodeset, codeset *domain.Codeset) (*domain.AssignedCodeset, int) {
-	for i, ac := range slice {
+func getAssignedCodeset(assignedCodesets []*domain.AssignedCodeset, codeset *domain.Codeset) (*domain.AssignedCodeset, int) {
+	for i, ac := range assignedCodesets {
 		if ac.Codeset.Project == codeset.Project && ac.Codeset.Name == codeset.Name {
 			return ac, i
 		}

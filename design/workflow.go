@@ -107,21 +107,16 @@ var _ = Service("workflow", func() {
 		Error("BadRequest", func() {
 			Description("If name is not given, should return 400 Bad Request.")
 		})
-		Error("NotFound", func() {
-			Description("If there is no workflow with the given name, should return 404 Not Found.")
-		})
 
 		HTTP(func() {
 			DELETE("/workflows/{name}")
 			Response(StatusNoContent)
 			Response("BadRequest", StatusBadRequest)
-			Response("NotFound", StatusNotFound)
 		})
 
 		GRPC(func() {
 			Response(CodeOK)
 			Response("BadRequest", CodeInvalidArgument)
-			Response("NotFound", CodeNotFound)
 		})
 	})
 
@@ -231,7 +226,7 @@ var _ = Service("workflow", func() {
 		Description("List Workflow runs.")
 
 		Payload(func() {
-			Field(1, "workflowName", String, "Name of the Workflow to list runs from", func() {
+			Field(1, "name", String, "Name of the Workflow to list runs from", func() {
 				Example("mlflow-sklearn-e2e")
 			})
 			Field(2, "codesetName", String, "Name of the codeset to list runs from", func() {
@@ -251,11 +246,11 @@ var _ = Service("workflow", func() {
 			Description("If there is no workflow with the given name, should return 404 Not Found.")
 		})
 
-		Result(ArrayOf(WorkflowRun), "Return all runs for a workflow.")
+		Result(ArrayOf(WorkflowRun), "Return all runs of a workflow.")
 
 		HTTP(func() {
 			GET("/workflows/runs")
-			Param("workflowName")
+			Param("name")
 			Param("codesetName")
 			Param("codesetProject")
 			Param("status")
