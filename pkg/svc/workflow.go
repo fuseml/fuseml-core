@@ -81,7 +81,7 @@ func (s *workflowsrvc) Assign(ctx context.Context, w *workflow.AssignPayload) (e
 		return err
 	}
 
-	err = s.codesetStore.CreateWebhook(ctx, codeset, wfListener.URL)
+	_, err = s.codesetStore.CreateWebhook(ctx, codeset, wfListener.URL)
 	if err != nil {
 		s.logger.Print(err)
 		return err
