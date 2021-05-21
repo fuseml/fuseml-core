@@ -34,6 +34,9 @@ func main() {
 	{
 		addr = *addrF
 		if addr == "" {
+			addr, _ = os.LookupEnv("FUSEML_SERVER_URL")
+		}
+		if addr == "" {
 			switch *hostF {
 			case "dev":
 				addr = "http://localhost:8000"
