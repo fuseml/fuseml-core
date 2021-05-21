@@ -1,0 +1,56 @@
+name: Release-pipeline
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Fetch Branch
+        id: branch
+        run: |
+          raw=$(git branch -r --contains ${{ github.ref }})
+          branch=${raw##*/}
+          echo "::set-output name=BRANCH_NAME::$branch"
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '^1.13.7'
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+      - name: Install dependencies
+        if: steps.branch.outputs.BRANCH_NAME == 'main'
+        run: |
+          make deps
+      - name: Build binaries
+        if: steps.branch.outputs.BRANCH_NAME == 'main'
+        run: |
+          make all
+      - name: Create CHECKSUMS
+        if: steps.branch.outputs.BRANCH_NAME == 'main'
+        run: ( cd bin; sha256sum -b fuseml_core* > SHA256SUM.txt )
+      - name: Generate Changelog
+        uses: heinrichreimer/github-changelog-generator-action@v2.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          pullRequests: "false"
+          onlyLastTag: "true"
+          stripGeneratorNotice: "true"
+          issuesWoLabels: "true"
+          stripHeaders: "true"
+      - name: Release fuseml-core
+        uses: softprops/action-gh-release@v1
+        if: steps.branch.outputs.BRANCH_NAME == 'main'
+        with:
+          files: ./bin/*
+          body_path: ./CHANGELOG.md
+          prerelease: "true"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -10,16 +10,35 @@ endif
 
 GO_LDFLAGS:=-ldflags '-s -w'
 
-all: fuseml
+all: fuseml_all
 
 # Run tests
 test: generate lint
 	go test ./... -coverprofile cover.out
 
-# Build FuseML binaries
-fuseml: generate lint
+# Generate code, run linter and build FuseML binaries
+fuseml: generate lint build
+
+fuseml_all: generate lint build_all 
+
+build: build_server build_client_local
+
+build_all: build_server build_client-amd64 build_client-windows build_client-darwin-amd64
+
+build_server:
 	go build ${GO_LDFLAGS} -o bin/fuseml_core ./cmd/fuseml_core
+
+build_client_local:
 	go build ${GO_LDFLAGS} -o bin/fuseml_core-cli ./cmd/fuseml_core-cli
+
+build_client-amd64:
+	GOARCH="amd64" GOOS="linux" go build ${GO_LDFLAGS} -o bin/fuseml_core-cli-linux-amd64 ./cmd/fuseml_core-cli
+
+build_client-windows:
+	GOARCH="amd64" GOOS="windows" go build ${GO_LDFLAGS} -o bin/fuseml_core-cli-windows-amd64 ./cmd/fuseml_core-cli
+
+build_client-darwin-amd64:
+	GOARCH="amd64" GOOS="darwin" go build ${GO_LDFLAGS} -o bin/fuseml_core-cli-darwin-amd64 ./cmd/fuseml_core-cli
 
 # Run fuseml_core
 runcore: generate lint
