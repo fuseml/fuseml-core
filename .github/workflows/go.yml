@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: ["all", "test"]
+        target: ["release", "test"]
     steps:
     - uses: actions/checkout@v2
 
