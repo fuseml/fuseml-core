@@ -32,10 +32,7 @@ jobs:
       - name: Build binaries
         if: steps.branch.outputs.BRANCH_NAME == 'main'
         run: |
-          make all
-      - name: Create CHECKSUMS
-        if: steps.branch.outputs.BRANCH_NAME == 'main'
-        run: ( cd bin; sha256sum -b fuseml_core* > SHA256SUM.txt )
+          make release
       - name: Generate Changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.1.1
         with:
