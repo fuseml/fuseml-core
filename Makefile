@@ -23,7 +23,7 @@ test: generate lint
 fuseml: generate lint build
 
 # Generate code, run linter, build FuseML release-ready archived binaries for all supported ARCHs and OSs
-release: generate lint release_all
+release: test release_all
 
 build: build_server build_client
 
@@ -33,7 +33,7 @@ build_server:
 build_client:
 	GOOS=$(GOOS) GOARCH=$(GOARCH) go build ${GO_LDFLAGS} -o bin/fuseml ./cmd/fuseml_cli
 
-release_all: server_release client_release-amd64 client_release-windows client_release-darwin-amd64
+release_all: server_release client_release client_release-darwin-amd64 client_release-darwin-arm64 client_release-linux-amd64 client_release-linux-arm client_release-linux-arm64 client_release-windows 
 
 server_release: build_server
 	tar zcf bin/fuseml_core.tar.gz -C bin/ --remove-files --transform="s#\.\/##" ./fuseml_core
@@ -43,14 +43,23 @@ client_release: build_client
 	tar zcf bin/fuseml-$(GOOS)-$(GOARCH).tar.gz -C bin/ --remove-files --transform="s#\.\/##" ./fuseml
 	cd bin && sha256sum -b fuseml-$(GOOS)-$(GOARCH).tar.gz > fuseml-$(GOOS)-$(GOARCH).tar.gz.sha256
 
-client_release-amd64:
+client_release-linux-amd64:
 	$(MAKE) GOARCH="amd64" GOOS="linux" client_release
+
+client_release-linux-arm:
+	$(MAKE) GOARCH="arm" GOOS="linux" client_release
+
+client_release-linux-arm64:
+	$(MAKE) GOARCH="arm64" GOOS="linux" client_release
 
 client_release-windows:
 	$(MAKE) GOARCH="amd64" GOOS="windows" client_release
 
 client_release-darwin-amd64:
 	$(MAKE) GOARCH="amd64" GOOS="darwin" client_release
+
+client_release-darwin-arm64:
+	$(MAKE) GOARCH="arm64" GOOS="darwin" client_release
 
 # Run fuseml_core
 runcore: generate lint
