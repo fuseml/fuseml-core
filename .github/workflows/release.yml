@@ -1,15 +1,18 @@
-name: Release-pipeline
+name: Release
 
 on:
   push:
-    tags:
-      - "v*"
+    tags: [ "v*" ]
+    branches: [ main ]
 
 jobs:
   source-and-binaries:
+    name: Source and binaries
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
@@ -32,7 +35,7 @@ jobs:
         run: |
           make release
 
-      - name: Generate Changelog
+      - name: Generate changelog
         uses: heinrichreimer/github-changelog-generator-action@v2.1.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -52,9 +55,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   docker-iamge:
+    name: Docker image
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v2
 
       - name: Login to GHCR
@@ -80,7 +84,18 @@ jobs:
 
       - name: Set image name and tag
         run: |
-          echo "IMG=ghcr.io/${GITHUB_REPOSITORY}:${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+          case "${GITHUB_REF}" in
+            refs/heads/main)
+              TAG="dev"
+              ;;
+            refs/tags/v*)
+              TAG=${GITHUB_REF/refs\/tags\//}
+              ;;
+            *)
+              TAG=${GITHUB_REF/refs\/*\//}
+              ;;
+          esac
+          echo "IMG=ghcr.io/${GITHUB_REPOSITORY}:${TAG}" >> $GITHUB_ENV
          
       - name: Build image
         run: |
