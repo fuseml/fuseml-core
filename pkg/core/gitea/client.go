@@ -129,7 +129,7 @@ func (gac giteaAdminClient) CreateUser(org string) error {
 	gac.logger.Printf("Creating user '%s'", username)
 	_, _, err = gac.giteaClient.AdminCreateUser(gitea.CreateUserOption{
 		Username:           username,
-		Email:              config.DefaultUserEmail,
+		Email:              config.DefaultUserEmail(org),
 		Password:           config.DefaultUserPassword,
 		MustChangePassword: gitea.OptionalBool(false),
 		SendNotify:         false,
