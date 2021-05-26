@@ -6,6 +6,7 @@ import (
 
 	"github.com/fuseml/fuseml-core/pkg/cli/codeset"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
+	"github.com/fuseml/fuseml-core/pkg/cli/runnable"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -36,6 +37,7 @@ func NewCmdRoot() *cobra.Command {
 	viper.BindEnv("verbose")
 
 	cmd.AddCommand(codeset.NewCmdCodeset(o))
+	cmd.AddCommand(runnable.NewCmdRunnable(o))
 
 	return cmd
 }

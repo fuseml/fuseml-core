@@ -18,7 +18,7 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/tektoncd/pipeline v0.23.0
 	github.com/tektoncd/triggers v0.13.0
-	github.com/thediveo/enumflag v0.10.1 // indirect
+	github.com/thediveo/enumflag v0.10.1
 	goa.design/goa/v3 v3.3.1
 	google.golang.org/grpc v1.37.0
 	google.golang.org/protobuf v1.26.0
