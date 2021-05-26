@@ -75,6 +75,8 @@ func NewAdminClient(logger *log.Logger) (AdminClient, error) {
 
 	client.SetBasicAuth(username, password)
 
+	logger.Printf("Using GITEA from: %s", url)
+
 	return giteaAdminClient{
 		giteaClient: client,
 		url:         url,
