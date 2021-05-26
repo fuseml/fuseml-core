@@ -10,7 +10,7 @@ import (
 
 // GitAdmin is an inteface to git administration clients
 type GitAdmin interface {
-	PrepareRepository(*domain.Codeset, *string) error
+	PrepareRepository(*domain.Codeset, *string) (*string, *string, error)
 	CreateRepoWebhook(string, string, *string) error
 	GetRepositories(org, label *string) ([]*domain.Codeset, error)
 	GetRepository(org, name string) (*domain.Codeset, error)
@@ -67,11 +67,11 @@ func (cs *GitCodesetStore) CreateWebhook(ctx context.Context, c *domain.Codeset,
 }
 
 // Add creates new codeset
-func (cs *GitCodesetStore) Add(ctx context.Context, c *domain.Codeset) (*domain.Codeset, error) {
-	err := cs.gitAdmin.PrepareRepository(c, nil)
+func (cs *GitCodesetStore) Add(ctx context.Context, c *domain.Codeset) (*domain.Codeset, *string, *string, error) {
+	username, password, err := cs.gitAdmin.PrepareRepository(c, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "Preparing Repository failed")
+		return nil, nil, nil, errors.Wrap(err, "Preparing Repository failed")
 	}
 	// Code itself needs to be pushed from client, here we could do some additional registration
-	return c, nil
+	return c, username, password, nil
 }

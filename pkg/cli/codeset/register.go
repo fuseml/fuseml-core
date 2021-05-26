@@ -70,15 +70,22 @@ func (o *RegisterOptions) run() error {
 		return err
 	}
 
-	codeset := response.(*codeset.Codeset)
+	result := response.(*codeset.RegisterResult)
+	codeset := result.Codeset
 
-	err = gitc.Push(o.Project, o.Name, o.Location, *codeset.URL, o.global.Verbose)
+	err = gitc.Push(o.Project, o.Name, o.Location, *codeset.URL, result.Username, result.Password, o.global.Verbose)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		return err
 	}
 
 	fmt.Printf("Codeset %s successfully registered\n", *codeset.URL)
+	if result.Username != nil {
+		fmt.Printf("Username for accessing the project %s\n", *result.Username)
+	}
+	if result.Password != nil {
+		fmt.Printf("Password for accessing the project %s\n", *result.Password)
+	}
 
 	return nil
 }

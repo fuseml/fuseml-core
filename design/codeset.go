@@ -87,7 +87,11 @@ var _ = Service("codeset", func() {
 			Description("If the Codeset does not have the required fields, should return 400 Bad Request.")
 		})
 
-		Result(Codeset)
+		Result(func() {
+			Field(1, "codeset", Codeset, "Registered codeset")
+			Field(2, "username", String, "User for accessing new project")
+			Field(3, "password", String, "Password for new user")
+		})
 
 		HTTP(func() {
 			POST("/codesets")

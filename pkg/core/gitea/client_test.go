@@ -164,7 +164,7 @@ func TestPrepareRepository(t *testing.T) {
 		t.Errorf("Initial number of teams is not empty")
 	}
 
-	err := testGiteaAdminClient.PrepareRepository(code, testListenerURL)
+	_, _, err := testGiteaAdminClient.PrepareRepository(code, testListenerURL)
 	if err != nil {
 		t.Errorf("Error preparing repository: %v", err)
 	}

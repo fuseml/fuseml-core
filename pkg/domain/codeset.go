@@ -22,7 +22,7 @@ type Codeset struct {
 type CodesetStore interface {
 	Find(ctx context.Context, project, name string) (*Codeset, error)
 	GetAll(ctx context.Context, project, label *string) ([]*Codeset, error)
-	Add(ctx context.Context, c *Codeset) (*Codeset, error)
+	Add(ctx context.Context, c *Codeset) (*Codeset, *string, *string, error)
 	CreateWebhook(context.Context, *Codeset, string) error
 	Delete(ctx context.Context, project, name string) error
 }

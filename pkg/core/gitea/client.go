@@ -13,7 +13,7 @@ import (
 
 // AdminClient describes the interface of Gitea Admin Client
 type AdminClient interface {
-	PrepareRepository(*domain.Codeset, *string) error
+	PrepareRepository(*domain.Codeset, *string) (*string, *string, error)
 	CreateRepoWebhook(string, string, *string) error
 	GetRepositories(org, label *string) ([]*domain.Codeset, error)
 	GetRepository(org, name string) (*domain.Codeset, error)
@@ -115,48 +115,49 @@ func (gac giteaAdminClient) CreateOrganization(org string) error {
 }
 
 // create user assigned to current project
-func (gac giteaAdminClient) CreateUser(org string) error {
+func (gac giteaAdminClient) CreateUser(org string) (*string, *string, error) {
 	username := generateUserName(org)
+	password := config.DefaultUserPassword
 	user, resp, err := gac.giteaClient.GetUserInfo(username)
 	if resp == nil && err != nil {
-		return errors.Wrap(err, "Failed to make get user request")
+		return nil, nil, errors.Wrap(err, "Failed to make get user request")
 	}
 	if user != nil && user.ID != 0 {
 		gac.logger.Println("User already exists")
-		return nil
+		return nil, nil, nil
 	}
 
 	gac.logger.Printf("Creating user '%s'", username)
 	_, _, err = gac.giteaClient.AdminCreateUser(gitea.CreateUserOption{
 		Username:           username,
 		Email:              config.DefaultUserEmail(org),
-		Password:           config.DefaultUserPassword,
+		Password:           password,
 		MustChangePassword: gitea.OptionalBool(false),
 		SendNotify:         false,
 	})
 	if err != nil {
-		return errors.Wrap(err, "Failed to create user")
+		return nil, nil, errors.Wrap(err, "Failed to create user")
 	}
 
 	teams, _, err := gac.giteaClient.ListOrgTeams(org, gitea.ListTeamsOptions{})
 	if err != nil {
-		return errors.Wrap(err, "Failed to list org teams")
+		return nil, nil, errors.Wrap(err, "Failed to list org teams")
 	}
 	for _, team := range teams {
 		if team.Name == "Owners" {
 			_, err = gac.giteaClient.AddTeamMember(team.ID, username)
 			if err != nil {
-				return errors.Wrap(err, "Failed adding user to Owners")
+				return nil, nil, errors.Wrap(err, "Failed adding user to Owners")
 			}
 			break
 		}
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "Failed to create application")
+		return nil, nil, errors.Wrap(err, "Failed to create application")
 	}
 
-	return nil
+	return &username, &password, nil
 }
 
 // create git repository with given name under given org
@@ -236,33 +237,33 @@ func (gac giteaAdminClient) CreateRepoWebhook(org, name string, listenerURL *str
 }
 
 // Prepare the org, repository, and create user that clients can use for pushing
-func (gac giteaAdminClient) PrepareRepository(code *domain.Codeset, listenerURL *string) error {
+func (gac giteaAdminClient) PrepareRepository(code *domain.Codeset, listenerURL *string) (*string, *string, error) {
 
 	err := gac.CreateOrganization(code.Project)
 	if err != nil {
-		return errors.Wrap(err, "Create org failed")
+		return nil, nil, errors.Wrap(err, "Create org failed")
 	}
 
-	err = gac.CreateUser(code.Project)
+	user, pass, err := gac.CreateUser(code.Project)
 	if err != nil {
-		return errors.Wrap(err, "Create FuseML user failed")
+		return nil, nil, errors.Wrap(err, "Create FuseML user failed")
 	}
 
 	err = gac.CreateRepo(code)
 	if err != nil {
-		return errors.Wrap(err, "Create repo failed")
+		return nil, nil, errors.Wrap(err, "Create repo failed")
 	}
 
 	err = gac.AddRepoTopics(code.Project, code.Name, code.Labels)
 	if err != nil {
-		return errors.Wrap(err, "Failed to add topics to repository")
+		return nil, nil, errors.Wrap(err, "Failed to add topics to repository")
 	}
 
 	err = gac.CreateRepoWebhook(code.Project, code.Name, listenerURL)
 	if err != nil {
-		return errors.Wrap(err, "Creating webhook failed")
+		return nil, nil, errors.Wrap(err, "Creating webhook failed")
 	}
-	return nil
+	return user, pass, nil
 }
 
 // simple check if a string is present in a slice
