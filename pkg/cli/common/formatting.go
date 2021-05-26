@@ -193,6 +193,16 @@ func (o *FormattingOptions) formatTable(out io.Writer, values []interface{}) {
 				// the table formatter doesn't handle nil values very well
 				v = ""
 			}
+
+			fmt.Printf("value %v\n", v)
+			// if the value is not a scalar, format it using YAML
+			t := reflect.TypeOf(v)
+			if t.Kind() == reflect.Array || t.Kind() == reflect.Slice || t.Kind() == reflect.Map {
+				if j, err := yaml.Marshal(v); err == nil {
+					v = string(j)
+				}
+			}
+
 			row[i] = v
 
 		}
