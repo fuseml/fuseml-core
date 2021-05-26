@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: "${{ matrix.target }}"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: ["build", "test"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '^1.16'
+          
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+        
+      - name: Cache Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ github.job }}-${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ github.job }}-${{ runner.os }}-go
+
+      - name: Install dependencies
+        run: |
+          make deps
+
+      - name: Run "${{ matrix.target }}"
+        run: |
+          make generate ${{ matrix.target }}
