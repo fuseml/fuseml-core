@@ -48,8 +48,8 @@ type giteaAdminClient struct {
 }
 
 var errGITEAURLMissing = "Value for gitea URL (GITEA_URL) was not provided."
-var errGITEAUSERNAMEMissing = "Value for gitea user name (GITEA_USERNAME) was not provided."
-var errGITEAPASSWORDMissing = "Value for gitea user password (GITEA_PASSWORD) was not provided."
+var errGITEAADMINUSERNAMEMissing = "Value for gitea admin user name (GITEA_ADMIN_USERNAME) was not provided."
+var errGITEAADMINPASSWORDMissing = "Value for gitea admin user password (GITEA_ADMIN_PASSWORD) was not provided."
 var errRepoNotFound = "Repository by that name not found"
 var lettersForPassword = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 var generatedPasswordLength = 16
@@ -66,13 +66,13 @@ func NewAdminClient(logger *log.Logger) (AdminClient, error) {
 	if !exists {
 		return nil, errors.New(errGITEAURLMissing)
 	}
-	username, exists := os.LookupEnv("GITEA_USERNAME")
+	username, exists := os.LookupEnv("GITEA_ADMIN_USERNAME")
 	if !exists {
-		return nil, errors.New(errGITEAUSERNAMEMissing)
+		return nil, errors.New(errGITEAADMINUSERNAMEMissing)
 	}
-	password, exists := os.LookupEnv("GITEA_PASSWORD")
+	password, exists := os.LookupEnv("GITEA_ADMIN_PASSWORD")
 	if !exists {
-		return nil, errors.New(errGITEAPASSWORDMissing)
+		return nil, errors.New(errGITEAADMINPASSWORDMissing)
 	}
 
 	client, err := gitea.NewClient(url)
