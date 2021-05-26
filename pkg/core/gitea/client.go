@@ -2,6 +2,7 @@ package gitea
 
 import (
 	"log"
+	"math/rand"
 	"os"
 
 	"code.gitea.io/sdk/gitea"
@@ -50,6 +51,12 @@ var errGITEAURLMissing = "Value for gitea URL (GITEA_URL) was not provided."
 var errGITEAUSERNAMEMissing = "Value for gitea user name (GITEA_USERNAME) was not provided."
 var errGITEAPASSWORDMissing = "Value for gitea user password (GITEA_PASSWORD) was not provided."
 var errRepoNotFound = "Repository by that name not found"
+var lettersForPassword = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+var generatedPasswordLength = 16
+
+// For now, turn off the password generation
+// But we need to fine a way how user can alter this value (env variable, config file, client param...)
+var generateUserPassword = false
 
 // NewAdminClient creates a new gitea client and performs authentication
 // from the credentials provided as env variables
@@ -86,6 +93,17 @@ func generateUserName(org string) string {
 	return config.DefaultUserName(org)
 }
 
+func getUserPassword() string {
+	if !generateUserPassword {
+		return config.DefaultUserPassword
+	}
+	p := make([]rune, generatedPasswordLength)
+	for i := range p {
+		p[i] = lettersForPassword[rand.Intn(len(lettersForPassword))]
+	}
+	return string(p)
+}
+
 func (gac giteaAdminClient) GetGiteaURL() (string, error) {
 	return gac.url, nil
 }
@@ -117,7 +135,7 @@ func (gac giteaAdminClient) CreateOrganization(org string) error {
 // create user assigned to current project
 func (gac giteaAdminClient) CreateUser(org string) (*string, *string, error) {
 	username := generateUserName(org)
-	password := config.DefaultUserPassword
+	password := getUserPassword()
 	user, resp, err := gac.giteaClient.GetUserInfo(username)
 	if resp == nil && err != nil {
 		return nil, nil, errors.Wrap(err, "Failed to make get user request")
