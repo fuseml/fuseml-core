@@ -10,8 +10,8 @@ import (
 
 	applicationc "github.com/fuseml/fuseml-core/gen/http/application/client"
 	codesetc "github.com/fuseml/fuseml-core/gen/http/codeset/client"
-	workflowc "github.com/fuseml/fuseml-core/gen/http/runnable/client"
-	runnablec "github.com/fuseml/fuseml-core/gen/http/workflow/client"
+	runnablec "github.com/fuseml/fuseml-core/gen/http/runnable/client"
+	workflowc "github.com/fuseml/fuseml-core/gen/http/workflow/client"
 	yaml "github.com/goccy/go-yaml"
 	goahttp "goa.design/goa/v3/http"
 )

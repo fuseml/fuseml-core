@@ -80,8 +80,9 @@ func (o *FormattingOptions) addFormattingFlags(cmd *cobra.Command, withTable boo
 
 	if withTable {
 		cmd.Flags().StringSliceVar(&o.Fields, "field", o.Fields,
-			`specify one or more columns to include in the output. The field name may also be specified
-			explicitly if different than the column name. This option only has effect with the 'table' and 'csv' formats.`)
+			`specify one or more columns to include in the output.
+The field name may also be specified explicitly if different than the column name.
+This option only has effect with the 'table' and 'csv' formats.`)
 
 		cmd.Use = fmt.Sprintf("%s [--field COLUMN[:FIELD]]...", cmd.Use)
 	}
