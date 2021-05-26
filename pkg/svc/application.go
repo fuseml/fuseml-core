@@ -106,7 +106,7 @@ func (s *applicationsrvc) Delete(ctx context.Context, p *application.DeletePaylo
 		s.logger.Print("application not found, nothing to delete")
 		return nil
 	}
-	cluster, err := kubernetes.NewCluster()
+	cluster, err := kubernetes.NewCluster(s.logger)
 	if err != nil {
 		return errors.Wrap(err, "Failed initializing kubernetes cluster")
 	}
