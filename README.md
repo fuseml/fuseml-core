@@ -54,7 +54,7 @@ This repository contains the FuseML APIs definitions and core service. For the g
   The variables contain the values describing connection to the gitea server and credentials for the admin user.
   If you have used [fuseml-installer](https://github.com/fuseml/fuseml) to set up the environment, there is already default gitea instance installed in your Kubernetes cluster. In such case set the values this way:
   ```bash
-  export GITEA_URL=$(kubectl get VirtualService -n gitea gitea -o jsonpath="{.spec.hosts[0]}")
+  export GITEA_URL=http://$(kubectl get VirtualService -n gitea gitea -o jsonpath="{.spec.hosts[0]}")
   export GITEA_USERNAME=$(kubectl get Secret -n fuseml-workloads gitea-creds -o jsonpath="{.data.username}" | base64 -d)
   export GITEA_PASSWORD=$(kubectl get Secret -n fuseml-workloads gitea-creds -o jsonpath="{.data.password}" | base64 -d)
   ```
@@ -62,7 +62,7 @@ This repository contains the FuseML APIs definitions and core service. For the g
   
   `TEKTON_DASHBOARD_URL` is the path to the Tekton server. As with other components, Tekton is installed by `fuseml-installer` into your cluster. To get the right URL, call
   ```bash
-  export TEKTON_DASHBOARD_URL=$(kubectl get VirtualService -n tekton-pipelines tekton -o jsonpath="{.spec.hosts[0]}")
+  export TEKTON_DASHBOARD_URL=http://$(kubectl get VirtualService -n tekton-pipelines tekton -o jsonpath="{.spec.hosts[0]}")
   ```
 
   Now it's possible to execute `bin/fuseml_core`.
@@ -105,7 +105,7 @@ Example:
   Instead of providing `-url` argument to each command call, save the service URL into `FUSEML_SERVER_URL` environment variable and export it. Use this command to fill the variable with the URL of the `fuseml-core` server service that is installed in your Kubernetes cluster:
 
   ```bash
-  export FUSEML_SERVER_URL=$(kubectl get VirtualService -n fuseml-core fuseml-core -o jsonpath="{.spec.hosts[0]}")
+  export FUSEML_SERVER_URL=http://$(kubectl get VirtualService -n fuseml-core fuseml-core -o jsonpath="{.spec.hosts[0]}")
   ```
 
   If neither `FUSEML_SERVER_URL` nor `-url` value is set, client tries to connect to the server running locally at your machine.
@@ -176,7 +176,7 @@ Let's look at the example for MLflow model, being trained by MLflow and served w
   Set the value of `FUSEML_SERVER_URL`, to point to the server URL:
 
   ```bash
-  export FUSEML_SERVER_URL=$(kubectl get VirtualService -n fuseml-core fuseml-core -o jsonpath="{.spec.hosts[0]}")
+  export FUSEML_SERVER_URL=http//$(kubectl get VirtualService -n fuseml-core fuseml-core -o jsonpath="{.spec.hosts[0]}")
   ```
   
 
