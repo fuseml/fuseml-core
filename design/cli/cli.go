@@ -210,7 +210,7 @@ func FieldLoadCode(arg *http.InitArgData, fullName string, payload expr.DataType
 		}
 		if !argTypeNeedsConversion(arg) {
 			ref := "&"
-			if arg.Required || arg.DefaultValue != nil || expr.IsArray(arg.Type) {
+			if arg.Required || arg.DefaultValue != nil || expr.IsArray(arg.Type) || expr.IsMap(arg.Type) {
 				ref = ""
 			}
 			code = arg.VarName + " = " + ref + fullName

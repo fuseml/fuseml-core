@@ -23,7 +23,7 @@ type RunnableListOptions struct {
 }
 
 func formatLabels(object interface{}, column string, field interface{}) string {
-	if labels, ok := field.(map[string]string); ok {
+	if labels, ok := field.(map[string]interface{}); ok {
 		labelStr := make([]string, 0)
 		for k, v := range labels {
 			labelStr = append(labelStr, fmt.Sprintf("%s: %s", k, v))
@@ -77,7 +77,7 @@ func (o *RunnableListOptions) Validate() error {
 }
 
 func (o *RunnableListOptions) Run() error {
-	request, err := runnablec.BuildListPayload(o.ID, o.Kind, "") //o.Labels)
+	request, err := runnablec.BuildListPayload(o.ID, o.Kind, o.Labels)
 	if err != nil {
 		return err
 	}

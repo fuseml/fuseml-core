@@ -149,6 +149,10 @@ func argTypeNeedsConversion(arg *http.InitArgData) bool {
 		return false
 	}
 
+	if at := expr.AsMap(arg.Type); at != nil && expr.IsPrimitive(at.ElemType.Type) {
+		return false
+	}
+
 	return true
 }
 
