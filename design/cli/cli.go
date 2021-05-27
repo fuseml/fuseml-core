@@ -235,10 +235,7 @@ func FieldLoadCode(arg *http.InitArgData, fullName string, payload expr.DataType
 		}
 	}
 
-	r := fmt.Sprintf("%s%s%s", startIf, code, endIf)
-	fmt.Printf("\n    Code for arg %s: %s", arg.VarName, r)
-
-	return r, declErr
+	return fmt.Sprintf("%s%s%s", startIf, code, endIf), declErr
 }
 
 // flagType calculates the type of a flag

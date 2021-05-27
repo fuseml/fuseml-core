@@ -171,7 +171,6 @@ func makePayloadBuildFunction(e *http.EndpointData, args []*http.InitArgData, pa
 		pInitArgs = make([]*codegen.InitArgData, len(args))
 		check     bool
 	)
-	fmt.Printf("\narguments for %s/%s: ", e.ServiceName, e.Method.Name)
 	for i, arg := range args {
 		pInitArgs[i] = &codegen.InitArgData{
 			Name:         arg.VarName,
@@ -180,11 +179,6 @@ func makePayloadBuildFunction(e *http.EndpointData, args []*http.InitArgData, pa
 			FieldPointer: arg.FieldPointer,
 			FieldType:    arg.FieldType,
 			Type:         arg.Type,
-		}
-
-		fmt.Printf("[%s] %s %s, ", arg.FieldName, arg.VarName, arg.TypeName)
-		if at := expr.AsArray(arg.Type); at != nil && expr.IsPrimitive(at.ElemType.Type) {
-			fmt.Printf("AP")
 		}
 
 		fn := goifyTerms(e.ServiceName, e.Method.Name, arg.VarName)
@@ -222,8 +216,6 @@ func makePayloadBuildFunction(e *http.EndpointData, args []*http.InitArgData, pa
 		ReturnTypePkg:              e.Payload.Request.PayloadInit.ReturnTypePkg,
 		Args:                       pInitArgs,
 	}
-
-	fmt.Printf("\npayload code: %s\n", e.Payload.Request.PayloadInit.ClientCode)
 
 	return &BuildFunctionData{
 		Name:        "Build" + e.Method.VarName + "Payload",
