@@ -118,7 +118,7 @@ func (o *FormattingOptions) addFormattingFlags(cmd *cobra.Command, withTable boo
 		fmt.Sprintf("specify the output format. Possible values are: %s", strings.Join(formats, ", ")),
 	)
 
-	cmd.Use = fmt.Sprintf("%s [--format {%s}] ", cmd.Use, strings.Join(formats, ","))
+	cmd.Use = fmt.Sprintf("%s [--format {%s}]", cmd.Use, strings.Join(formats, ","))
 
 	if withTable {
 		cmd.Flags().StringSliceVar(&o.Fields, "field", o.Fields,
