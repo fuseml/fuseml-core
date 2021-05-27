@@ -161,18 +161,19 @@ func (gac giteaAdminClient) CreateUser(org string) error {
 
 // create git repository with given name under given org
 func (gac giteaAdminClient) CreateRepo(c *domain.Codeset) error {
-	_, resp, err := gac.giteaClient.GetRepo(c.Project, c.Name)
+	repo, resp, err := gac.giteaClient.GetRepo(c.Project, c.Name)
 	if resp == nil && err != nil {
 		return errors.Wrap(err, "Failed to make get repo request")
 	}
 
 	if resp != nil && resp.StatusCode == 200 {
 		gac.logger.Printf("Repository '%s' already exists under '%s'", c.Name, c.Project)
+		c.URL = repo.CloneURL
 		return nil
 	}
 
 	gac.logger.Printf("Creating repository '%s' under '%s'...", c.Name, c.Project)
-	_, _, err = gac.giteaClient.CreateOrgRepo(c.Project, gitea.CreateRepoOption{
+	repo, _, err = gac.giteaClient.CreateOrgRepo(c.Project, gitea.CreateRepoOption{
 		Name:          c.Name,
 		AutoInit:      true,
 		Private:       false,
@@ -183,6 +184,7 @@ func (gac giteaAdminClient) CreateRepo(c *domain.Codeset) error {
 	if err != nil {
 		return errors.Wrap(err, "Failed to create repository")
 	}
+	c.URL = repo.CloneURL
 
 	return nil
 }

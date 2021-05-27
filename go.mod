@@ -9,12 +9,16 @@ require (
 	github.com/goccy/go-yaml v1.8.9
 	github.com/google/go-cmp v0.5.5
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
+	github.com/jedib0t/go-pretty/v6 v6.2.2
 	github.com/jinzhu/copier v0.2.9
 	github.com/otiai10/copy v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/sergi/go-diff v1.2.0 // indirect
+	github.com/spf13/cobra v1.1.3
+	github.com/spf13/viper v1.7.1
 	github.com/tektoncd/pipeline v0.23.0
 	github.com/tektoncd/triggers v0.13.0
+	github.com/thediveo/enumflag v0.10.1
 	goa.design/goa/v3 v3.3.1
 	google.golang.org/grpc v1.37.0
 	google.golang.org/protobuf v1.26.0

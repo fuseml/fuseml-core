@@ -75,12 +75,12 @@ var _ = Service("codeset", func() {
 				Default("")
 			})
 			Field(4, "labels", ArrayOf(String), "Additional Codeset labels that helps with identifying the type", func() {
+				Elem(func() {
+					Pattern(`^[A-Za-z0-9_][A-Za-z0-9-_]*$`)
+				})
 				Example([]string{"mlflow", "playground"})
 			})
-			Field(5, "location", String, "Path to the code that should be registered as Codeset", func() {
-				Example("work/ml/mlflow-code")
-			})
-			Required("name", "project", "location")
+			Required("name", "project")
 		})
 
 		Error("BadRequest", func() {
@@ -95,7 +95,6 @@ var _ = Service("codeset", func() {
 			Param("project")
 			Param("description")
 			Param("labels")
-			Param("location")
 			Response(StatusCreated)
 			Response("BadRequest", StatusBadRequest)
 		})
@@ -163,7 +162,7 @@ var _ = Service("codeset", func() {
 
 		HTTP(func() {
 			DELETE("/codesets/{project}/{name}")
-			Response(StatusCreated)
+			Response(StatusNoContent)
 			Response("BadRequest", StatusBadRequest)
 		})
 		GRPC(func() {

@@ -15,33 +15,6 @@ func init() {
 	codegen.RegisterPlugin("fuseml-cli", "gen", nil, Generate)
 }
 
-// commandData wraps the common CommandData and adds HTTP-specific fields.
-type commandData struct {
-	*CommandData
-	// Subcommands is the list of endpoint commands.
-	Subcommands []*subcommandData
-	// NeedStream if true initializes the websocket dialer.
-	NeedStream bool
-}
-
-// commandData wraps the common SubcommandData and adds HTTP-specific fields.
-type subcommandData struct {
-	*SubcommandData
-	// MultipartFuncName is the name of the function used to render a multipart
-	// request encoder.
-	MultipartFuncName string
-	// MultipartFuncName is the name of the variabl used to render a multipart
-	// request encoder.
-	MultipartVarName string
-	// StreamFlag is the flag used to identify the file to be streamed when
-	// the endpoint uses SkipRequestBodyEncodeDecode.
-	StreamFlag *FlagData
-	// BuildStreamPayload is the name of the generated function that builds the
-	// request data structure that wraps the payload and the file stream for
-	// endpoints that use SkipRequestBodyEncodeDecode.
-	BuildStreamPayload string
-}
-
 // Generate produces the fuseml modified CLI code files
 func Generate(genpkg string, roots []eval.Root, files []*codegen.File) ([]*codegen.File, error) {
 	for _, root := range roots {
@@ -64,24 +37,18 @@ func ClientCLIFiles(genpkg string, root *expr.RootExpr) map[string]*codegen.File
 		return nil
 	}
 	var (
-		data []*commandData
+		data []*CommandData
 		svcs []*expr.HTTPServiceExpr
 	)
 	for _, svc := range root.API.HTTP.Services {
 		sd := http.HTTPServices.Get(svc.Name())
 		if len(sd.Endpoints) > 0 {
-			command := &commandData{
-				CommandData: BuildCommandData(sd.Service),
-				NeedStream:  false, // hasWebSocket(sd),
-			}
+			command := BuildCommandData(sd.Service)
 
 			for _, e := range sd.Endpoints {
 				sub := buildSubcommandData(sd, e)
 				command.Subcommands = append(command.Subcommands, sub)
-				command.CommandData.Subcommands = append(command.CommandData.Subcommands, sub.SubcommandData)
 			}
-
-			command.Example = command.Subcommands[0].Example
 
 			data = append(data, command)
 			svcs = append(svcs, svc)
@@ -93,82 +60,32 @@ func ClientCLIFiles(genpkg string, root *expr.RootExpr) map[string]*codegen.File
 		files[file.Path] = file
 	}
 	for i, svc := range svcs {
-		file := payloadBuilders(genpkg, svc, data[i].CommandData)
+		file := payloadBuilders(genpkg, svc, data[i])
 		files[file.Path] = file
 	}
 	return files
 }
 
-func buildSubcommandData(sd *http.ServiceData, e *http.EndpointData) *subcommandData {
-	flags, buildFunction := buildFlags(sd, e)
+func buildSubcommandData(sd *http.ServiceData, e *http.EndpointData) *SubcommandData {
+	buildFunction := buildPayloadBuildFunction(sd, e)
 
-	sub := &subcommandData{
-		SubcommandData: BuildSubcommandData(sd.Service.Name, e.Method, buildFunction, flags),
-	}
-	if e.MultipartRequestEncoder != nil {
-		sub.MultipartVarName = e.MultipartRequestEncoder.VarName
-		sub.MultipartFuncName = e.MultipartRequestEncoder.FuncName
-	}
-	if e.Method.SkipRequestBodyEncodeDecode {
-		sub.StreamFlag = streamFlag(sd.Service.Name, e.Method.Name)
-		sub.BuildStreamPayload = e.BuildStreamPayload
-	}
+	sub := BuildSubcommandData(sd.Service.Name, e.Method, buildFunction)
 	return sub
 }
 
 // endpointParser returns the file that implements the command line parser that
 // builds the client endpoint and payload necessary to perform a request.
-func endpointParser(genpkg string, root *expr.RootExpr, svr *expr.ServerExpr, data []*commandData) *codegen.File {
+func endpointParser(genpkg string, root *expr.RootExpr, svr *expr.ServerExpr, data []*CommandData) *codegen.File {
 	pkg := codegen.SnakeCase(codegen.Goify(svr.Name, true))
 	path := filepath.Join(codegen.Gendir, "http", "cli", pkg, "cli.go")
 	title := fmt.Sprintf("%s HTTP client CLI support package", svr.Name)
-	specs := []*codegen.ImportSpec{
-		{Path: "encoding/json"},
-		{Path: "flag"},
-		{Path: "fmt"},
-		{Path: "net/http"},
-		{Path: "os"},
-		{Path: "strconv"},
-		{Path: "unicode/utf8"},
-		codegen.GoaImport(""),
-		codegen.GoaNamedImport("http", "goahttp"),
-	}
-	for _, sv := range svr.Services {
-		svc := root.Service(sv)
-		sd := http.HTTPServices.Get(svc.Name)
-		if sd == nil {
-			continue
-		}
-		specs = append(specs, &codegen.ImportSpec{
-			Path: genpkg + "/http/" + codegen.SnakeCase(sd.Service.VarName) + "/client",
-			Name: sd.Service.PkgName + "c",
-		})
-	}
-
-	cliData := make([]*CommandData, len(data))
-	for i, cmd := range data {
-		cliData[i] = cmd.CommandData
-	}
-
+	specs := []*codegen.ImportSpec{}
 	sections := []*codegen.SectionTemplate{
 		codegen.Header(title, "cli", specs),
-		UsageCommands(cliData),
-		UsageExamples(cliData),
 		{
 			Name:   "parse-endpoint",
 			Source: parseEndpointT,
-			Data: struct {
-				FlagsCode string
-				Commands  []*commandData
-			}{
-				FlagsCode(cliData),
-				data,
-			},
-			FuncMap: map[string]interface{}{"streamingCmdExists": streamingCmdExists},
 		},
-	}
-	for _, cmd := range cliData {
-		sections = append(sections, CommandUsage(cmd))
 	}
 	return &codegen.File{Path: path, SectionTemplates: sections}
 }
@@ -203,35 +120,54 @@ func payloadBuilders(genpkg string, svc *expr.HTTPServiceExpr, data *CommandData
 	return &codegen.File{Path: path, SectionTemplates: sections}
 }
 
-func buildFlags(svc *http.ServiceData, e *http.EndpointData) ([]*FlagData, *BuildFunctionData) {
+func buildPayloadBuildFunction(svc *http.ServiceData, e *http.EndpointData) *BuildFunctionData {
 	var (
-		flags         []*FlagData
 		buildFunction *BuildFunctionData
 	)
 
-	svcn := svc.Service.Name
-	en := e.Method.Name
 	if e.Payload != nil {
 		if e.Payload.Request.PayloadInit != nil {
 			args := e.Payload.Request.PayloadInit.ClientArgs
 			args = append(args, e.Payload.Request.PayloadInit.CLIArgs...)
-			flags, buildFunction = makeFlags(e, args, e.Payload.Request.PayloadType)
-		} else if e.Payload.Ref != "" {
-			flags = append(flags, NewFlagData(svcn, en, "p", e.Method.PayloadRef, e.Method.PayloadDesc, true, e.Method.PayloadEx, e.Method.PayloadDefault))
+			buildFunction = makePayloadBuildFunction(e, args, e.Payload.Request.PayloadType)
 		}
 	}
-	if e.Method.SkipRequestBodyEncodeDecode {
-		flags = append(flags, streamFlag(svcn, en))
-	}
 
-	return flags, buildFunction
+	return buildFunction
 }
 
-func makeFlags(e *http.EndpointData, args []*http.InitArgData, payload expr.DataType) ([]*FlagData, *BuildFunctionData) {
+// Only some argument types need conversion. Primitive types can be passed
+// directly using the data type of their corresponding payload field. Arrays
+// of primitive types can also be passed directly. Everything else needs to
+// be passed as a YAML or JSON formatted string value
+func argTypeNeedsConversion(arg *http.InitArgData) bool {
+	if expr.IsPrimitive(arg.Type) {
+		return false
+	}
+
+	if at := expr.AsArray(arg.Type); at != nil && expr.IsPrimitive(at.ElemType.Type) {
+		return false
+	}
+
+	if at := expr.AsMap(arg.Type); at != nil && expr.IsPrimitive(at.ElemType.Type) {
+		return false
+	}
+
+	return true
+}
+
+func payloadParamType(arg *http.InitArgData) string {
+	if !argTypeNeedsConversion(arg) {
+		return arg.TypeName
+	}
+
+	return codegen.GoNativeTypeName(expr.String)
+}
+
+func makePayloadBuildFunction(e *http.EndpointData, args []*http.InitArgData, payload expr.DataType) *BuildFunctionData {
 	var (
 		fdata     []*FieldData
-		flags     = make([]*FlagData, len(args))
-		params    = make([]string, len(args))
+		params    = make([]*ParamData, len(args))
 		pInitArgs = make([]*codegen.InitArgData, len(args))
 		check     bool
 	)
@@ -245,16 +181,19 @@ func makeFlags(e *http.EndpointData, args []*http.InitArgData, payload expr.Data
 			Type:         arg.Type,
 		}
 
-		f := NewFlagData(e.ServiceName, e.Method.Name, arg.VarName, arg.TypeName, arg.Description, arg.Required, arg.Example, arg.DefaultValue)
-		flags[i] = f
-		params[i] = f.FullName
+		fn := goifyTerms(e.ServiceName, e.Method.Name, arg.VarName)
+		params[i] = &ParamData{
+			Name:     fn,
+			TypeName: payloadParamType(arg),
+		}
+
 		if arg.FieldName == "" && arg.VarName != "body" {
 			continue
 		}
-		code, chek := FieldLoadCode(f, arg.VarName, arg.TypeName, arg.Validate, arg.DefaultValue, payload)
+		code, chek := FieldLoadCode(arg, fn, payload)
 		check = check || chek
 		tn := arg.TypeRef
-		if f.Type == "YAML" {
+		if !expr.IsPrimitive(arg.Type) {
 			// We need to declare the variable without
 			// a pointer to be able to unmarshal the YAML
 			// using its address.
@@ -278,100 +217,16 @@ func makeFlags(e *http.EndpointData, args []*http.InitArgData, payload expr.Data
 		Args:                       pInitArgs,
 	}
 
-	return flags, &BuildFunctionData{
-		Name:         "Build" + e.Method.VarName + "Payload",
-		ActualParams: params,
-		FormalParams: params,
-		ServiceName:  e.ServiceName,
-		MethodName:   e.Method.Name,
-		ResultType:   e.Payload.Ref,
-		Fields:       fdata,
-		PayloadInit:  &pInit,
-		CheckErr:     check,
+	return &BuildFunctionData{
+		Name:        "Build" + e.Method.VarName + "Payload",
+		Params:      params,
+		ServiceName: e.ServiceName,
+		MethodName:  e.Method.Name,
+		ResultType:  e.Payload.Ref,
+		Fields:      fdata,
+		PayloadInit: &pInit,
+		CheckErr:    check,
 	}
 }
 
-// streamFlag returns the flag used to specify the upload file for endpoints
-// that use SkipRequestBodyEncodeDecode.
-func streamFlag(svcn, en string) *FlagData {
-	return NewFlagData(svcn, en, "stream", "string", "path to file containing the streamed request body", true, "goa.png", nil)
-}
-
-// streamingCmdExists returns true if at least one command in the list of commands
-// uses stream for sending payload/result.
-func streamingCmdExists(data []*commandData) bool {
-	for _, c := range data {
-		if c.NeedStream {
-			return true
-		}
-	}
-	return false
-}
-
-const parseEndpointT = `// ParseEndpoint returns the endpoint and payload as specified on the command
-// line.
-func ParseEndpoint(
-	scheme, host string,
-	doer goahttp.Doer,
-	enc func(*http.Request) goahttp.Encoder,
-	dec func(*http.Response) goahttp.Decoder,
-	restore bool,
-	{{- if streamingCmdExists .Commands }}
-	dialer goahttp.Dialer,
-		{{- range .Commands }}
-			{{- if .NeedStream }}
-				{{ .VarName }}Configurer *{{ .PkgName }}.ConnConfigurer,
-			{{- end }}
-		{{- end }}
-	{{- end }}
-	{{- range $c := .Commands }}
-	{{- range .Subcommands }}
-		{{- if .MultipartVarName }}
-	{{ .MultipartVarName }} {{ $c.PkgName }}.{{ .MultipartFuncName }},
-		{{- end }}
-	{{- end }}
-	{{- end }}
-) (goa.Endpoint, interface{}, error) {
-	{{ .FlagsCode }}
-    var (
-		data     interface{}
-		endpoint goa.Endpoint
-		err      error
-	)
-	{
-		switch svcn {
-	{{- range .Commands }}
-		case "{{ .Name }}":
-			c := {{ .PkgName }}.NewClient(scheme, host, doer, enc, dec, restore{{ if .NeedStream }}, dialer, {{ .VarName }}Configurer{{ end }})
-			switch epn {
-		{{- $pkgName := .PkgName }}{{ range .Subcommands }}
-			case "{{ .Name }}":
-				endpoint = c.{{ .MethodVarName }}({{ if .MultipartVarName }}{{ .MultipartVarName }}{{ end }})
-			{{- if .BuildFunction }}
-				data, err = {{ $pkgName}}.{{ .BuildFunction.Name }}({{ range .BuildFunction.ActualParams }}*{{ . }}Flag, {{ end }})
-			{{- else if .Conversion }}
-				{{ .Conversion }}
-			{{- else }}
-				data = nil
-			{{- end }}
-			{{- if .StreamFlag }}
-				{{- if .BuildFunction }}
-				if err == nil {
-				{{- end }}
-					data, err = {{ $pkgName }}.{{ .BuildStreamPayload }}({{ if or .BuildFunction .Conversion }}data, {{ end }}*{{ .StreamFlag.FullName }}Flag)
-				{{- if .BuildFunction }}
-				}
-				{{- end }}
-			{{- end }}
-		{{- end }}
-			}
-	{{- end }}
-		}
-	}
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return endpoint, data, nil
-}
-`
+const parseEndpointT = `// This code is no longer generated. It's superseded by FuseML`
