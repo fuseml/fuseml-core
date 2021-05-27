@@ -51,7 +51,7 @@ func (o *DeleteOptions) validate() error {
 }
 
 func (o *DeleteOptions) run() error {
-	request, err := codesetc.BuildDeletePayload(o.Name, o.Project)
+	request, err := codesetc.BuildDeletePayload(o.Project, o.Name)
 	if err != nil {
 		return err
 	}

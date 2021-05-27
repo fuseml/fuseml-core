@@ -13,8 +13,9 @@ func NewCmdCodeset(c *common.GlobalOptions) *cobra.Command {
 		Long:  `Perform operations on codesets`,
 	}
 
-	cmd.AddCommand(NewSubCmdCodesetList(c))
 	cmd.AddCommand(NewSubCmdCodesetRegister(c))
+	cmd.AddCommand(NewSubCmdCodesetGet(c))
+	cmd.AddCommand(NewSubCmdCodesetList(c))
 	cmd.AddCommand(NewSubCmdCodesetDelete(c))
 
 	return cmd

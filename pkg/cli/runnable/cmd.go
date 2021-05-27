@@ -13,8 +13,9 @@ func NewCmdRunnable(c *common.GlobalOptions) *cobra.Command {
 		Long:  `Perform operations on runnables`,
 	}
 
-	cmd.AddCommand(NewSubCmdRunnableList(c))
 	cmd.AddCommand(NewSubCmdRunnableRegister(c))
+	cmd.AddCommand(NewSubCmdRunnableGet(c))
+	cmd.AddCommand(NewSubCmdRunnableList(c))
 
 	return cmd
 }

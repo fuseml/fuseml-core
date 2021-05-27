@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	codeset "github.com/fuseml/fuseml-core/gen/codeset"
 	codesetc "github.com/fuseml/fuseml-core/gen/http/codeset/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -22,8 +23,8 @@ type ListOptions struct {
 
 // custom formatting handler used to format codeset labels
 func formatLabels(object interface{}, column string, field interface{}) string {
-	if labels, ok := field.([]string); ok {
-		return strings.Join(labels, "\n")
+	if codeset, ok := object.(*codeset.Codeset); ok {
+		return strings.Join(codeset.Labels, "\n")
 	}
 	return ""
 }

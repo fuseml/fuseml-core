@@ -89,17 +89,31 @@ func NewFormattingOptions(fields []string, sortFields []table.SortBy, formatters
 	return
 }
 
+// NewSingleValueFormattingOptions initializes formatting options for a cobra command. Use this method instead of NewTableFormattingOptions
+// if your command doesn't need to format list of objects in a table layout.
+func NewSingleValueFormattingOptions() (o *FormattingOptions) {
+	return &FormattingOptions{}
+}
+
 func (o *FormattingOptions) addFormattingFlags(cmd *cobra.Command, withTable bool) {
 
+	mapping := make(map[OutputFormat][]string)
+
+	// remove table formats (table and CSV) from the enum values if table layout is not required
 	formats := make([]string, 0)
 	for i, f := range OutputFormatIDs {
 		if !withTable && (i == FormatTable || i == FormatCSV) {
 			continue
 		}
 		formats = append(formats, f[0])
+		mapping[i] = f
+	}
+	if !withTable {
+		// default to YAML if not using table formatting
+		o.Format = FormatYAML
 	}
 	cmd.Flags().Var(
-		enumflag.New(&o.Format, "format", OutputFormatIDs, enumflag.EnumCaseInsensitive),
+		enumflag.New(&o.Format, "format", mapping, enumflag.EnumCaseInsensitive),
 		"format",
 		fmt.Sprintf("specify the output format. Possible values are: %s", strings.Join(formats, ", ")),
 	)
