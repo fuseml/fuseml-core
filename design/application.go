@@ -112,7 +112,7 @@ var _ = Service("application", func() {
 
 		HTTP(func() {
 			DELETE("/applications/{name}/")
-			Response(StatusCreated)
+			Response(StatusNoContent)
 			Response("BadRequest", StatusBadRequest)
 		})
 		GRPC(func() {

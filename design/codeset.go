@@ -162,7 +162,7 @@ var _ = Service("codeset", func() {
 
 		HTTP(func() {
 			DELETE("/codesets/{project}/{name}")
-			Response(StatusCreated)
+			Response(StatusNoContent)
 			Response("BadRequest", StatusBadRequest)
 		})
 		GRPC(func() {
