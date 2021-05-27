@@ -65,7 +65,7 @@ func NewSubCmdList(c *common.GlobalOptions) *cobra.Command {
 	o := NewListOptions(c)
 	cmd := &cobra.Command{
 		Use:   "list [-n|--name NAME]",
-		Short: "Display one or more workflows",
+		Short: "Lists one or more workflows",
 		Long:  `Prints a table of the most important information about workflows. You can filter the list by the workflow name.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			common.CheckErr(o.InitializeClients(c))

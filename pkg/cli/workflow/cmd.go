@@ -15,6 +15,7 @@ func NewCmdWorkflow(c *common.GlobalOptions) *cobra.Command {
 
 	cmd.AddCommand(NewSubCmdList(c))
 	cmd.AddCommand(NewSubCmdCreate(c))
+	cmd.AddCommand(NewSubCmdGet(c))
 
 	return cmd
 }
