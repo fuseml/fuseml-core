@@ -12,8 +12,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CodesetRegisterOptions holds the options for 'codeset register' sub command
-type CodesetRegisterOptions struct {
+// RegisterOptions holds the options for 'codeset register' sub command
+type RegisterOptions struct {
 	common.Clients
 	global      *common.GlobalOptions
 	Name        string
@@ -23,14 +23,15 @@ type CodesetRegisterOptions struct {
 	Location    string
 }
 
-// NewCodesetRegisterOptionsOptions creates a CodesetRegisterOptions struct
-func NewCodesetRegisterOptions(o *common.GlobalOptions) *CodesetRegisterOptions {
-	return &CodesetRegisterOptions{global: o}
+// NewRegisterOptions creates a CodesetRegisterOptions struct
+func NewRegisterOptions(o *common.GlobalOptions) *RegisterOptions {
+	return &RegisterOptions{global: o}
 }
 
+// NewSubCmdCodesetRegister creates and returns the cobra command for the `codeset register` CLI command
 func NewSubCmdCodesetRegister(gOpt *common.GlobalOptions) *cobra.Command {
 
-	o := NewCodesetRegisterOptions(gOpt)
+	o := NewRegisterOptions(gOpt)
 
 	cmd := &cobra.Command{
 		Use:   `register {-n|--name NAME} {-p|--project PROJECT} {-d|--desc DESCRIPTION} [--label LABEL] LOCATION`,
@@ -39,8 +40,8 @@ func NewSubCmdCodesetRegister(gOpt *common.GlobalOptions) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			o.Location = cmd.Flags().Arg(0)
 			common.CheckErr(o.InitializeClients(gOpt))
-			common.CheckErr(o.Validate())
-			common.CheckErr(o.Run())
+			common.CheckErr(o.validate())
+			common.CheckErr(o.run())
 		},
 		Args: cobra.ExactArgs(1),
 	}
@@ -54,11 +55,11 @@ func NewSubCmdCodesetRegister(gOpt *common.GlobalOptions) *cobra.Command {
 	return cmd
 }
 
-func (o *CodesetRegisterOptions) Validate() error {
+func (o *RegisterOptions) validate() error {
 	return nil
 }
 
-func (o *CodesetRegisterOptions) Run() error {
+func (o *RegisterOptions) run() error {
 	request, err := codesetc.BuildRegisterPayload(o.Name, o.Project, o.Description, o.Labels)
 	if err != nil {
 		return err

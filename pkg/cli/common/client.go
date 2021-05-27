@@ -24,7 +24,7 @@ type Clients struct {
 	RunnableClient    *runnablec.Client
 }
 
-// InitializeClients initializes a list of fuseml clients based on global command line arguments
+// InitializeClients initializes a list of fuseml clients based on global configuration parameters
 func (c *Clients) InitializeClients(o *GlobalOptions) error {
 	var (
 		doer    goahttp.Doer                         = &http.Client{Timeout: time.Duration(o.Timeout) * time.Second}
@@ -34,11 +34,12 @@ func (c *Clients) InitializeClients(o *GlobalOptions) error {
 		host    string
 	)
 
-	u, err := url.Parse(o.Url)
+	u, err := url.Parse(o.URL)
 	if err != nil || u.Host == "" {
-		u, err = url.ParseRequestURI("https://" + o.Url)
+		// assume the scheme part is missing and default to https
+		u, err = url.ParseRequestURI("https://" + o.URL)
 		if err != nil {
-			return fmt.Errorf("invalid URL %#v: %s", o.Url, err)
+			return fmt.Errorf("invalid URL %#v: %s", o.URL, err)
 		}
 	}
 

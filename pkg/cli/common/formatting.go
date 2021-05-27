@@ -14,8 +14,10 @@ import (
 	"github.com/thediveo/enumflag"
 )
 
+// OutputFormat encodes the available formats that can be used to display structured data
 type OutputFormat enumflag.Flag
 
+// Supported output formats
 const (
 	FormatTable OutputFormat = iota
 	FormatJSON
@@ -23,13 +25,19 @@ const (
 	FormatCSV
 )
 
-type OutputSortFields map[string]table.SortMode
-
+// OutputFormatFunc is a handler used to customize how a tabular field is formatted.
+// The formatting utility calls the handler with the following arguments:
+//  - object: the golang struct that represents the table row being formatted
+//  - colume: the table column for which this handler is called
+//  - field: the object that needs formatting
+//
+// The handler must return a textual representation of the `field` object.
 type OutputFormatFunc func(object interface{}, column string, field interface{}) string
 
+// OutputFormatters is a map of output formatters, indexed by column name
 type OutputFormatters map[string]OutputFormatFunc
 
-// Map format values to their textual representations
+// OutputFormatIDs maps format values to their textual representations
 var OutputFormatIDs = map[OutputFormat][]string{
 	FormatTable: {"table"},
 	FormatJSON:  {"json"},
@@ -39,20 +47,40 @@ var OutputFormatIDs = map[OutputFormat][]string{
 
 // FormattingOptions contains output formatting parameters
 type FormattingOptions struct {
+	// Output format
 	Format OutputFormat
+	// List of field specifiers controlling how information is converted from structured data into tabular format.
+	// Each value can be formatted using the following syntax:
+	//
+	//  <column-name>[:<field-name>[.<subfield-name>[...]]]
+	//
+	// The <column-name> token represents the name used for the header. If a field is not specified, it is also
+	// interpreted as a field name and its value is not case-sensitive as far as it concerns matching the field names
+	// in the structure information being formatting.
+	//
+	// The <field-name> and subsequent <subfield-name> tokens are used to identify the exact (sub)field in the hierarchically
+	// structured information that the table column maps to. Their values are not case-sensitive.
 	Fields []string
-	SortBy OutputSortFields
+	// List of column names and their associated sorting mode, in sorting order.
+	SortBy []table.SortBy
 	// Custom formatting functions
 	Formatters OutputFormatters
 }
 
-func NewFormattingOptions(defaultFields []string, sortFields OutputSortFields, formatters OutputFormatters) (o *FormattingOptions) {
+// NewFormattingOptions initializes formatting options for a cobra command. It accepts the following arguments:
+//  - fields: list of field specifiers controlling how information is converted from structured data into tabular format
+//  (see FormattingOptions/Fields).
+//  - sortFields: list of sort specifiers. Each specifier should indicate the column name and sort mode. The order is significant
+//  and will determine the order in which columns will be sorted.
+//  - formatters: map of custom formatters. Use this to attach custom formatting handlers to columns that are not
+//  handled properly by the default formatting.
+func NewFormattingOptions(fields []string, sortFields []table.SortBy, formatters OutputFormatters) (o *FormattingOptions) {
 	o = &FormattingOptions{}
 	if sortFields != nil {
 		o.SortBy = sortFields
 	}
-	if defaultFields != nil {
-		o.Fields = defaultFields
+	if fields != nil {
+		o.Fields = fields
 	}
 	if formatters != nil {
 		o.Formatters = formatters
@@ -88,14 +116,23 @@ This option only has effect with the 'table' and 'csv' formats.`)
 	}
 }
 
+// AddMultiValueFormattingFlags adds formatting command line flags to a cobra command.
+// This function includes tabular formatting parameters. If the command only outputs
+// single objects, use AddSingleValueFormattingFlags instead.
 func (o *FormattingOptions) AddMultiValueFormattingFlags(cmd *cobra.Command) {
 	o.addFormattingFlags(cmd, true)
 }
 
+// AddSingleValueFormattingFlags adds formatting command line flags to a cobra command.
+// This function does not include tabular formatting parameters. If the command also outputs
+// lists of objects that can be formatted using a tabular layout, use AddMultiValueFormattingFlags
+// instead.
 func (o *FormattingOptions) AddSingleValueFormattingFlags(cmd *cobra.Command) {
 	o.addFormattingFlags(cmd, false)
 }
 
+// Recursive function that extracts a subfield from a generic hierarchical structure.
+// This really a simple and far less powerful alternative to JSONPath and YAML path.
 func getFieldValue(valueMap map[string]interface{}, fields []string) interface{} {
 
 	fieldValue, hasField := valueMap[fields[0]]
@@ -120,6 +157,7 @@ func getFieldValue(valueMap map[string]interface{}, fields []string) interface{}
 
 func (o *FormattingOptions) formatTable(out io.Writer, values []interface{}) {
 
+	// Convert the formatting field specifiers into column names and field/subfield names
 	columns := make([]string, len(o.Fields))
 	fields := make([][]string, len(o.Fields))
 	for i, f := range o.Fields {
@@ -194,7 +232,6 @@ func (o *FormattingOptions) formatTable(out io.Writer, values []interface{}) {
 				v = ""
 			}
 
-			fmt.Printf("value %v\n", v)
 			// if the value is not a scalar, format it using YAML
 			t := reflect.TypeOf(v)
 			if t.Kind() == reflect.Array || t.Kind() == reflect.Slice || t.Kind() == reflect.Map {
@@ -204,16 +241,11 @@ func (o *FormattingOptions) formatTable(out io.Writer, values []interface{}) {
 			}
 
 			row[i] = v
-
 		}
 
 		t.AppendRow(row)
 	}
-	sort := make([]table.SortBy, 0)
-	for n, m := range o.SortBy {
-		sort = append(sort, table.SortBy{Name: n, Mode: m})
-	}
-	t.SortBy(sort)
+	t.SortBy(o.SortBy)
 
 	if o.Format == FormatCSV {
 		t.RenderCSV()
@@ -234,6 +266,8 @@ func (o *FormattingOptions) formatObject(out io.Writer, value interface{}) {
 	fmt.Fprintln(out, string(m))
 }
 
+// FormatValue formats any go struct or list of structs that can be converted into JSON,
+// according to the configured formatting options.
 func (o *FormattingOptions) FormatValue(out io.Writer, value interface{}) {
 	switch o.Format {
 	case FormatTable, FormatCSV:

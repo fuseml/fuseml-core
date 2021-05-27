@@ -10,21 +10,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// RunnableRegisterOptions holds the options for 'runnable register' sub command
-type RunnableRegisterOptions struct {
+// RegisterOptions holds the options for 'runnable register' sub command
+type RegisterOptions struct {
 	common.Clients
 	global       *common.GlobalOptions
 	RunnableDesc string
 }
 
-// NewRunnableRegisterOptionsOptions creates a RunnableRegisterOptions struct
-func NewRunnableRegisterOptions(o *common.GlobalOptions) *RunnableRegisterOptions {
-	return &RunnableRegisterOptions{global: o}
+// NewRegisterOptions initializes a RegisterOptions struct
+func NewRegisterOptions(o *common.GlobalOptions) *RegisterOptions {
+	return &RegisterOptions{global: o}
 }
 
+// NewSubCmdRunnableRegister creates and returns the cobra command for the `runnable register` CLI command
 func NewSubCmdRunnableRegister(gOpt *common.GlobalOptions) *cobra.Command {
 
-	o := NewRunnableRegisterOptions(gOpt)
+	o := NewRegisterOptions(gOpt)
 
 	cmd := &cobra.Command{
 		Use:   `register RUNNABLE_FILE`,
@@ -33,8 +34,8 @@ func NewSubCmdRunnableRegister(gOpt *common.GlobalOptions) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			common.CheckErr(o.InitializeClients(gOpt))
 			common.CheckErr(common.LoadFileIntoVar(cmd.Flags().Arg(0), &o.RunnableDesc))
-			common.CheckErr(o.Validate())
-			common.CheckErr(o.Run())
+			common.CheckErr(o.validate())
+			common.CheckErr(o.run())
 		},
 		Args: cobra.ExactArgs(1),
 	}
@@ -42,11 +43,11 @@ func NewSubCmdRunnableRegister(gOpt *common.GlobalOptions) *cobra.Command {
 	return cmd
 }
 
-func (o *RunnableRegisterOptions) Validate() error {
+func (o *RegisterOptions) validate() error {
 	return nil
 }
 
-func (o *RunnableRegisterOptions) Run() error {
+func (o *RegisterOptions) run() error {
 	request, err := runnablec.BuildRegisterPayload(o.RunnableDesc)
 	if err != nil {
 		return err

@@ -12,8 +12,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// RunnableListOptions holds the options for 'runnable list' sub command
-type RunnableListOptions struct {
+// ListOptions holds the options for 'runnable list' sub command
+type ListOptions struct {
 	common.Clients
 	global *common.GlobalOptions
 	format *common.FormattingOptions
@@ -22,6 +22,7 @@ type RunnableListOptions struct {
 	Labels map[string]string
 }
 
+// custom formatting handler used to format runnable labels
 func formatLabels(object interface{}, column string, field interface{}) string {
 	if labels, ok := field.(map[string]interface{}); ok {
 		labelStr := make([]string, 0)
@@ -33,21 +34,22 @@ func formatLabels(object interface{}, column string, field interface{}) string {
 	return ""
 }
 
-// NewRunnableListOptionsOptions creates a RunnableListOptions struct
-func NewRunnableListOptions(o *common.GlobalOptions) (res *RunnableListOptions) {
-	res = &RunnableListOptions{global: o}
+// NewListOptions initializes a ListOptions struct
+func NewListOptions(o *common.GlobalOptions) (res *ListOptions) {
+	res = &ListOptions{global: o}
 	res.format = common.NewFormattingOptions(
 		[]string{"ID", "Kind", "Description", "Labels"},
-		common.OutputSortFields{"ID": table.Asc},
+		[]table.SortBy{{Name: "ID", Mode: table.Asc}},
 		common.OutputFormatters{"Labels": formatLabels},
 	)
 
 	return
 }
 
+// NewSubCmdRunnableList creates and returns the cobra command for the `runnable list` CLI command
 func NewSubCmdRunnableList(c *common.GlobalOptions) *cobra.Command {
 
-	o := NewRunnableListOptions(c)
+	o := NewListOptions(c)
 	// local variable used to collect the label arguments and then unpack them
 	var labels []string
 
@@ -58,8 +60,8 @@ func NewSubCmdRunnableList(c *common.GlobalOptions) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			common.UnpackLabelArgs(labels, o.Labels)
 			common.CheckErr(o.InitializeClients(c))
-			common.CheckErr(o.Validate())
-			common.CheckErr(o.Run())
+			common.CheckErr(o.validate())
+			common.CheckErr(o.run())
 		},
 		Args: cobra.ExactArgs(0),
 	}
@@ -72,11 +74,11 @@ func NewSubCmdRunnableList(c *common.GlobalOptions) *cobra.Command {
 	return cmd
 }
 
-func (o *RunnableListOptions) Validate() error {
+func (o *ListOptions) validate() error {
 	return nil
 }
 
-func (o *RunnableListOptions) Run() error {
+func (o *ListOptions) run() error {
 	request, err := runnablec.BuildListPayload(o.ID, o.Kind, o.Labels)
 	if err != nil {
 		return err

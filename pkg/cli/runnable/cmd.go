@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewCmdRunnable creates and returns the cobra command that acts as a root for all other runnable CLI sub-commands
 func NewCmdRunnable(c *common.GlobalOptions) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "runnable",

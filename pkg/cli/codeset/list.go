@@ -11,8 +11,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// CodesetListOptions holds the options for 'codeset list' sub command
-type CodesetListOptions struct {
+// ListOptions holds the options for 'codeset list' sub command
+type ListOptions struct {
 	common.Clients
 	global  *common.GlobalOptions
 	format  *common.FormattingOptions
@@ -20,6 +20,7 @@ type CodesetListOptions struct {
 	Label   string
 }
 
+// custom formatting handler used to format codeset labels
 func formatLabels(object interface{}, column string, field interface{}) string {
 	if labels, ok := field.([]string); ok {
 		return strings.Join(labels, "\n")
@@ -27,21 +28,22 @@ func formatLabels(object interface{}, column string, field interface{}) string {
 	return ""
 }
 
-// NewCodesetListOptionsOptions creates a CodesetListOptions struct
-func NewCodesetListOptions(o *common.GlobalOptions) (res *CodesetListOptions) {
-	res = &CodesetListOptions{global: o}
+// NewListOptions initializes a ListOptions struct
+func NewListOptions(o *common.GlobalOptions) (res *ListOptions) {
+	res = &ListOptions{global: o}
 	res.format = common.NewFormattingOptions(
 		[]string{"Name", "Project", "Description", "Labels", "URL"},
-		common.OutputSortFields{"Name": table.Asc, "Project": table.Asc},
+		[]table.SortBy{{Name: "Name", Mode: table.Asc}, {Name: "Project", Mode: table.Asc}},
 		common.OutputFormatters{"Labels": formatLabels},
 	)
 
 	return
 }
 
+// NewSubCmdCodesetList creates and returns the cobra command for the `codeset list` CLI command
 func NewSubCmdCodesetList(c *common.GlobalOptions) *cobra.Command {
 
-	o := NewCodesetListOptions(c)
+	o := NewListOptions(c)
 
 	cmd := &cobra.Command{
 		Use:   "list [-p|--project PROJECT] [-l|--label LABEL]",
@@ -49,8 +51,8 @@ func NewSubCmdCodesetList(c *common.GlobalOptions) *cobra.Command {
 		Long:  `Retrieve information about Codesets registered in FuseML`,
 		Run: func(cmd *cobra.Command, args []string) {
 			common.CheckErr(o.InitializeClients(c))
-			common.CheckErr(o.Validate())
-			common.CheckErr(o.Run())
+			common.CheckErr(o.validate())
+			common.CheckErr(o.run())
 		},
 		Args: cobra.ExactArgs(0),
 	}
@@ -62,11 +64,11 @@ func NewSubCmdCodesetList(c *common.GlobalOptions) *cobra.Command {
 	return cmd
 }
 
-func (o *CodesetListOptions) Validate() error {
+func (o *ListOptions) validate() error {
 	return nil
 }
 
-func (o *CodesetListOptions) Run() error {
+func (o *ListOptions) run() error {
 	request, err := codesetc.BuildListPayload(o.Project, o.Label)
 	if err != nil {
 		return err
