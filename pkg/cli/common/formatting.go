@@ -198,7 +198,7 @@ func (o *FormattingOptions) formatTable(out io.Writer, values []interface{}) {
 		Name: "fuseml",
 		Format: table.FormatOptions{
 			Footer: text.FormatUpper,
-			Header: text.FormatDefault,
+			Header: text.FormatUpper,
 			Row:    text.FormatDefault,
 		},
 		Box: table.StyleBoxDefault,
