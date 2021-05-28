@@ -47,7 +47,7 @@ This repository contains the FuseML APIs definitions and core service. For the g
 
   After successful installation using [fuseml-installer](https://github.com/fuseml/fuseml), `fuseml-core` server is already running in the Kubernetes cluster. However, for developmnent and testing purposes it is possible to run it locally locally by setting the env variables
   
-  `GITEA_URL`, `GITEA_USERNAME`, `GITEA_PASSWORD`
+  `GITEA_URL`, `GITEA_ADMIN_USERNAME`, `GITEA_ADMIN_PASSWORD`
   
   and executing `bin/fuseml_core`.
 
@@ -55,8 +55,8 @@ This repository contains the FuseML APIs definitions and core service. For the g
   If you have used [fuseml-installer](https://github.com/fuseml/fuseml) to set up the environment, there is already default gitea instance installed in your Kubernetes cluster. In such case set the values this way:
   ```bash
   export GITEA_URL=http://$(kubectl get VirtualService -n gitea gitea -o jsonpath="{.spec.hosts[0]}")
-  export GITEA_USERNAME=$(kubectl get Secret -n fuseml-workloads gitea-creds -o jsonpath="{.data.username}" | base64 -d)
-  export GITEA_PASSWORD=$(kubectl get Secret -n fuseml-workloads gitea-creds -o jsonpath="{.data.password}" | base64 -d)
+  export GITEA_ADMIN_USERNAME=$(kubectl get Secret -n fuseml-workloads gitea-creds -o jsonpath="{.data.username}" | base64 -d)
+  export GITEA_ADMIN_PASSWORD=$(kubectl get Secret -n fuseml-workloads gitea-creds -o jsonpath="{.data.password}" | base64 -d)
   ```
   It is possible to use external gitea server instead. Make sure to provide correct environment variables.
   
@@ -119,10 +119,10 @@ Example:
 
     Example:
     ```bash
-    bin/fuseml codeset register --name "test" --project "mlflow-project-01" --location "/tmp/mlflow/mlflow-01"
+    bin/fuseml codeset register --name "test" --project "mlflow-project-01" "/tmp/mlflow/mlflow-01"
     ```
 
-    `--location` argument points to the directory on your machine where your ML application code is located.
+    Last argument points to the directory on your machine where your ML application code is located.
 
     After registering, use
     ```
@@ -197,7 +197,7 @@ Let's look at the example for MLflow model, being trained by MLflow and served w
 
   Register the example MLflow model as a codeset:
   ```bash
-  fuseml codeset register --name "mlflow-test" --project "mlflow-project-01" --location "models/mlflow-wines"
+  fuseml codeset register --name "mlflow-test" --project "mlflow-project-01" "models/mlflow-wines"
   ```
 
 * Update the example to fit your setup

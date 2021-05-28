@@ -17,7 +17,9 @@ import (
 )
 
 // Push the code from local dir to remote repo
-func Push(org, name, location, gitURL string, debug bool) error {
+// If username or password is not provided, use default values, but password
+// provided from env variable GITEA_PROJECT_PASSWORD has the highest priority.
+func Push(org, name, location, gitURL string, uname, pass *string, debug bool) error {
 	log.Printf("Pushing the code to the git repository...")
 
 	tmpDir, err := ioutil.TempDir("", "codeset-source")
@@ -34,11 +36,19 @@ func Push(org, name, location, gitURL string, debug bool) error {
 	if err != nil {
 		return errors.Wrap(err, "Failed to parse git url")
 	}
-	// TODO username+password are created by server action before git push
-	// The values could be returned from some POST if we had some init command, but
-	// for now let's assume the values are fixed
 	username := config.DefaultUserName(org)
 	password := config.DefaultUserPassword
+
+	if uname != nil {
+		username = *uname
+	}
+	if pass != nil {
+		password = *pass
+	}
+	envPassword, exists := os.LookupEnv("FUSEML_PROJECT_PASSWORD")
+	if exists {
+		password = envPassword
+	}
 
 	u.User = url.UserPassword(username, password)
 

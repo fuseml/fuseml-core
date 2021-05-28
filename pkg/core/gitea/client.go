@@ -2,6 +2,7 @@ package gitea
 
 import (
 	"log"
+	"math/rand"
 	"os"
 
 	"code.gitea.io/sdk/gitea"
@@ -13,7 +14,7 @@ import (
 
 // AdminClient describes the interface of Gitea Admin Client
 type AdminClient interface {
-	PrepareRepository(*domain.Codeset, *string) error
+	PrepareRepository(*domain.Codeset, *string) (*string, *string, error)
 	CreateRepoWebhook(string, string, *string) error
 	GetRepositories(org, label *string) ([]*domain.Codeset, error)
 	GetRepository(org, name string) (*domain.Codeset, error)
@@ -47,9 +48,15 @@ type giteaAdminClient struct {
 }
 
 var errGITEAURLMissing = "Value for gitea URL (GITEA_URL) was not provided."
-var errGITEAUSERNAMEMissing = "Value for gitea user name (GITEA_USERNAME) was not provided."
-var errGITEAPASSWORDMissing = "Value for gitea user password (GITEA_PASSWORD) was not provided."
+var errGITEAADMINUSERNAMEMissing = "Value for gitea admin user name (GITEA_ADMIN_USERNAME) was not provided."
+var errGITEAADMINPASSWORDMissing = "Value for gitea admin user password (GITEA_ADMIN_PASSWORD) was not provided."
 var errRepoNotFound = "Repository by that name not found"
+var lettersForPassword = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+var generatedPasswordLength = 16
+
+// For now, turn off the password generation
+// But we need to fine a way how user can alter this value (env variable, config file, client param...)
+var generateUserPassword = false
 
 // NewAdminClient creates a new gitea client and performs authentication
 // from the credentials provided as env variables
@@ -59,13 +66,13 @@ func NewAdminClient(logger *log.Logger) (AdminClient, error) {
 	if !exists {
 		return nil, errors.New(errGITEAURLMissing)
 	}
-	username, exists := os.LookupEnv("GITEA_USERNAME")
+	username, exists := os.LookupEnv("GITEA_ADMIN_USERNAME")
 	if !exists {
-		return nil, errors.New(errGITEAUSERNAMEMissing)
+		return nil, errors.New(errGITEAADMINUSERNAMEMissing)
 	}
-	password, exists := os.LookupEnv("GITEA_PASSWORD")
+	password, exists := os.LookupEnv("GITEA_ADMIN_PASSWORD")
 	if !exists {
-		return nil, errors.New(errGITEAPASSWORDMissing)
+		return nil, errors.New(errGITEAADMINPASSWORDMissing)
 	}
 
 	client, err := gitea.NewClient(url)
@@ -84,6 +91,17 @@ func NewAdminClient(logger *log.Logger) (AdminClient, error) {
 
 func generateUserName(org string) string {
 	return config.DefaultUserName(org)
+}
+
+func getUserPassword() string {
+	if !generateUserPassword {
+		return config.DefaultUserPassword
+	}
+	p := make([]rune, generatedPasswordLength)
+	for i := range p {
+		p[i] = lettersForPassword[rand.Intn(len(lettersForPassword))]
+	}
+	return string(p)
 }
 
 func (gac giteaAdminClient) GetGiteaURL() (string, error) {
@@ -115,48 +133,49 @@ func (gac giteaAdminClient) CreateOrganization(org string) error {
 }
 
 // create user assigned to current project
-func (gac giteaAdminClient) CreateUser(org string) error {
+func (gac giteaAdminClient) CreateUser(org string) (*string, *string, error) {
 	username := generateUserName(org)
+	password := getUserPassword()
 	user, resp, err := gac.giteaClient.GetUserInfo(username)
 	if resp == nil && err != nil {
-		return errors.Wrap(err, "Failed to make get user request")
+		return nil, nil, errors.Wrap(err, "Failed to make get user request")
 	}
 	if user != nil && user.ID != 0 {
 		gac.logger.Println("User already exists")
-		return nil
+		return nil, nil, nil
 	}
 
 	gac.logger.Printf("Creating user '%s'", username)
 	_, _, err = gac.giteaClient.AdminCreateUser(gitea.CreateUserOption{
 		Username:           username,
 		Email:              config.DefaultUserEmail(org),
-		Password:           config.DefaultUserPassword,
+		Password:           password,
 		MustChangePassword: gitea.OptionalBool(false),
 		SendNotify:         false,
 	})
 	if err != nil {
-		return errors.Wrap(err, "Failed to create user")
+		return nil, nil, errors.Wrap(err, "Failed to create user")
 	}
 
 	teams, _, err := gac.giteaClient.ListOrgTeams(org, gitea.ListTeamsOptions{})
 	if err != nil {
-		return errors.Wrap(err, "Failed to list org teams")
+		return nil, nil, errors.Wrap(err, "Failed to list org teams")
 	}
 	for _, team := range teams {
 		if team.Name == "Owners" {
 			_, err = gac.giteaClient.AddTeamMember(team.ID, username)
 			if err != nil {
-				return errors.Wrap(err, "Failed adding user to Owners")
+				return nil, nil, errors.Wrap(err, "Failed adding user to Owners")
 			}
 			break
 		}
 	}
 
 	if err != nil {
-		return errors.Wrap(err, "Failed to create application")
+		return nil, nil, errors.Wrap(err, "Failed to create application")
 	}
 
-	return nil
+	return &username, &password, nil
 }
 
 // create git repository with given name under given org
@@ -236,33 +255,33 @@ func (gac giteaAdminClient) CreateRepoWebhook(org, name string, listenerURL *str
 }
 
 // Prepare the org, repository, and create user that clients can use for pushing
-func (gac giteaAdminClient) PrepareRepository(code *domain.Codeset, listenerURL *string) error {
+func (gac giteaAdminClient) PrepareRepository(code *domain.Codeset, listenerURL *string) (*string, *string, error) {
 
 	err := gac.CreateOrganization(code.Project)
 	if err != nil {
-		return errors.Wrap(err, "Create org failed")
+		return nil, nil, errors.Wrap(err, "Create org failed")
 	}
 
-	err = gac.CreateUser(code.Project)
+	user, pass, err := gac.CreateUser(code.Project)
 	if err != nil {
-		return errors.Wrap(err, "Create FuseML user failed")
+		return nil, nil, errors.Wrap(err, "Create FuseML user failed")
 	}
 
 	err = gac.CreateRepo(code)
 	if err != nil {
-		return errors.Wrap(err, "Create repo failed")
+		return nil, nil, errors.Wrap(err, "Create repo failed")
 	}
 
 	err = gac.AddRepoTopics(code.Project, code.Name, code.Labels)
 	if err != nil {
-		return errors.Wrap(err, "Failed to add topics to repository")
+		return nil, nil, errors.Wrap(err, "Failed to add topics to repository")
 	}
 
 	err = gac.CreateRepoWebhook(code.Project, code.Name, listenerURL)
 	if err != nil {
-		return errors.Wrap(err, "Creating webhook failed")
+		return nil, nil, errors.Wrap(err, "Creating webhook failed")
 	}
-	return nil
+	return user, pass, nil
 }
 
 // simple check if a string is present in a slice
