@@ -12,9 +12,9 @@ import (
 // GetOptions holds the options for 'application get' sub command
 type getOptions struct {
 	common.Clients
-	global  *common.GlobalOptions
-	format  *common.FormattingOptions
-	Name    string
+	global *common.GlobalOptions
+	format *common.FormattingOptions
+	Name   string
 }
 
 func newGetOptions(o *common.GlobalOptions) *getOptions {

@@ -103,8 +103,7 @@ func (s *applicationsrvc) Delete(ctx context.Context, p *application.DeletePaylo
 	s.logger.Print("application.delete")
 	app := s.store.Find(ctx, p.Name)
 	if app == nil {
-		s.logger.Print("application not found, nothing to delete")
-		return nil
+		return application.MakeNotFound(errors.New("Application with the specified name not found"))
 	}
 	cluster, err := kubernetes.NewCluster()
 	if err != nil {

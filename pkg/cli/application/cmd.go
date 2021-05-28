@@ -15,6 +15,7 @@ func NewCmdApplication(c *common.GlobalOptions) *cobra.Command {
 
 	cmd.AddCommand(newSubCmdApplicationList(c))
 	cmd.AddCommand(newSubCmdApplicationGet(c))
+	cmd.AddCommand(newSubCmdApplicationDelete(c))
 
 	return cmd
 }
