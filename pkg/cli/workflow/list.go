@@ -13,12 +13,11 @@ import (
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 )
 
-// ListOptions holds the options for 'workflow list' sub command
-type ListOptions struct {
+type listOptions struct {
 	common.Clients
 	global *common.GlobalOptions
 	format *common.FormattingOptions
-	Name   string
+	name   string
 }
 
 func formatInputs(object interface{}, column string, field interface{}) (formated string) {
@@ -48,9 +47,8 @@ func formatOutputs(object interface{}, column string, field interface{}) (format
 	return
 }
 
-// NewListOptions creates a ListOptions struct
-func NewListOptions(o *common.GlobalOptions) (res *ListOptions) {
-	res = &ListOptions{global: o}
+func newListOptions(o *common.GlobalOptions) (res *listOptions) {
+	res = &listOptions{global: o}
 	res.format = common.NewFormattingOptions(
 		[]string{"Name", "Description", "Inputs", "Outputs"},
 		[]table.SortBy{{Name: "Name", Mode: table.Asc}},
@@ -60,9 +58,8 @@ func NewListOptions(o *common.GlobalOptions) (res *ListOptions) {
 	return
 }
 
-// NewSubCmdList creates and returns the cobra command for the `workflow list` CLI command
-func NewSubCmdList(c *common.GlobalOptions) *cobra.Command {
-	o := NewListOptions(c)
+func newSubCmdList(c *common.GlobalOptions) *cobra.Command {
+	o := newListOptions(c)
 	cmd := &cobra.Command{
 		Use:   "list [-n|--name NAME]",
 		Short: "Lists one or more workflows",
@@ -75,18 +72,18 @@ func NewSubCmdList(c *common.GlobalOptions) *cobra.Command {
 		Args: cobra.ExactArgs(0),
 	}
 
-	cmd.Flags().StringVarP(&o.Name, "name", "n", "", "filter workflows by name")
+	cmd.Flags().StringVarP(&o.name, "name", "n", "", "filter workflows by name")
 	o.format.AddMultiValueFormattingFlags(cmd)
 
 	return cmd
 }
 
-func (o *ListOptions) validate() error {
+func (o *listOptions) validate() error {
 	return nil
 }
 
-func (o *ListOptions) run() error {
-	request, err := workflowc.BuildListPayload(o.Name)
+func (o *listOptions) run() error {
+	request, err := workflowc.BuildListPayload(o.name)
 	if err != nil {
 		return err
 	}

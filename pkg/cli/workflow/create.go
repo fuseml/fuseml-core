@@ -11,30 +11,25 @@ import (
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 )
 
-// CreateOptions holds the options for 'workflow create' sub command
-type CreateOptions struct {
+type createOptions struct {
 	common.Clients
 	global   *common.GlobalOptions
-	Workflow string
+	workflow string
 }
 
-// NewCreateOptions initializes a CreateOptions struct
-func NewCreateOptions(o *common.GlobalOptions) *CreateOptions {
-	return &CreateOptions{global: o}
+func newCreateOptions(o *common.GlobalOptions) *createOptions {
+	return &createOptions{global: o}
 }
 
-// NewSubCmdCreate creates and returns the cobra command for the `workflow create` CLI command
-func NewSubCmdCreate(gOpt *common.GlobalOptions) *cobra.Command {
-
-	o := NewCreateOptions(gOpt)
-
+func newSubCmdCreate(gOpt *common.GlobalOptions) *cobra.Command {
+	o := newCreateOptions(gOpt)
 	cmd := &cobra.Command{
 		Use:   `create WORKFLOW_FILE`,
 		Short: "Creates a workflow",
 		Long:  `Creates a workflow from a file`,
 		Run: func(cmd *cobra.Command, args []string) {
 			common.CheckErr(o.InitializeClients(gOpt))
-			common.CheckErr(common.LoadFileIntoVar(cmd.Flags().Arg(0), &o.Workflow))
+			common.CheckErr(common.LoadFileIntoVar(cmd.Flags().Arg(0), &o.workflow))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
 		},
@@ -44,13 +39,13 @@ func NewSubCmdCreate(gOpt *common.GlobalOptions) *cobra.Command {
 	return cmd
 }
 
-func (o *CreateOptions) validate() error {
+func (o *createOptions) validate() error {
 	// TODO: schema validation for the workflow
 	return nil
 }
 
-func (o *CreateOptions) run() error {
-	request, err := workflowc.BuildRegisterPayload(o.Workflow)
+func (o *createOptions) run() error {
+	request, err := workflowc.BuildRegisterPayload(o.workflow)
 	if err != nil {
 		return err
 	}
