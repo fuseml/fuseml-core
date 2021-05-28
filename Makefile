@@ -53,7 +53,10 @@ client_release-linux-arm64:
 	$(MAKE) GOARCH="arm64" GOOS="linux" client_release
 
 client_release-windows:
-	$(MAKE) GOARCH="amd64" GOOS="windows" client_release
+	$(MAKE) GOARCH="amd64" GOOS="windows" build_client
+	cd bin; mv fuseml fuseml.exe && \
+	zip -m fuseml-windows-amd64.zip fuseml.exe && \
+	sha256sum -b fuseml-windows-amd64.zip > fuseml-windows-amd64.zip.sha256
 
 client_release-darwin-amd64:
 	$(MAKE) GOARCH="amd64" GOOS="darwin" client_release
