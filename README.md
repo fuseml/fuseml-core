@@ -119,10 +119,10 @@ Example:
 
     Example:
     ```bash
-    bin/fuseml codeset register --name "test" --project "mlflow-project-01" --location "/tmp/mlflow/mlflow-01"
+    bin/fuseml codeset register --name "test" --project "mlflow-project-01" "/tmp/mlflow/mlflow-01"
     ```
 
-    `--location` argument points to the directory on your machine where your ML application code is located.
+    Last argument points to the directory on your machine where your ML application code is located.
 
     After registering, use
     ```
@@ -197,7 +197,7 @@ Let's look at the example for MLflow model, being trained by MLflow and served w
 
   Register the example MLflow model as a codeset:
   ```bash
-  fuseml codeset register --name "mlflow-test" --project "mlflow-project-01" --location "models/mlflow-wines"
+  fuseml codeset register --name "mlflow-test" --project "mlflow-project-01" "models/mlflow-wines"
   ```
 
 * Update the example to fit your setup
