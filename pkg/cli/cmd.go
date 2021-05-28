@@ -3,6 +3,7 @@ package cli
 import (
 	"os"
 
+	"github.com/fuseml/fuseml-core/pkg/cli/application"
 	"github.com/fuseml/fuseml-core/pkg/cli/codeset"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	"github.com/fuseml/fuseml-core/pkg/cli/runnable"
@@ -37,6 +38,7 @@ func NewCmdRoot() *cobra.Command {
 	cmd.AddCommand(codeset.NewCmdCodeset(o))
 	cmd.AddCommand(runnable.NewCmdRunnable(o))
 	cmd.AddCommand(workflow.NewCmdWorkflow(o))
+	cmd.AddCommand(application.NewCmdApplication(o))
 
 	return cmd
 }
