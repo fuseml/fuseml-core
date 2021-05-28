@@ -148,7 +148,7 @@ var _ = Service("workflow", func() {
 				Example("workspace")
 			})
 			Field(4, "status", String, "status of the workflow runs to list", func() {
-				Enum("Started", "Running", "Cancelled", "Succeeded", "Failed", "Completed", "Timeout")
+				Enum("", "Started", "Running", "Cancelled", "Succeeded", "Failed", "Completed", "Timeout")
 				Example("Succeeded")
 
 			})
