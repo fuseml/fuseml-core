@@ -42,17 +42,22 @@ var _ = Service("workflow", func() {
 		Error("BadRequest", func() {
 			Description("If the workflow does not have the required fields, should return 400 Bad Request.")
 		})
+		Error("Conflict", func() {
+			Description("If a workflow with the same name already exists, should return 409 Conflict.")
+		})
 		Result(Workflow)
 
 		HTTP(func() {
 			POST("/workflows")
 			Response(StatusCreated)
 			Response("BadRequest", StatusBadRequest)
+			Response("Conflict", StatusConflict)
 		})
 
 		GRPC(func() {
 			Response(CodeOK)
 			Response("BadRequest", CodeInvalidArgument)
+			Response("Conflict", CodeAlreadyExists)
 		})
 	})
 
@@ -143,7 +148,7 @@ var _ = Service("workflow", func() {
 				Example("workspace")
 			})
 			Field(4, "status", String, "status of the workflow runs to list", func() {
-				Enum("Started", "Running", "Cancelled", "Succeeded", "Failed", "Completed", "Timeout")
+				Enum("", "Started", "Running", "Cancelled", "Succeeded", "Failed", "Completed", "Timeout")
 				Example("Succeeded")
 
 			})

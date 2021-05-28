@@ -70,6 +70,9 @@ func (s *workflowsrvc) Register(ctx context.Context, w *workflow.Workflow) (res 
 	err = s.backend.CreateWorkflow(ctx, s.logger, w)
 	if err != nil {
 		s.logger.Print(err)
+		if err.Error() == "workflow already exists" {
+			return nil, workflow.MakeConflict(err)
+		}
 		return nil, err
 	}
 	return s.store.AddWorkflow(ctx, w)
