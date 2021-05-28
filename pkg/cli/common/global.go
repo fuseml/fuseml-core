@@ -1,5 +1,7 @@
 package common
 
+import "fmt"
+
 const (
 	// Version is the CLI version
 	Version = "0.1"
@@ -7,8 +9,6 @@ const (
 	ConfigFileName = "config"
 	// ConfigHomeSubdir is the subdirectory where the FuseML configuration files is located
 	ConfigHomeSubdir = ".fuseml"
-	// DefaultFuseMLURL is the default URL to use for the FuseML server
-	DefaultFuseMLURL = "http://localhost:8000"
 	// DefaultHTTPTimeout is the default HTTP timeout value
 	DefaultHTTPTimeout = 30
 )
@@ -21,4 +21,14 @@ type GlobalOptions struct {
 	Timeout int
 	// Verbose mode prints out additional information
 	Verbose bool
+}
+
+// Validate validates the global configuration
+func (o *GlobalOptions) Validate() error {
+
+	if o.URL == "" {
+		return fmt.Errorf("the URL to the FuseML server must be provided as an argument, or through the FUSEML_SERVER_URL envrionment variable or in the CLI configuration file")
+	}
+
+	return nil
 }

@@ -24,19 +24,22 @@ func NewCmdRoot() *cobra.Command {
 		Long:  "FuseML command line client",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			// You can bind cobra and viper in a few locations, but PersistencePreRunE on the root command works well
-			return initializeConfig(cmd)
+			if err := initializeConfig(cmd); err != nil {
+				return err
+			}
+			return o.Validate()
 		},
 	}
 
 	pf := cmd.PersistentFlags()
-	pf.StringVarP(&o.URL, "url", "u", common.DefaultFuseMLURL, "URL where the FuseML service is running")
+	pf.StringVarP(&o.URL, "url", "u", "", "(FUSEML_SERVER_URL) URL where the FuseML service is running")
 	viper.BindEnv("url", "FUSEML_SERVER_URL")
 
-	pf.IntVar(&o.Timeout, "timeout", common.DefaultHTTPTimeout, "maximum number of seconds to wait for response")
+	pf.IntVar(&o.Timeout, "timeout", common.DefaultHTTPTimeout, "(FUSEML_HTTP_TIMEOUT) maximum number of seconds to wait for response")
 	viper.BindEnv("timeout", "FUSEML_HTTP_TIMEOUT")
 
-	pf.BoolVarP(&o.Verbose, "verbose", "v", false, "print verbose information, such as HTTP request and response details")
-	viper.BindEnv("verbose")
+	pf.BoolVarP(&o.Verbose, "verbose", "v", false, "(FUSEML_VERBOSE) print verbose information, such as HTTP request and response details")
+	viper.BindEnv("verbose", "FUSEML_VERBOSE")
 
 	cmd.AddCommand(codeset.NewCmdCodeset(o))
 	cmd.AddCommand(runnable.NewCmdRunnable(o))
