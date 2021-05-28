@@ -38,7 +38,7 @@ func (c *Clients) InitializeClients(o *GlobalOptions) error {
 	if err != nil || u.Host == "" {
 		// assume the scheme part is missing and default to https
 		u, err = url.ParseRequestURI("https://" + o.URL)
-		if err != nil {
+		if err != nil || u.Host == "" {
 			return fmt.Errorf("invalid URL %#v: %s", o.URL, err)
 		}
 	}
