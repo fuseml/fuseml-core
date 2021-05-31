@@ -5,13 +5,14 @@ import (
 	"os"
 
 	runnablec "github.com/fuseml/fuseml-core/gen/http/runnable/client"
+	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	"github.com/spf13/cobra"
 )
 
 // GetOptions holds the options for 'runnable get' sub command
 type GetOptions struct {
-	common.Clients
+	client.Clients
 	global *common.GlobalOptions
 	format *common.FormattingOptions
 	ID     string
@@ -34,7 +35,7 @@ func NewSubCmdRunnableGet(gOpt *common.GlobalOptions) *cobra.Command {
 		Short: "Get runnables.",
 		Long:  `Show details about a FuseML runnable`,
 		Run: func(cmd *cobra.Command, args []string) {
-			common.CheckErr(o.InitializeClients(gOpt))
+			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
 		},

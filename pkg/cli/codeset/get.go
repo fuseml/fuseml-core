@@ -5,13 +5,14 @@ import (
 	"os"
 
 	codesetc "github.com/fuseml/fuseml-core/gen/http/codeset/client"
+	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	"github.com/spf13/cobra"
 )
 
 // GetOptions holds the options for 'codeset get' sub command
 type GetOptions struct {
-	common.Clients
+	client.Clients
 	global  *common.GlobalOptions
 	format  *common.FormattingOptions
 	Name    string
@@ -35,7 +36,7 @@ func NewSubCmdCodesetGet(gOpt *common.GlobalOptions) *cobra.Command {
 		Short: "Get codesets.",
 		Long:  `Show details about a FuseML codeset`,
 		Run: func(cmd *cobra.Command, args []string) {
-			common.CheckErr(o.InitializeClients(gOpt))
+			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
 		},

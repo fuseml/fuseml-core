@@ -1,18 +1,16 @@
 package workflow
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
-	workflowc "github.com/fuseml/fuseml-core/gen/http/workflow/client"
-	"github.com/fuseml/fuseml-core/gen/workflow"
+	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 )
 
 type createOptions struct {
-	common.Clients
+	client.Clients
 	global   *common.GlobalOptions
 	workflow string
 }
@@ -28,7 +26,7 @@ func newSubCmdCreate(gOpt *common.GlobalOptions) *cobra.Command {
 		Short: "Creates a workflow",
 		Long:  `Creates a workflow from a file`,
 		Run: func(cmd *cobra.Command, args []string) {
-			common.CheckErr(o.InitializeClients(gOpt))
+			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(common.LoadFileIntoVar(cmd.Flags().Arg(0), &o.workflow))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
@@ -45,19 +43,12 @@ func (o *createOptions) validate() error {
 }
 
 func (o *createOptions) run() error {
-	request, err := workflowc.BuildRegisterPayload(o.workflow)
+	wf, err := o.WorkflowClient.Create(o.workflow)
 	if err != nil {
 		return err
 	}
 
-	response, err := o.WorkflowClient.Register()(context.Background(), request)
-	if err != nil {
-		return err
-	}
-
-	workflow := response.(*workflow.Workflow)
-
-	fmt.Printf("Workflow %q successfully created\n", workflow.Name)
+	fmt.Printf("Workflow %q successfully created\n", wf.Name)
 
 	return nil
 }

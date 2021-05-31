@@ -7,6 +7,7 @@ import (
 
 	codeset "github.com/fuseml/fuseml-core/gen/codeset"
 	codesetc "github.com/fuseml/fuseml-core/gen/http/codeset/client"
+	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
@@ -14,7 +15,7 @@ import (
 
 // ListOptions holds the options for 'codeset list' sub command
 type ListOptions struct {
-	common.Clients
+	client.Clients
 	global  *common.GlobalOptions
 	format  *common.FormattingOptions
 	Project string
@@ -42,16 +43,16 @@ func NewListOptions(o *common.GlobalOptions) (res *ListOptions) {
 }
 
 // NewSubCmdCodesetList creates and returns the cobra command for the `codeset list` CLI command
-func NewSubCmdCodesetList(c *common.GlobalOptions) *cobra.Command {
+func NewSubCmdCodesetList(gOpt *common.GlobalOptions) *cobra.Command {
 
-	o := NewListOptions(c)
+	o := NewListOptions(gOpt)
 
 	cmd := &cobra.Command{
 		Use:   "list [-p|--project PROJECT] [-l|--label LABEL]",
 		Short: "List codesets.",
 		Long:  `Retrieve information about Codesets registered in FuseML`,
 		Run: func(cmd *cobra.Command, args []string) {
-			common.CheckErr(o.InitializeClients(c))
+			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
 		},

@@ -5,6 +5,7 @@ import (
 	"os"
 
 	applicationc "github.com/fuseml/fuseml-core/gen/http/application/client"
+	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
@@ -12,7 +13,7 @@ import (
 
 // listOptions holds the options for 'application list' sub command
 type listOptions struct {
-	common.Clients
+	client.Clients
 	global   *common.GlobalOptions
 	format   *common.FormattingOptions
 	Type     string
@@ -31,16 +32,16 @@ func newListOptions(o *common.GlobalOptions) (res *listOptions) {
 }
 
 // newSubCmdApplicationList creates and returns the cobra command for the `application list` CLI command
-func newSubCmdApplicationList(c *common.GlobalOptions) *cobra.Command {
+func newSubCmdApplicationList(gOpt *common.GlobalOptions) *cobra.Command {
 
-	o := newListOptions(c)
+	o := newListOptions(gOpt)
 
 	cmd := &cobra.Command{
 		Use:   "list [-t|--type TYPE] [-w|--workflow WORKFLOW]",
 		Short: "List applications.",
 		Long:  `Retrieve information about applications registered in FuseML`,
 		Run: func(cmd *cobra.Command, args []string) {
-			common.CheckErr(o.InitializeClients(c))
+			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
 		},
