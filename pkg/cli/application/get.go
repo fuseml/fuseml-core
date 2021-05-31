@@ -41,7 +41,7 @@ func newSubCmdApplicationGet(gOpt *common.GlobalOptions) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&o.Name, "name", "n", "", "application name")
-	o.format.AddSingleValueFormattingFlags(cmd)
+	o.format.AddSingleValueFormattingFlags(cmd, common.FormatYAML)
 	cmd.MarkFlagRequired("name")
 	return cmd
 }

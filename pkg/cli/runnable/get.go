@@ -42,7 +42,7 @@ func NewSubCmdRunnableGet(gOpt *common.GlobalOptions) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&o.ID, "id", "n", "", "runnable ID")
-	o.format.AddSingleValueFormattingFlags(cmd)
+	o.format.AddSingleValueFormattingFlags(cmd, common.FormatYAML)
 	cmd.MarkFlagRequired("id")
 	return cmd
 }

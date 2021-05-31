@@ -44,7 +44,7 @@ func NewSubCmdCodesetGet(gOpt *common.GlobalOptions) *cobra.Command {
 
 	cmd.Flags().StringVarP(&o.Name, "name", "n", "", "codeset name")
 	cmd.Flags().StringVarP(&o.Project, "project", "p", "", "the project to which the codeset belongs")
-	o.format.AddSingleValueFormattingFlags(cmd)
+	o.format.AddSingleValueFormattingFlags(cmd, common.FormatYAML)
 	cmd.MarkFlagRequired("name")
 	cmd.MarkFlagRequired("project")
 	return cmd

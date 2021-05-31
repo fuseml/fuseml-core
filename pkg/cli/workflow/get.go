@@ -38,7 +38,7 @@ func newSubCmdGet(gOpt *common.GlobalOptions) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&o.name, "name", "n", "", "workflow name")
-	o.format.AddSingleValueFormattingFlags(cmd)
+	o.format.AddSingleValueFormattingFlags(cmd, common.FormatYAML)
 	cmd.MarkFlagRequired("name")
 	return cmd
 }
