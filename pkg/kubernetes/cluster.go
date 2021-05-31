@@ -3,9 +3,11 @@ package kubernetes
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 
+	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
@@ -19,6 +21,7 @@ import (
 // Cluster holds the config information for Kubernetes cluster
 type Cluster struct {
 	restConfig *rest.Config
+	logger     *log.Logger
 }
 
 // GetClientConfig fetchs the kubernetes config of current cluster
@@ -36,18 +39,19 @@ func GetClientConfig() (*rest.Config, error) {
 }
 
 // NewCluster returns new cluster struct initialized with KUBECONFIG from environment
-func NewCluster() (*Cluster, error) {
+func NewCluster(logger *log.Logger) (*Cluster, error) {
 
 	config, err := GetClientConfig()
 	if err != nil {
 		return nil, fmt.Errorf("error getting kubernetes client config: %w", err)
 	}
 
-	return &Cluster{config}, nil
+	return &Cluster{config, logger}, nil
 }
 
 // DeleteResource deletes kuberneres resource from current cluster, identified by name, namespace and kind
 func (c *Cluster) DeleteResource(ctx context.Context, name, namespace, kind string) error {
+	c.logger.Printf("want to delete resource %s of kind %s in %s namespace", name, kind, namespace)
 	// Prepare a RESTMapper to find GVR
 	dc, err := discovery.NewDiscoveryClientForConfig(c.restConfig)
 	if err != nil {
@@ -74,20 +78,10 @@ func (c *Cluster) DeleteResource(ctx context.Context, name, namespace, kind stri
 	// get REST interface
 	dr := dynClient.Resource(mapping.Resource).Namespace(namespace)
 
-	// check if the resource is there
-	res, err := dr.Get(context.TODO(), name, metav1.GetOptions{})
-	if res == nil {
-		// already gone, no delete necessary
-		return nil
-	}
-	if err != nil {
-		return fmt.Errorf("failed fetching the resource: %w", err)
-	}
-
 	err = dr.Delete(ctx, name, metav1.DeleteOptions{})
-	if err != nil {
+	if !k8serr.IsNotFound(err) {
 		return err
 	}
-
+	c.logger.Print("resource not found, no need to delete")
 	return nil
 }
