@@ -37,12 +37,12 @@ func (wc *WorkflowClient) Assign(name, codesetName, codesetProject string) (err 
 
 // Create a new Workflow.
 func (wc *WorkflowClient) Create(workflowDef string) (*workflow.Workflow, error) {
-	request, err := workflowc.BuildRegisterPayload(workflowDef)
+	request, err := workflowc.BuildCreatePayload(workflowDef)
 	if err != nil {
 		return nil, err
 	}
 
-	response, err := wc.c.Register()(context.Background(), request)
+	response, err := wc.c.Create()(context.Background(), request)
 	if err != nil {
 		return nil, err
 	}

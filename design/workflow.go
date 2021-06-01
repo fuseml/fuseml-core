@@ -14,7 +14,7 @@ var _ = Service("workflow", func() {
 				Example("workflowA")
 			})
 		})
-		Result(ArrayOf(Workflow), "Return all registered workflows matching the query.")
+		Result(ArrayOf(Workflow), "Return all workflows matching the query.")
 
 		Error("NotFound", func() {
 			Description("If the workflow is not found, should return 404 Not Found.")
@@ -36,8 +36,8 @@ var _ = Service("workflow", func() {
 
 	})
 
-	Method("register", func() {
-		Description("Register a new Workflow.")
+	Method("create", func() {
+		Description("Create a new Workflow.")
 		Payload(Workflow, "Workflow descriptor")
 		Error("BadRequest", func() {
 			Description("If the workflow does not have the required fields, should return 400 Bad Request.")
