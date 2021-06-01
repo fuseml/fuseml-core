@@ -3,6 +3,7 @@ package domain
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/fuseml/fuseml-core/gen/workflow"
 )
@@ -26,7 +27,7 @@ type WorkflowBackend interface {
 	DeleteWorkflow(ctx context.Context, logger *log.Logger, workflowName string) error
 	CreateWorkflowRun(ctx context.Context, logger *log.Logger, workflowName string, codeset *Codeset) error
 	ListWorkflowRuns(ctx context.Context, workflow workflow.Workflow, filter WorkflowRunFilter) ([]*workflow.WorkflowRun, error)
-	CreateWorkflowListener(ctx context.Context, logger *log.Logger, workflowName string, wait bool) (*WorkflowListener, error)
+	CreateWorkflowListener(ctx context.Context, logger *log.Logger, workflowName string, timeout time.Duration) (*WorkflowListener, error)
 	DeleteWorkflowListener(ctx context.Context, logger *log.Logger, workflowName string) error
 	GetWorkflowListener(ctx context.Context, workflowName string) (*WorkflowListener, error)
 }
