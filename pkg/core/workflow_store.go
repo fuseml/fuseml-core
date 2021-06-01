@@ -13,8 +13,8 @@ import (
 type storableWorkflow struct {
 	// Workflow assigned to the codeset
 	workflow *workflow.Workflow
-	// Codesets assigned to the workflow
-	assignedCodesets []*domain.Codeset
+	// AssignedCodeset holds codesets assigned to the workflow and its hookID
+	assignedCodesets []*domain.AssignedCodeset
 }
 
 // WorkflowStore describes in memory store for workflows
@@ -37,8 +37,8 @@ func (ws *WorkflowStore) GetWorkflow(ctx context.Context, name string) *workflow
 	return nil
 }
 
-// GetAllWorkflows returns all workflows or the one that matches a given name.
-func (ws *WorkflowStore) GetAllWorkflows(ctx context.Context, name *string) (result []*workflow.Workflow) {
+// GetWorkflows returns all workflows or the one that matches a given name.
+func (ws *WorkflowStore) GetWorkflows(ctx context.Context, name *string) (result []*workflow.Workflow) {
 	result = make([]*workflow.Workflow, 0, len(ws.items))
 	if name != nil {
 		result = append(result, ws.items[*name].workflow)
@@ -62,8 +62,21 @@ func (ws *WorkflowStore) AddWorkflow(ctx context.Context, w *workflow.Workflow) 
 	return w, nil
 }
 
+// DeleteWorkflow deletes the workflow from the store
+func (ws *WorkflowStore) DeleteWorkflow(ctx context.Context, name string) error {
+	sw, found := ws.items[name]
+	if !found {
+		return nil
+	}
+	if len(sw.assignedCodesets) > 0 {
+		return fmt.Errorf("cannot delete workflow, there are codesets assigned to it")
+	}
+	delete(ws.items, name)
+	return nil
+}
+
 // GetAssignedCodesets returns a list of codesets assigned to the specified workflow
-func (ws *WorkflowStore) GetAssignedCodesets(ctx context.Context, workflowName string) []*domain.Codeset {
+func (ws *WorkflowStore) GetAssignedCodesets(ctx context.Context, workflowName string) []*domain.AssignedCodeset {
 	if _, exists := ws.items[workflowName]; exists {
 		return ws.items[workflowName].assignedCodesets
 	}
@@ -71,35 +84,63 @@ func (ws *WorkflowStore) GetAssignedCodesets(ctx context.Context, workflowName s
 }
 
 // GetAssignments returns a map of workflows and its assigned codesets
-func (ws *WorkflowStore) GetAssignments(ctx context.Context, workflowName *string) (result map[string][]*domain.Codeset) {
-	result = make(map[string][]*domain.Codeset, len(ws.items))
+func (ws *WorkflowStore) GetAssignments(ctx context.Context, workflowName *string) (result map[string][]*domain.AssignedCodeset) {
+	result = make(map[string][]*domain.AssignedCodeset, len(ws.items))
 	if workflowName != nil {
-		if _, exists := ws.items[*workflowName]; exists {
-			result[*workflowName] = ws.items[*workflowName].assignedCodesets
+		if sw, exists := ws.items[*workflowName]; exists && len(sw.assignedCodesets) > 0 {
+			result[*workflowName] = sw.assignedCodesets
 		}
 		return
 	}
 	for _, sw := range ws.items {
-		result[sw.workflow.Name] = sw.assignedCodesets
+		if len(sw.assignedCodesets) > 0 {
+			result[sw.workflow.Name] = sw.assignedCodesets
+		}
 	}
 	return
 }
 
 // AddCodesetAssignment adds a codeset to the list of assigned codesets of a workflow if it does not already exists
-func (ws *WorkflowStore) AddCodesetAssignment(ctx context.Context, workflowName string, codeset *domain.Codeset) []*domain.Codeset {
+func (ws *WorkflowStore) AddCodesetAssignment(ctx context.Context, workflowName string,
+	assignedCodeset *domain.AssignedCodeset) []*domain.AssignedCodeset {
 	assignedCodesets := ws.items[workflowName].assignedCodesets
-	if !containsCodeset(assignedCodesets, codeset) {
-		assignedCodesets = append(assignedCodesets, codeset)
+	if assigned, _ := getAssignedCodeset(assignedCodesets, assignedCodeset.Codeset); assigned == nil {
+		assignedCodesets = append(assignedCodesets, assignedCodeset)
 		ws.items[workflowName].assignedCodesets = assignedCodesets
 	}
 	return assignedCodesets
 }
 
-func containsCodeset(slice []*domain.Codeset, codeset *domain.Codeset) bool {
-	for _, c := range slice {
-		if c.Project == codeset.Project && c.Name == codeset.Name {
-			return true
+// DeleteCodesetAssignment deletes a codeset from the list of assigned codesets of a workflow if it exists
+func (ws *WorkflowStore) DeleteCodesetAssignment(ctx context.Context, workflowName string, codeset *domain.Codeset) []*domain.AssignedCodeset {
+	assignedCodesets := ws.items[workflowName].assignedCodesets
+	if _, i := getAssignedCodeset(assignedCodesets, codeset); i != -1 {
+		assignedCodesets = removeAssignedCodeset(assignedCodesets, i)
+		ws.items[workflowName].assignedCodesets = assignedCodesets
+	}
+	return assignedCodesets
+}
+
+// GetAssignedCodeset returns a AssignedCodeset for the Workflow and Codeset
+func (ws *WorkflowStore) GetAssignedCodeset(ctx context.Context, workflowName string, codeset *domain.Codeset) *domain.AssignedCodeset {
+	sw, exists := ws.items[workflowName]
+	if !exists {
+		return nil
+	}
+	ac, _ := getAssignedCodeset(sw.assignedCodesets, codeset)
+	return ac
+}
+
+func getAssignedCodeset(assignedCodesets []*domain.AssignedCodeset, codeset *domain.Codeset) (*domain.AssignedCodeset, int) {
+	for i, ac := range assignedCodesets {
+		if ac.Codeset.Project == codeset.Project && ac.Codeset.Name == codeset.Name {
+			return ac, i
 		}
 	}
-	return false
+	return nil, -1
+}
+
+func removeAssignedCodeset(codesets []*domain.AssignedCodeset, index int) []*domain.AssignedCodeset {
+	codesets[index] = codesets[len(codesets)-1]
+	return codesets[:len(codesets)-1]
 }

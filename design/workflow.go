@@ -8,7 +8,7 @@ var _ = Service("workflow", func() {
 	Description("The workflow service performs operations on workflows.")
 
 	Method("list", func() {
-		Description("List workflows registered in FuseML.")
+		Description("List Workflows.")
 		Payload(func() {
 			Field(1, "name", String, "List workflows with the specified name", func() {
 				Example("workflowA")
@@ -37,7 +37,7 @@ var _ = Service("workflow", func() {
 	})
 
 	Method("register", func() {
-		Description("Register a workflow within the FuseML workflow store.")
+		Description("Register a new Workflow.")
 		Payload(Workflow, "Workflow descriptor")
 		Error("BadRequest", func() {
 			Description("If the workflow does not have the required fields, should return 400 Bad Request.")
@@ -62,7 +62,7 @@ var _ = Service("workflow", func() {
 	})
 
 	Method("get", func() {
-		Description("Retrieve Workflow(s) from FuseML.")
+		Description("Get a Workflow.")
 
 		Payload(func() {
 			Field(1, "name", String, "Workflow name", func() {
@@ -94,8 +94,34 @@ var _ = Service("workflow", func() {
 		})
 	})
 
+	Method("delete", func() {
+		Description("Delete a Workflow and its assignments.")
+
+		Payload(func() {
+			Field(1, "name", String, "Workflow name", func() {
+				Example("mlflow-sklearn-e2e")
+			})
+			Required("name")
+		})
+
+		Error("BadRequest", func() {
+			Description("If name is not given, should return 400 Bad Request.")
+		})
+
+		HTTP(func() {
+			DELETE("/workflows/{name}")
+			Response(StatusNoContent)
+			Response("BadRequest", StatusBadRequest)
+		})
+
+		GRPC(func() {
+			Response(CodeOK)
+			Response("BadRequest", CodeInvalidArgument)
+		})
+	})
+
 	Method("assign", func() {
-		Description("Assigins a Workflow to a Codeset")
+		Description("Assign a Workflow to a Codeset.")
 
 		Payload(func() {
 			Field(1, "name", String, "Name of the Workflow to be associated with the codeset", func() {
@@ -118,7 +144,7 @@ var _ = Service("workflow", func() {
 		})
 
 		HTTP(func() {
-			POST("/workflows/assign")
+			POST("/workflows/assignments")
 			Param("name")
 			Param("codesetName")
 			Param("codesetProject")
@@ -134,11 +160,73 @@ var _ = Service("workflow", func() {
 		})
 	})
 
-	Method("listRuns", func() {
-		Description("List workflow runs")
+	Method("unassign", func() {
+		Description("Unassign a Workflow from a Codeset.")
 
 		Payload(func() {
-			Field(1, "workflowName", String, "Name of the Workflow to list runs from", func() {
+			Field(1, "name", String, "Name of the Workflow to be unassigned", func() {
+				Example("mlflow-sklearn-e2e")
+			})
+			Field(2, "codesetProject", String, "Project that hosts the codeset to be unassigned to the workflow", func() {
+				Example("workspace")
+			})
+			Field(3, "codesetName", String, "Codeset to be unassigned to the workflow", func() {
+				Example("mlflow-project-001")
+			})
+			Required("name", "codesetProject", "codesetName")
+		})
+
+		Error("BadRequest", func() {
+			Description("If no workflowName or codeset name/project is given, should return 400 Bad Request.")
+		})
+		Error("NotFound", func() {
+			Description("If there is no workflow assignment with the given workflow and codeset, should return 404 Not Found.")
+		})
+
+		HTTP(func() {
+			DELETE("/workflows/assignments/{name}")
+			Param("name")
+			Param("codesetName")
+			Param("codesetProject")
+			Response(StatusNoContent)
+			Response("BadRequest", StatusBadRequest)
+			Response("NotFound", StatusNotFound)
+		})
+
+		GRPC(func() {
+			Response(CodeOK)
+			Response("BadRequest", CodeInvalidArgument)
+			Response("NotFound", CodeNotFound)
+		})
+	})
+
+	Method("listAssignments", func() {
+		Description("List Workflow assignments.")
+
+		Payload(func() {
+			Field(1, "name", String, "Name of the workflow to list assignments", func() {
+				Example("mlflow-sklearn-e2e")
+			})
+		})
+
+		Result(ArrayOf(WorkflowAssignment), "Return a list of workflow assignments.")
+
+		HTTP(func() {
+			GET("/workflows/assignments")
+			Param("name")
+			Response(StatusOK)
+		})
+
+		GRPC(func() {
+			Response(CodeOK)
+		})
+	})
+
+	Method("listRuns", func() {
+		Description("List Workflow runs.")
+
+		Payload(func() {
+			Field(1, "name", String, "Name of the Workflow to list runs from", func() {
 				Example("mlflow-sklearn-e2e")
 			})
 			Field(2, "codesetName", String, "Name of the codeset to list runs from", func() {
@@ -158,11 +246,11 @@ var _ = Service("workflow", func() {
 			Description("If there is no workflow with the given name, should return 404 Not Found.")
 		})
 
-		Result(ArrayOf(WorkflowRun), "Return all runs for a workflow.")
+		Result(ArrayOf(WorkflowRun), "Return all runs of a workflow.")
 
 		HTTP(func() {
 			GET("/workflows/runs")
-			Param("workflowName")
+			Param("name")
 			Param("codesetName")
 			Param("codesetProject")
 			Param("status")
@@ -175,28 +263,6 @@ var _ = Service("workflow", func() {
 			Response("NotFound", CodeNotFound)
 		})
 
-	})
-
-	Method("listAssignments", func() {
-		Description("List workflow assignments to codesets")
-
-		Payload(func() {
-			Field(1, "name", String, "Name of the workflow to list assignments", func() {
-				Example("mlflow-sklearn-e2e")
-			})
-		})
-
-		Result(ArrayOf(WorkflowAssignment), "Return a list of workflow assignments.")
-
-		HTTP(func() {
-			GET("/workflows/assignments")
-			Param("name")
-			Response(StatusOK)
-		})
-
-		GRPC(func() {
-			Response(CodeOK)
-		})
 	})
 })
 

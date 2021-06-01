@@ -15,7 +15,8 @@ import (
 // AdminClient describes the interface of Gitea Admin Client
 type AdminClient interface {
 	PrepareRepository(*domain.Codeset, *string) (*string, *string, error)
-	CreateRepoWebhook(string, string, *string) error
+	CreateRepoWebhook(string, string, *string) (*int64, error)
+	DeleteRepoWebhook(string, string, *int64) error
 	GetRepositories(org, label *string) ([]*domain.Codeset, error)
 	GetRepository(org, name string) (*domain.Codeset, error)
 	DeleteRepository(org, name string) error
@@ -35,6 +36,7 @@ type Client interface {
 	ListRepoHooks(string, string, gitea.ListHooksOptions) ([]*gitea.Hook, *gitea.Response, error)
 	ListOrgRepos(string, gitea.ListOrgReposOptions) ([]*gitea.Repository, *gitea.Response, error)
 	CreateRepoHook(string, string, gitea.CreateHookOption) (*gitea.Hook, *gitea.Response, error)
+	DeleteRepoHook(string, string, int64) (*gitea.Response, error)
 	ListRepoTopics(string, string, gitea.ListRepoTopicsOptions) ([]string, *gitea.Response, error)
 	ListMyOrgs(gitea.ListOrgsOptions) ([]*gitea.Organization, *gitea.Response, error)
 	DeleteRepo(string, string) (*gitea.Response, error)
@@ -222,26 +224,26 @@ func (gac giteaAdminClient) AddRepoTopics(org, name string, labels []string) err
 }
 
 // Create webhook for given repository and wire it to tekton listener
-func (gac giteaAdminClient) CreateRepoWebhook(org, name string, listenerURL *string) error {
+func (gac giteaAdminClient) CreateRepoWebhook(org, name string, listenerURL *string) (*int64, error) {
 	if listenerURL == nil {
 		gac.logger.Printf("Webhook listener URL not provided, skipping creation")
-		return nil
+		return nil, nil
 	}
 	hooks, _, err := gac.giteaClient.ListRepoHooks(org, name, gitea.ListHooksOptions{})
 	if err != nil {
-		return errors.Wrap(err, "Failed to list webhooks")
+		return nil, errors.Wrap(err, "Failed to list webhooks")
 	}
 
 	for _, hook := range hooks {
 		url := hook.Config["url"]
 		if url == *listenerURL {
 			gac.logger.Printf("Webhook for '%s' already exists", name)
-			return nil
+			return nil, nil
 		}
 	}
 
 	gac.logger.Printf("Creating Webhook for '%s' under '%s'...", name, org)
-	gac.giteaClient.CreateRepoHook(org, name, gitea.CreateHookOption{
+	hook, _, _ := gac.giteaClient.CreateRepoHook(org, name, gitea.CreateHookOption{
 		Active:       true,
 		BranchFilter: "*",
 		Config: map[string]string{
@@ -253,6 +255,20 @@ func (gac giteaAdminClient) CreateRepoWebhook(org, name string, listenerURL *str
 		Type: "gitea",
 	})
 
+	return &hook.ID, nil
+}
+
+// Delete a webhook for given repository
+func (gac giteaAdminClient) DeleteRepoWebhook(org, name string, hookID *int64) error {
+	gac.logger.Printf("Deleting Webhook for %q under %q...", name, org)
+	resp, err := gac.giteaClient.DeleteRepoHook(org, name, *hookID)
+	if err != nil {
+		if resp.StatusCode == 404 {
+			gac.logger.Printf("Webhook not found, skipping deletion")
+			return nil
+		}
+		return errors.Wrap(err, "Failed to delete webhook")
+	}
 	return nil
 }
 
@@ -279,7 +295,7 @@ func (gac giteaAdminClient) PrepareRepository(code *domain.Codeset, listenerURL 
 		return nil, nil, errors.Wrap(err, "Failed to add topics to repository")
 	}
 
-	err = gac.CreateRepoWebhook(code.Project, code.Name, listenerURL)
+	_, err = gac.CreateRepoWebhook(code.Project, code.Name, listenerURL)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Creating webhook failed")
 	}

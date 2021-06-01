@@ -102,7 +102,10 @@ func (tc testGiteaClient) ListOrgRepos(org string, opt gitea.ListOrgReposOptions
 }
 
 func (tc testGiteaClient) CreateRepoHook(string, string, gitea.CreateHookOption) (*gitea.Hook, *gitea.Response, error) {
-	return nil, nil, nil
+	return &gitea.Hook{ID: int64(1)}, nil, nil
+}
+func (tc testGiteaClient) DeleteRepoHook(string, string, int64) (*gitea.Response, error) {
+	return &gitea.Response{Response: &httpResp200}, nil
 }
 func (tc testGiteaClient) ListRepoTopics(org, repo string, opt gitea.ListRepoTopicsOptions) ([]string, *gitea.Response, error) {
 	return nil, nil, nil
@@ -233,7 +236,7 @@ func TestDeleteRepository(t *testing.T) {
 		t.Errorf("Error deleting repository")
 	}
 
-	c, err := testGiteaAdminClient.GetRepository(project1, name)
+	c, _ := testGiteaAdminClient.GetRepository(project1, name)
 	if c != nil {
 		t.Errorf("Repository still present after deleting")
 	}

@@ -49,10 +49,8 @@ func TestCreateWorkflow(t *testing.T) {
 		readYaml(t, fuseMLWorkflow, &w)
 
 		err := b.CreateWorkflow(ctx, logs, &w)
-		if err != nil {
-			t.Fatal(err)
-		}
 
+		assertError(t, err, nil)
 		assertStrings(t, strings.TrimSuffix(logsOutput.String(), "\n"), "Creating tekton pipeline for workflow: mlflow-sklearn-e2e...")
 
 		got, err := b.tektonClients.PipelineClient.Get(ctx, w.Name, metav1.GetOptions{})
@@ -84,13 +82,61 @@ func TestCreateWorkflow(t *testing.T) {
 	})
 }
 
-func TestCreateWorkflowRun(t *testing.T) {
-	ctx, b, logs, _ := initBackend(t)
+func TestDeleteWorkflow(t *testing.T) {
+	t.Run("delete", func(t *testing.T) {
+		ctx, b, logs, logsOutput := initBackend(t)
 
+		discardOutput := bytes.Buffer{}
+		discardLogs := log.New(&discardOutput, "[tekton-test] ", log.Ltime)
+
+		w := workflow.Workflow{}
+		readYaml(t, fuseMLWorkflow, &w)
+
+		err := b.CreateWorkflow(ctx, discardLogs, &w)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		err = b.DeleteWorkflow(ctx, logs, w.Name)
+
+		assertError(t, err, nil)
+
+		pipelines, err := b.tektonClients.PipelineClient.List(ctx, metav1.ListOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(pipelines.Items) > 0 {
+			t.Errorf("Expected 0 Pipeline, got %d", len(pipelines.Items))
+		}
+
+		expectedLog := fmt.Sprintf("Deleting tekton pipeline: %s...\n", w.Name)
+		assertStrings(t, logsOutput.String(), expectedLog)
+	})
+
+	t.Run("skip not found", func(t *testing.T) {
+		ctx, b, logs, logsOutput := initBackend(t)
+
+		name := "TestWorkflow"
+		err := b.DeleteWorkflow(ctx, logs, name)
+
+		assertError(t, err, nil)
+
+		expectedLog := fmt.Sprintf(`Deleting tekton pipeline: %s...
+Tekton pipeline %q not found, skipping delete...
+`, name, name)
+		assertStrings(t, logsOutput.String(), expectedLog)
+	})
+}
+
+func TestCreateWorkflowRun(t *testing.T) {
+	ctx, b, logs, logsOutput := initBackend(t)
+
+	discardOutput := bytes.Buffer{}
+	discardLogs := log.New(&discardOutput, "[tekton-test] ", log.Ltime)
 	w := workflow.Workflow{}
 	readYaml(t, fuseMLWorkflow, &w)
 
-	err := b.CreateWorkflow(ctx, logs, &w)
+	err := b.CreateWorkflow(ctx, discardLogs, &w)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -100,7 +146,7 @@ func TestCreateWorkflowRun(t *testing.T) {
 		Project: "workspace",
 		URL:     "http://gitea.10.160.5.140.nip.io/workspace/mlflow-app-01.git",
 	}
-	err = b.CreateWorkflowRun(ctx, w.Name, cs)
+	err = b.CreateWorkflowRun(ctx, logs, w.Name, cs)
 	if err != nil {
 		t.Fatalf("Failed to create workflow run %q: %s", w.Name, err)
 	}
@@ -122,6 +168,9 @@ func TestCreateWorkflowRun(t *testing.T) {
 	if d := cmp.Diff(want, got, ignoreStatusField); d != "" {
 		t.Errorf("Unexpected PipelineRun: %s", diff.PrintWantGot(d))
 	}
+
+	expectedLog := fmt.Sprintf("Creating tekton pipeline run for workflow: %s...\n", w.Name)
+	assertStrings(t, logsOutput.String(), expectedLog)
 }
 
 func TestListWorkflowRuns(t *testing.T) {
@@ -144,7 +193,7 @@ func TestListWorkflowRuns(t *testing.T) {
 			runName := fmt.Sprintf("%s-%d", w.Name, i)
 			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
 			runStartTime := metav1.Now()
-			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime)
+			b.createTestWorkflowRun(ctx, t, logs, w.Name, cs, runName, runStatus, runStartTime)
 			runCsInputValue := fmt.Sprintf("%s:main", cs.URL)
 			startTime := runStartTime.Format(time.RFC3339)
 			completionTime := metav1.NewTime(runStartTime.Time.Add(time.Minute)).Format(time.RFC3339)
@@ -189,7 +238,7 @@ func TestListWorkflowRuns(t *testing.T) {
 			runName := fmt.Sprintf("%s-%d", w.Name, i)
 			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
 			runStartTime := metav1.Now()
-			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime)
+			b.createTestWorkflowRun(ctx, t, logs, w.Name, cs, runName, runStatus, runStartTime)
 			runCsInputValue := fmt.Sprintf("%s:main", cs.URL)
 			startTime := runStartTime.Format(time.RFC3339)
 			completionTime := metav1.NewTime(runStartTime.Time.Add(time.Minute)).Format(time.RFC3339)
@@ -296,7 +345,7 @@ func TestListWorkflowRuns(t *testing.T) {
 			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
 			runStartTime := metav1.Now()
 			runStatus := runsStatus[i]
-			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime)
+			b.createTestWorkflowRun(ctx, t, logs, w.Name, cs, runName, runStatus, runStartTime)
 			startTime := runStartTime.Format(time.RFC3339)
 			var completionTime *string
 			if runStatus != "Running" {
@@ -391,9 +440,7 @@ func TestCreateListener(t *testing.T) {
 		}
 
 		wfListener, err := b.CreateWorkflowListener(ctx, logs, w.Name, false)
-		if err != nil {
-			t.Fatalf("Failed to create listener for workflow %q: %s", w.Name, err)
-		}
+		assertError(t, err, nil)
 
 		wantURL := fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", w.Name, b.namespace)
 		wantAvailable := false
@@ -480,9 +527,7 @@ Creating tekton event listener for workflow: mlflow-sklearn-e2e...
 		}
 
 		wfListener, err := b.CreateWorkflowListener(ctx, logs, w.Name, false)
-		if err != nil {
-			t.Fatalf("Failed to create listener for workflow %q: %s", w.Name, err)
-		}
+		assertError(t, err, nil)
 
 		wantURL := fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", w.Name, b.namespace)
 		wantAvailable := false
@@ -498,6 +543,77 @@ Creating tekton event listener for workflow: mlflow-sklearn-e2e...
 		}
 
 		expectedLog := ""
+		assertStrings(t, logsOutput.String(), expectedLog)
+	})
+}
+
+func TestDeleteListener(t *testing.T) {
+	t.Run("delete", func(t *testing.T) {
+		ctx, b, logs, logsOutput := initBackend(t)
+
+		discardOutput := bytes.Buffer{}
+		discardLogs := log.New(&discardOutput, "[tekton-test] ", log.Ltime)
+		w := workflow.Workflow{}
+		readYaml(t, fuseMLWorkflow, &w)
+
+		err := b.CreateWorkflow(ctx, discardLogs, &w)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		wfListener, err := b.CreateWorkflowListener(ctx, discardLogs, w.Name, false)
+		if err != nil {
+			t.Fatalf("Failed to create listener for workflow %q: %s", w.Name, err)
+		}
+
+		err = b.DeleteWorkflowListener(ctx, logs, wfListener.Name)
+		assertError(t, err, nil)
+
+		els, err := b.tektonClients.EventListenerClient.List(ctx, metav1.ListOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(els.Items) > 0 {
+			t.Errorf("Expected 0 EventListener, got %d", len(els.Items))
+		}
+
+		tbs, err := b.tektonClients.TriggerBindingClient.List(ctx, metav1.ListOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(tbs.Items) > 0 {
+			t.Errorf("Expected 0 TriggerBinding, got %d", len(tbs.Items))
+		}
+
+		tts, err := b.tektonClients.TriggerTemplateClient.List(ctx, metav1.ListOptions{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(tts.Items) > 0 {
+			t.Errorf("Expected 0 TriggerTemplate, got %d", len(tts.Items))
+		}
+
+		expectedLog := fmt.Sprintf(`Deleting tekton event listener: %s...
+Deleting tekton trigger binding: %s...
+Deleting tekton trigger template: %s...
+`, wfListener.Name, wfListener.Name, wfListener.Name)
+		assertStrings(t, logsOutput.String(), expectedLog)
+	})
+
+	t.Run("skip not found", func(t *testing.T) {
+		ctx, b, logs, logsOutput := initBackend(t)
+
+		name := "TestListener"
+		err := b.DeleteWorkflowListener(ctx, logs, name)
+		assertError(t, err, nil)
+
+		expectedLog := fmt.Sprintf(`Deleting tekton event listener: %s...
+Tekton event listener %q not found, skipping delete...
+Deleting tekton trigger binding: %s...
+Tekton trigger binding %q not found, skipping delete...
+Deleting tekton trigger template: %s...
+Tekton trigger template %q not found, skipping delete...
+`, name, name, name, name, name, name)
 		assertStrings(t, logsOutput.String(), expectedLog)
 	})
 }
@@ -537,7 +653,7 @@ func TestGetWorkflowListener(t *testing.T) {
 	}
 
 	for i := 0; i < len(wants); i++ {
-		got, err := b.GetWorkflowListener(ctx, discardLogs, wants[i].Name)
+		got, err := b.GetWorkflowListener(ctx, wants[i].Name)
 		if err != nil {
 			t.Fatalf("Failed to get listener: %s", err)
 		}
@@ -631,10 +747,11 @@ func createCodeset(t *testing.T, nameID, projectID int) *domain.Codeset {
 	return &domain.Codeset{Name: name, Project: project, URL: url}
 }
 
-func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T, workflow string, cs *domain.Codeset,
-	runName string, status string, startTime metav1.Time) {
+func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T, log *log.Logger,
+	workflow string, cs *domain.Codeset, runName string, status string, startTime metav1.Time) {
 	t.Helper()
-	err := b.CreateWorkflowRun(ctx, workflow, cs)
+
+	err := b.CreateWorkflowRun(ctx, log, workflow, cs)
 	if err != nil {
 		t.Fatalf("Failed to create workflow run %q: %s", workflow, err)
 	}

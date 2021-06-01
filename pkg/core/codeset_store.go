@@ -11,7 +11,8 @@ import (
 // GitAdmin is an inteface to git administration clients
 type GitAdmin interface {
 	PrepareRepository(*domain.Codeset, *string) (*string, *string, error)
-	CreateRepoWebhook(string, string, *string) error
+	CreateRepoWebhook(string, string, *string) (*int64, error)
+	DeleteRepoWebhook(string, string, *int64) error
 	GetRepositories(org, label *string) ([]*domain.Codeset, error)
 	GetRepository(org, name string) (*domain.Codeset, error)
 	DeleteRepository(org, name string) error
@@ -58,10 +59,19 @@ func (cs *GitCodesetStore) GetAll(ctx context.Context, project, label *string) (
 }
 
 // CreateWebhook adds a new webhook to a codeset
-func (cs *GitCodesetStore) CreateWebhook(ctx context.Context, c *domain.Codeset, listenerURL string) error {
-	err := cs.gitAdmin.CreateRepoWebhook(c.Project, c.Name, &listenerURL)
+func (cs *GitCodesetStore) CreateWebhook(ctx context.Context, c *domain.Codeset, listenerURL string) (*int64, error) {
+	hookID, err := cs.gitAdmin.CreateRepoWebhook(c.Project, c.Name, &listenerURL)
 	if err != nil {
-		return errors.Wrap(err, "Creating webhook failed")
+		return nil, errors.Wrap(err, "Creating webhook failed")
+	}
+	return hookID, nil
+}
+
+// DeleteWebhook deletes a webhook from a codeset
+func (cs *GitCodesetStore) DeleteWebhook(ctx context.Context, c *domain.Codeset, hookID *int64) error {
+	err := cs.gitAdmin.DeleteRepoWebhook(c.Project, c.Name, hookID)
+	if err != nil {
+		return errors.Wrap(err, "Deleting webhook failed")
 	}
 	return nil
 }
