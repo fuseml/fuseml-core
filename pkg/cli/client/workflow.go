@@ -25,8 +25,8 @@ func NewWorkflowClient(scheme string, host string, doer goahttp.Doer, encoder fu
 }
 
 // Assign a Workflow to a Codeset.
-func (wc *WorkflowClient) Assign(name, codesetName, codesetProject string) (err error) {
-	request, err := workflowc.BuildAssignPayload(name, codesetName, codesetProject)
+func (wc *WorkflowClient) Assign(name, codesetProject, codesetName string) (err error) {
+	request, err := workflowc.BuildAssignPayload(name, codesetProject, codesetName)
 	if err != nil {
 		return
 	}
@@ -96,8 +96,8 @@ func (wc *WorkflowClient) ListAssignments(name string) ([]*workflow.WorkflowAssi
 }
 
 // ListRuns lists Workflow runs.
-func (wc *WorkflowClient) ListRuns(name, codesetName, codesetProject, status string) ([]*workflow.WorkflowRun, error) {
-	request, err := workflowc.BuildListRunsPayload(name, codesetName, codesetProject, status)
+func (wc *WorkflowClient) ListRuns(name, codesetProject, codesetName, status string) ([]*workflow.WorkflowRun, error) {
+	request, err := workflowc.BuildListRunsPayload(name, codesetProject, codesetName, status)
 	if err != nil {
 		return nil, err
 	}

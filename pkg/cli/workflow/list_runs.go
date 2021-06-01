@@ -75,7 +75,7 @@ func newListRunsOptions(o *common.GlobalOptions) (res *listRunsOptions) {
 func newSubCmdListRuns(gOpt *common.GlobalOptions) *cobra.Command {
 	o := newListRunsOptions(gOpt)
 	cmd := &cobra.Command{
-		Use:   "list-runs [-n|--name NAME] [-c|--codeset-name CODESET_NAME] [-p|--codeset-project CODESET_PROJECT] [-s|--status STATUS]",
+		Use:   "list-runs [-n|--name NAME] [-p|--codeset-project CODESET_PROJECT] [-c|--codeset-name CODESET_NAME] [-s|--status STATUS]",
 		Short: "Lists one or more workflow runs",
 		Long:  `Prints a table of the most important information about workflow runs. You can filter the list by the workflow name, codeset name, codeset project or status.`,
 		Run: func(cmd *cobra.Command, args []string) {
@@ -87,8 +87,8 @@ func newSubCmdListRuns(gOpt *common.GlobalOptions) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&o.name, "name", "n", "", "filter workflow runs by the workflow name")
-	cmd.Flags().StringVarP(&o.codesetName, "codeset-name", "c", "", "filter workflow runs by the codeset name")
 	cmd.Flags().StringVarP(&o.codesetProject, "codeset-project", "p", "", "filter workflow runs by the codeset project")
+	cmd.Flags().StringVarP(&o.codesetName, "codeset-name", "c", "", "filter workflow runs by the codeset name")
 	cmd.Flags().StringVarP(&o.status, "status", "s", "", "filter workflow runs by the workflow run status")
 	o.format.AddMultiValueFormattingFlags(cmd)
 
@@ -100,7 +100,7 @@ func (o *listRunsOptions) validate() error {
 }
 
 func (o *listRunsOptions) run() error {
-	wfRuns, err := o.WorkflowClient.ListRuns(o.name, o.codesetName, o.codesetProject, o.status)
+	wfRuns, err := o.WorkflowClient.ListRuns(o.name, o.codesetProject, o.codesetName, o.status)
 	if err != nil {
 		return err
 	}
