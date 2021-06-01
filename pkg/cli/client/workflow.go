@@ -50,6 +50,17 @@ func (wc *WorkflowClient) Create(workflowDef string) (*workflow.Workflow, error)
 	return response.(*workflow.Workflow), nil
 }
 
+// Delete a Workflow and its assignments.
+func (wc *WorkflowClient) Delete(name string) (err error) {
+	request, err := workflowc.BuildDeletePayload(name)
+	if err != nil {
+		return
+	}
+
+	_, err = wc.c.Delete()(context.Background(), request)
+	return
+}
+
 // Get a Workflow.
 func (wc *WorkflowClient) Get(name string) (*workflow.Workflow, error) {
 	request, err := workflowc.BuildGetPayload(name)
