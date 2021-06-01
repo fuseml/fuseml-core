@@ -238,7 +238,7 @@ func (gac giteaAdminClient) CreateRepoWebhook(org, name string, listenerURL *str
 		url := hook.Config["url"]
 		if url == *listenerURL {
 			gac.logger.Printf("Webhook for '%s' already exists", name)
-			return nil, nil
+			return &hook.ID, nil
 		}
 	}
 

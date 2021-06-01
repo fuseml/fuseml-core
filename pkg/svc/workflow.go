@@ -230,10 +230,12 @@ func (s *workflowsrvc) unassignCodesetFromWorkflow(ctx context.Context, workflow
 		return workflow.MakeNotFound(err)
 	}
 
-	err = s.codesetStore.DeleteWebhook(ctx, codeset, assignment.WebhookID)
-	if err != nil {
-		s.logger.Print(err)
-		return err
+	if assignment.WebhookID != nil {
+		err = s.codesetStore.DeleteWebhook(ctx, codeset, assignment.WebhookID)
+		if err != nil {
+			s.logger.Print(err)
+			return err
+		}
 	}
 
 	if len(s.store.GetAssignedCodesets(ctx, workflowName)) == 1 {
