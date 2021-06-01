@@ -1,8 +1,6 @@
 package workflow
 
 import (
-	"context"
-	"fmt"
 	"os"
 	"time"
 
@@ -12,13 +10,13 @@ import (
 	"github.com/tektoncd/cli/pkg/formatted"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	workflowc "github.com/fuseml/fuseml-core/gen/http/workflow/client"
 	"github.com/fuseml/fuseml-core/gen/workflow"
+	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 )
 
 type listRunsOptions struct {
-	common.Clients
+	client.Clients
 	global         *common.GlobalOptions
 	format         *common.FormattingOptions
 	name           string
@@ -66,7 +64,7 @@ func newListRunsOptions(o *common.GlobalOptions) (res *listRunsOptions) {
 	res = &listRunsOptions{global: o}
 	res.format = common.NewFormattingOptions(
 		[]string{"Name", "Workflow", "Started", "Duration", "Status"},
-		[]table.SortBy{{Name: "Started", Mode: table.Dsc}},
+		[]table.SortBy{},
 		common.OutputFormatters{"Duration": formatRunDuration, "Status": formatRunStatus,
 			"Workflow": formatRunWorkflowRef, "Started": formatRunStartTime},
 	)
@@ -74,14 +72,14 @@ func newListRunsOptions(o *common.GlobalOptions) (res *listRunsOptions) {
 	return
 }
 
-func newSubCmdListRuns(c *common.GlobalOptions) *cobra.Command {
-	o := newListRunsOptions(c)
+func newSubCmdListRuns(gOpt *common.GlobalOptions) *cobra.Command {
+	o := newListRunsOptions(gOpt)
 	cmd := &cobra.Command{
 		Use:   "list-runs [-n|--name NAME] [-c|--codeset-name CODESET_NAME] [-p|--codeset-project CODESET_PROJECT] [-s|--status STATUS]",
 		Short: "Lists one or more workflow runs",
 		Long:  `Prints a table of the most important information about workflow runs. You can filter the list by the workflow name, codeset name, codeset project or status.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			common.CheckErr(o.InitializeClients(c))
+			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
 		},
@@ -102,18 +100,12 @@ func (o *listRunsOptions) validate() error {
 }
 
 func (o *listRunsOptions) run() error {
-	request, err := workflowc.BuildListRunsPayload(o.name, o.codesetName, o.codesetProject, o.status)
-	if err != nil {
-		fmt.Println("asd")
-		return err
-	}
-
-	response, err := o.WorkflowClient.ListRuns()(context.Background(), request)
+	wfRuns, err := o.WorkflowClient.ListRuns(o.name, o.codesetName, o.codesetProject, o.status)
 	if err != nil {
 		return err
 	}
 
-	o.format.FormatValue(os.Stdout, response)
+	o.format.FormatValue(os.Stdout, wfRuns)
 
 	return nil
 }

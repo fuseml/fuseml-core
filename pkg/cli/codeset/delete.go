@@ -5,13 +5,14 @@ import (
 	"fmt"
 
 	codesetc "github.com/fuseml/fuseml-core/gen/http/codeset/client"
+	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	"github.com/spf13/cobra"
 )
 
 // DeleteOptions holds the options for 'codeset delete' sub command
 type DeleteOptions struct {
-	common.Clients
+	client.Clients
 	global  *common.GlobalOptions
 	Name    string
 	Project string
@@ -32,7 +33,7 @@ func NewSubCmdCodesetDelete(gOpt *common.GlobalOptions) *cobra.Command {
 		Short: "Delete codesets.",
 		Long:  `Delete a codeset from FuseML`,
 		Run: func(cmd *cobra.Command, args []string) {
-			common.CheckErr(o.InitializeClients(gOpt))
+			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
 		},

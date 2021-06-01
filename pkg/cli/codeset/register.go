@@ -7,6 +7,7 @@ import (
 
 	"github.com/fuseml/fuseml-core/gen/codeset"
 	codesetc "github.com/fuseml/fuseml-core/gen/http/codeset/client"
+	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	gitc "github.com/fuseml/fuseml-core/pkg/cli/git"
 	"github.com/spf13/cobra"
@@ -14,7 +15,7 @@ import (
 
 // RegisterOptions holds the options for 'codeset register' sub command
 type RegisterOptions struct {
-	common.Clients
+	client.Clients
 	global      *common.GlobalOptions
 	Name        string
 	Project     string
@@ -39,7 +40,7 @@ func NewSubCmdCodesetRegister(gOpt *common.GlobalOptions) *cobra.Command {
 		Long:  `Register a codeset with FuseML`,
 		Run: func(cmd *cobra.Command, args []string) {
 			o.Location = cmd.Flags().Arg(0)
-			common.CheckErr(o.InitializeClients(gOpt))
+			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
 		},

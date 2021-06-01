@@ -1,7 +1,6 @@
 package workflow
 
 import (
-	"context"
 	"fmt"
 	"os"
 
@@ -9,13 +8,13 @@ import (
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 
-	workflowc "github.com/fuseml/fuseml-core/gen/http/workflow/client"
 	"github.com/fuseml/fuseml-core/gen/workflow"
+	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 )
 
 type listAssignmentsOptions struct {
-	common.Clients
+	client.Clients
 	global *common.GlobalOptions
 	format *common.FormattingOptions
 	name   string
@@ -54,14 +53,14 @@ func newListAssignmentsOptions(o *common.GlobalOptions) (res *listAssignmentsOpt
 	return
 }
 
-func newSubCmdListAssignments(c *common.GlobalOptions) *cobra.Command {
-	o := newListAssignmentsOptions(c)
+func newSubCmdListAssignments(gOpt *common.GlobalOptions) *cobra.Command {
+	o := newListAssignmentsOptions(gOpt)
 	cmd := &cobra.Command{
 		Use:   "list-assignments [-n|--name NAME]",
 		Short: "Lists one or more workflow assignments",
 		Long:  `Prints a table of the most important information about workflow assignments. You can filter the list by the workflow name.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			common.CheckErr(o.InitializeClients(c))
+			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
 		},
@@ -79,17 +78,12 @@ func (o *listAssignmentsOptions) validate() error {
 }
 
 func (o *listAssignmentsOptions) run() error {
-	request, err := workflowc.BuildListAssignmentsPayload(o.name)
+	al, err := o.WorkflowClient.ListAssignments(o.name)
 	if err != nil {
 		return err
 	}
 
-	response, err := o.WorkflowClient.ListAssignments()(context.Background(), request)
-	if err != nil {
-		return err
-	}
-
-	o.format.FormatValue(os.Stdout, response)
+	o.format.FormatValue(os.Stdout, al)
 
 	return nil
 }

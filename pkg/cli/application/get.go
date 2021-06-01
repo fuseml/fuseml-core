@@ -5,13 +5,14 @@ import (
 	"os"
 
 	applicationc "github.com/fuseml/fuseml-core/gen/http/application/client"
+	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	"github.com/spf13/cobra"
 )
 
 // GetOptions holds the options for 'application get' sub command
 type getOptions struct {
-	common.Clients
+	client.Clients
 	global *common.GlobalOptions
 	format *common.FormattingOptions
 	Name   string
@@ -33,7 +34,7 @@ func newSubCmdApplicationGet(gOpt *common.GlobalOptions) *cobra.Command {
 		Short: "Get an application.",
 		Long:  `Show details about a FuseML application`,
 		Run: func(cmd *cobra.Command, args []string) {
-			common.CheckErr(o.InitializeClients(gOpt))
+			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
 		},
@@ -41,7 +42,7 @@ func newSubCmdApplicationGet(gOpt *common.GlobalOptions) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&o.Name, "name", "n", "", "application name")
-	o.format.AddSingleValueFormattingFlags(cmd)
+	o.format.AddSingleValueFormattingFlags(cmd, common.FormatYAML)
 	cmd.MarkFlagRequired("name")
 	return cmd
 }

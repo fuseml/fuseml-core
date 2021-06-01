@@ -1,17 +1,16 @@
 package workflow
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
 
-	workflowc "github.com/fuseml/fuseml-core/gen/http/workflow/client"
+	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 )
 
 type assignOptions struct {
-	common.Clients
+	client.Clients
 	global         *common.GlobalOptions
 	name           string
 	codesetName    string
@@ -22,15 +21,15 @@ func newAssignOptions(o *common.GlobalOptions) *assignOptions {
 	return &assignOptions{global: o}
 }
 
-func newSubCmdAssign(c *common.GlobalOptions) *cobra.Command {
-	o := newAssignOptions(c)
+func newSubCmdAssign(gOpt *common.GlobalOptions) *cobra.Command {
+	o := newAssignOptions(gOpt)
 	cmd := &cobra.Command{
 		Use:   "assign {-n|--name NAME} {-c|--codeset-name CODESET_NAME} {-p|--codeset-project CODESET_PROJECT}",
 		Short: "Assigns a workflow to a codeset",
 		Long: `Assigning a workflow to a codeset makes any change pushed to the codeset trigger the workflow(s) assigned to it.
 Upon successfully assignment a workflow run is created using the workflow's default inputs and the assigned codeset.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			common.CheckErr(o.InitializeClients(c))
+			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
 		},
@@ -52,12 +51,7 @@ func (o *assignOptions) validate() error {
 }
 
 func (o *assignOptions) run() error {
-	request, err := workflowc.BuildAssignPayload(o.name, o.codesetName, o.codesetProject)
-	if err != nil {
-		return err
-	}
-
-	_, err = o.WorkflowClient.Assign()(context.Background(), request)
+	err := o.WorkflowClient.Assign(o.name, o.codesetName, o.codesetProject)
 	if err != nil {
 		return err
 	}

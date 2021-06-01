@@ -5,13 +5,14 @@ import (
 	"fmt"
 
 	applicationc "github.com/fuseml/fuseml-core/gen/http/application/client"
+	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	"github.com/spf13/cobra"
 )
 
 // deleteOptions holds the options for 'application delete' sub command
 type deleteOptions struct {
-	common.Clients
+	client.Clients
 	global *common.GlobalOptions
 	Name   string
 }
@@ -30,7 +31,7 @@ func newSubCmdApplicationDelete(gOpt *common.GlobalOptions) *cobra.Command {
 		Short: "Delete an application.",
 		Long:  `Delete an application registered by FuseML`,
 		Run: func(cmd *cobra.Command, args []string) {
-			common.CheckErr(o.InitializeClients(gOpt))
+			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
 		},

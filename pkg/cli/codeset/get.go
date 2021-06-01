@@ -5,13 +5,14 @@ import (
 	"os"
 
 	codesetc "github.com/fuseml/fuseml-core/gen/http/codeset/client"
+	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	"github.com/spf13/cobra"
 )
 
 // GetOptions holds the options for 'codeset get' sub command
 type GetOptions struct {
-	common.Clients
+	client.Clients
 	global  *common.GlobalOptions
 	format  *common.FormattingOptions
 	Name    string
@@ -35,7 +36,7 @@ func NewSubCmdCodesetGet(gOpt *common.GlobalOptions) *cobra.Command {
 		Short: "Get codesets.",
 		Long:  `Show details about a FuseML codeset`,
 		Run: func(cmd *cobra.Command, args []string) {
-			common.CheckErr(o.InitializeClients(gOpt))
+			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
 		},
@@ -44,7 +45,7 @@ func NewSubCmdCodesetGet(gOpt *common.GlobalOptions) *cobra.Command {
 
 	cmd.Flags().StringVarP(&o.Name, "name", "n", "", "codeset name")
 	cmd.Flags().StringVarP(&o.Project, "project", "p", "", "the project to which the codeset belongs")
-	o.format.AddSingleValueFormattingFlags(cmd)
+	o.format.AddSingleValueFormattingFlags(cmd, common.FormatYAML)
 	cmd.MarkFlagRequired("name")
 	cmd.MarkFlagRequired("project")
 	return cmd

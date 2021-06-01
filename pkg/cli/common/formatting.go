@@ -23,6 +23,7 @@ const (
 	FormatJSON
 	FormatYAML
 	FormatCSV
+	FormatText
 )
 
 // OutputFormatFunc is a handler used to customize how a tabular field is formatted.
@@ -43,6 +44,7 @@ var OutputFormatIDs = map[OutputFormat][]string{
 	FormatJSON:  {"json"},
 	FormatYAML:  {"yaml"},
 	FormatCSV:   {"csv"},
+	FormatText:  {"text"},
 }
 
 // FormattingOptions contains output formatting parameters
@@ -95,23 +97,24 @@ func NewSingleValueFormattingOptions() (o *FormattingOptions) {
 	return &FormattingOptions{}
 }
 
-func (o *FormattingOptions) addFormattingFlags(cmd *cobra.Command, withTable bool) {
-
+func (o *FormattingOptions) addFormattingFlags(cmd *cobra.Command, defaultFormat OutputFormat) {
 	mapping := make(map[OutputFormat][]string)
 
-	// remove table formats (table and CSV) from the enum values if table layout is not required
 	formats := make([]string, 0)
 	for i, f := range OutputFormatIDs {
-		if !withTable && (i == FormatTable || i == FormatCSV) {
+		// remove table formats (table and CSV) if not using a table format
+		if defaultFormat != FormatTable && (i == FormatTable || i == FormatCSV) {
+			continue
+		}
+		// add text format only when explicitily using text format
+		if defaultFormat != FormatText && i == FormatText {
 			continue
 		}
 		formats = append(formats, f[0])
 		mapping[i] = f
 	}
-	if !withTable {
-		// default to YAML if not using table formatting
-		o.Format = FormatYAML
-	}
+
+	o.Format = defaultFormat
 	cmd.Flags().Var(
 		enumflag.New(&o.Format, "format", mapping, enumflag.EnumCaseInsensitive),
 		"format",
@@ -120,7 +123,8 @@ func (o *FormattingOptions) addFormattingFlags(cmd *cobra.Command, withTable boo
 
 	cmd.Use = fmt.Sprintf("%s [--format {%s}]", cmd.Use, strings.Join(formats, ","))
 
-	if withTable {
+	// if using table format add flag for selecting a table column(s)
+	if defaultFormat == FormatTable {
 		cmd.Flags().StringSliceVar(&o.Fields, "field", o.Fields,
 			`specify one or more columns to include in the output.
 The field name may also be specified explicitly if different than the column name.
@@ -134,15 +138,16 @@ This option only has effect with the 'table' and 'csv' formats.`)
 // This function includes tabular formatting parameters. If the command only outputs
 // single objects, use AddSingleValueFormattingFlags instead.
 func (o *FormattingOptions) AddMultiValueFormattingFlags(cmd *cobra.Command) {
-	o.addFormattingFlags(cmd, true)
+	o.addFormattingFlags(cmd, FormatTable)
 }
 
-// AddSingleValueFormattingFlags adds formatting command line flags to a cobra command.
+// AddSingleValueFormattingFlags adds formatting command line flags to a cobra command with the
+// specified output format as default.
 // This function does not include tabular formatting parameters. If the command also outputs
 // lists of objects that can be formatted using a tabular layout, use AddMultiValueFormattingFlags
 // instead.
-func (o *FormattingOptions) AddSingleValueFormattingFlags(cmd *cobra.Command) {
-	o.addFormattingFlags(cmd, false)
+func (o *FormattingOptions) AddSingleValueFormattingFlags(cmd *cobra.Command, defaultFormat OutputFormat) {
+	o.addFormattingFlags(cmd, defaultFormat)
 }
 
 // Recursive function that extracts a subfield from a generic hierarchical structure.

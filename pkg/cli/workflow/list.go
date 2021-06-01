@@ -1,20 +1,19 @@
 package workflow
 
 import (
-	"context"
 	"fmt"
 	"os"
 
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
 
-	workflowc "github.com/fuseml/fuseml-core/gen/http/workflow/client"
 	"github.com/fuseml/fuseml-core/gen/workflow"
+	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 )
 
 type listOptions struct {
-	common.Clients
+	client.Clients
 	global *common.GlobalOptions
 	format *common.FormattingOptions
 	name   string
@@ -58,14 +57,14 @@ func newListOptions(o *common.GlobalOptions) (res *listOptions) {
 	return
 }
 
-func newSubCmdList(c *common.GlobalOptions) *cobra.Command {
-	o := newListOptions(c)
+func newSubCmdList(gOpt *common.GlobalOptions) *cobra.Command {
+	o := newListOptions(gOpt)
 	cmd := &cobra.Command{
 		Use:   "list [-n|--name NAME]",
 		Short: "Lists one or more workflows",
 		Long:  `Prints a table of the most important information about workflows. You can filter the list by the workflow name.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			common.CheckErr(o.InitializeClients(c))
+			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
 		},
@@ -83,17 +82,12 @@ func (o *listOptions) validate() error {
 }
 
 func (o *listOptions) run() error {
-	request, err := workflowc.BuildListPayload(o.name)
+	wfs, err := o.WorkflowClient.List(o.name)
 	if err != nil {
 		return err
 	}
 
-	response, err := o.WorkflowClient.List()(context.Background(), request)
-	if err != nil {
-		return err
-	}
-
-	o.format.FormatValue(os.Stdout, response)
+	o.format.FormatValue(os.Stdout, wfs)
 
 	return nil
 }

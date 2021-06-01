@@ -1,4 +1,4 @@
-package common
+package client
 
 import (
 	"fmt"
@@ -11,7 +11,6 @@ import (
 	applicationc "github.com/fuseml/fuseml-core/gen/http/application/client"
 	codesetc "github.com/fuseml/fuseml-core/gen/http/codeset/client"
 	runnablec "github.com/fuseml/fuseml-core/gen/http/runnable/client"
-	workflowc "github.com/fuseml/fuseml-core/gen/http/workflow/client"
 	yaml "github.com/goccy/go-yaml"
 	goahttp "goa.design/goa/v3/http"
 )
@@ -20,40 +19,40 @@ import (
 type Clients struct {
 	CodesetClient     *codesetc.Client
 	ApplicationClient *applicationc.Client
-	WorkflowClient    *workflowc.Client
+	WorkflowClient    *WorkflowClient
 	RunnableClient    *runnablec.Client
 }
 
 // InitializeClients initializes a list of fuseml clients based on global configuration parameters
-func (c *Clients) InitializeClients(o *GlobalOptions) error {
+func (c *Clients) InitializeClients(URL string, timeout int, verbose bool) error {
 	var (
-		doer    goahttp.Doer                         = &http.Client{Timeout: time.Duration(o.Timeout) * time.Second}
+		doer    goahttp.Doer                         = &http.Client{Timeout: time.Duration(timeout) * time.Second}
 		encoder func(*http.Request) goahttp.Encoder  = goahttp.RequestEncoder
 		decoder func(*http.Response) goahttp.Decoder = responseDecoder
 		scheme  string
 		host    string
 	)
 
-	u, err := url.Parse(o.URL)
+	u, err := url.Parse(URL)
 	if err != nil || u.Host == "" {
 		// assume the scheme part is missing and default to https
-		u, err = url.ParseRequestURI("https://" + o.URL)
+		u, err = url.ParseRequestURI("https://" + URL)
 		if err != nil || u.Host == "" {
-			return fmt.Errorf("invalid URL %#v: %s", o.URL, err)
+			return fmt.Errorf("invalid URL %#v: %s", URL, err)
 		}
 	}
 
 	scheme = u.Scheme
 	host = u.Host
 
-	if o.Verbose {
+	if verbose {
 		doer = goahttp.NewDebugDoer(doer)
 	}
 
-	c.CodesetClient = codesetc.NewClient(scheme, host, doer, encoder, decoder, o.Verbose)
-	c.ApplicationClient = applicationc.NewClient(scheme, host, doer, encoder, decoder, o.Verbose)
-	c.WorkflowClient = workflowc.NewClient(scheme, host, doer, encoder, decoder, o.Verbose)
-	c.RunnableClient = runnablec.NewClient(scheme, host, doer, encoder, decoder, o.Verbose)
+	c.CodesetClient = codesetc.NewClient(scheme, host, doer, encoder, decoder, verbose)
+	c.ApplicationClient = applicationc.NewClient(scheme, host, doer, encoder, decoder, verbose)
+	c.WorkflowClient = NewWorkflowClient(scheme, host, doer, encoder, decoder, verbose)
+	c.RunnableClient = runnablec.NewClient(scheme, host, doer, encoder, decoder, verbose)
 
 	return nil
 }

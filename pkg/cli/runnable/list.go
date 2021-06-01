@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	runnablec "github.com/fuseml/fuseml-core/gen/http/runnable/client"
+	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	"github.com/jedib0t/go-pretty/v6/table"
 	"github.com/spf13/cobra"
@@ -14,7 +15,7 @@ import (
 
 // ListOptions holds the options for 'runnable list' sub command
 type ListOptions struct {
-	common.Clients
+	client.Clients
 	global *common.GlobalOptions
 	format *common.FormattingOptions
 	ID     string
@@ -47,9 +48,9 @@ func NewListOptions(o *common.GlobalOptions) (res *ListOptions) {
 }
 
 // NewSubCmdRunnableList creates and returns the cobra command for the `runnable list` CLI command
-func NewSubCmdRunnableList(c *common.GlobalOptions) *cobra.Command {
+func NewSubCmdRunnableList(gOpt *common.GlobalOptions) *cobra.Command {
 
-	o := NewListOptions(c)
+	o := NewListOptions(gOpt)
 	// local variable used to collect the label arguments and then unpack them
 	var labels []string
 
@@ -59,7 +60,7 @@ func NewSubCmdRunnableList(c *common.GlobalOptions) *cobra.Command {
 		Long:  `Retrieve information about Runnables registered in FuseML`,
 		Run: func(cmd *cobra.Command, args []string) {
 			common.UnpackLabelArgs(labels, o.Labels)
-			common.CheckErr(o.InitializeClients(c))
+			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
 		},
