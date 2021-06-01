@@ -113,6 +113,17 @@ func (wc *WorkflowClient) ListRuns(name, codesetProject, codesetName, status str
 	return wrs, nil
 }
 
+// Unassign removes an assignment between a workflow and a codeset.
+func (wc *WorkflowClient) Unassign(name, codesetProject, codesetName string) (err error) {
+	request, err := workflowc.BuildUnassignPayload(name, codesetProject, codesetName)
+	if err != nil {
+		return
+	}
+
+	_, err = wc.c.Unassign()(context.Background(), request)
+	return
+}
+
 func sortWorkflowRunsByStartTime(wrs []*workflow.WorkflowRun) {
 	sort.Sort(workflowRunsByStartTime(wrs))
 }
