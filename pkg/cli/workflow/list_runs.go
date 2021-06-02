@@ -27,13 +27,7 @@ type listRunsOptions struct {
 
 func formatRunDuration(object interface{}, column string, field interface{}) string {
 	if wr, ok := object.(*workflow.WorkflowRun); ok {
-		layout := time.RFC3339
-		startTime, _ := time.Parse(layout, *wr.StartTime)
-		completionTime := time.Time{}
-		if wr.CompletionTime != nil {
-			completionTime, _ = time.Parse(layout, *wr.CompletionTime)
-		}
-		return formatted.Duration(&v1.Time{Time: startTime}, &v1.Time{Time: completionTime})
+		return formatDuration(wr.StartTime, wr.CompletionTime)
 	}
 	return ""
 }
@@ -54,10 +48,12 @@ func formatRunWorkflowRef(object interface{}, column string, field interface{}) 
 
 func formatRunStartTime(object interface{}, column string, field interface{}) string {
 	if wr, ok := object.(*workflow.WorkflowRun); ok {
-		startTime, _ := time.Parse(time.RFC3339, *wr.StartTime)
-		return formatted.Age(&v1.Time{Time: startTime}, clockwork.NewRealClock())
+		if wr.StartTime != nil {
+			startTime, _ := time.Parse(time.RFC3339, *wr.StartTime)
+			return formatted.Age(&v1.Time{Time: startTime}, clockwork.NewRealClock())
+		}
 	}
-	return ""
+	return "---"
 }
 
 func newListRunsOptions(o *common.GlobalOptions) (res *listRunsOptions) {

@@ -570,11 +570,15 @@ func getInputCodesetPath(inputs []*workflow.WorkflowStepInput) string {
 }
 
 func (w *WorkflowBackend) toWorkflowRun(wf workflow.Workflow, p v1beta1.PipelineRun) *workflow.WorkflowRun {
-	startTime := p.Status.StartTime.Format(time.RFC3339)
+
 	wfr := workflow.WorkflowRun{
 		Name:        &p.ObjectMeta.Name,
 		WorkflowRef: &wf.Name,
-		StartTime:   &startTime,
+	}
+
+	if p.Status.StartTime != nil {
+		startTime := p.Status.StartTime.Format(time.RFC3339)
+		wfr.StartTime = &startTime
 	}
 
 	if p.Status.CompletionTime != nil {
@@ -656,7 +660,6 @@ func contains(slice []string, item string) bool {
 }
 
 func (w *WorkflowBackend) tektonDeleteIfError(ctx context.Context, log *log.Logger, err *error, tektonWorkload interface{}) {
-	fmt.Print(*err)
 	if *err != nil {
 		switch tw := tektonWorkload.(type) {
 		case *v1alpha1.TriggerTemplate:
