@@ -24,7 +24,7 @@ func newAssignOptions(o *common.GlobalOptions) *assignOptions {
 func newSubCmdAssign(gOpt *common.GlobalOptions) *cobra.Command {
 	o := newAssignOptions(gOpt)
 	cmd := &cobra.Command{
-		Use:   "assign {-n|--name NAME} {-c|--codeset-name CODESET_NAME} {-p|--codeset-project CODESET_PROJECT}",
+		Use:   "assign {-n|--name NAME} {-p|--codeset-project CODESET_PROJECT} {-c|--codeset-name CODESET_NAME} ",
 		Short: "Assigns a workflow to a codeset",
 		Long: `Assigning a workflow to a codeset makes any change pushed to the codeset trigger the workflow(s) assigned to it.
 Upon successfully assignment a workflow run is created using the workflow's default inputs and the assigned codeset.`,
@@ -37,8 +37,8 @@ Upon successfully assignment a workflow run is created using the workflow's defa
 	}
 
 	cmd.Flags().StringVarP(&o.name, "name", "n", "", "name of the workflow to be assigned")
-	cmd.Flags().StringVarP(&o.codesetName, "codeset-name", "c", "", "name of the codeset to assign the workflow to")
 	cmd.Flags().StringVarP(&o.codesetProject, "codeset-project", "p", "", "name of the project to which the codeset belongs")
+	cmd.Flags().StringVarP(&o.codesetName, "codeset-name", "c", "", "name of the codeset to assign the workflow to")
 	cmd.MarkFlagRequired("name")
 	cmd.MarkFlagRequired("codeset-name")
 	cmd.MarkFlagRequired("codeset-project")
@@ -51,7 +51,7 @@ func (o *assignOptions) validate() error {
 }
 
 func (o *assignOptions) run() error {
-	err := o.WorkflowClient.Assign(o.name, o.codesetName, o.codesetProject)
+	err := o.WorkflowClient.Assign(o.name, o.codesetProject, o.codesetName)
 	if err != nil {
 		return err
 	}

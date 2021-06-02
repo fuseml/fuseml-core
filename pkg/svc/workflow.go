@@ -41,9 +41,9 @@ func (s *workflowsrvc) List(ctx context.Context, w *workflow.ListPayload) (res [
 	return s.store.GetWorkflows(ctx, w.Name), nil
 }
 
-// Register a new Workflow.
-func (s *workflowsrvc) Register(ctx context.Context, w *workflow.Workflow) (res *workflow.Workflow, err error) {
-	s.logger.Print("workflow.register")
+// Create a new Workflow.
+func (s *workflowsrvc) Create(ctx context.Context, w *workflow.Workflow) (res *workflow.Workflow, err error) {
+	s.logger.Print("workflow.create")
 	err = s.backend.CreateWorkflow(ctx, s.logger, w)
 	if err != nil {
 		s.logger.Print(err)
@@ -230,10 +230,12 @@ func (s *workflowsrvc) unassignCodesetFromWorkflow(ctx context.Context, workflow
 		return workflow.MakeNotFound(err)
 	}
 
-	err = s.codesetStore.DeleteWebhook(ctx, codeset, assignment.WebhookID)
-	if err != nil {
-		s.logger.Print(err)
-		return err
+	if assignment.WebhookID != nil {
+		err = s.codesetStore.DeleteWebhook(ctx, codeset, assignment.WebhookID)
+		if err != nil {
+			s.logger.Print(err)
+			return err
+		}
 	}
 
 	if len(s.store.GetAssignedCodesets(ctx, workflowName)) == 1 {

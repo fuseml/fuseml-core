@@ -14,7 +14,7 @@ var _ = Service("workflow", func() {
 				Example("workflowA")
 			})
 		})
-		Result(ArrayOf(Workflow), "Return all registered workflows matching the query.")
+		Result(ArrayOf(Workflow), "Return all workflows matching the query.")
 
 		Error("NotFound", func() {
 			Description("If the workflow is not found, should return 404 Not Found.")
@@ -36,8 +36,8 @@ var _ = Service("workflow", func() {
 
 	})
 
-	Method("register", func() {
-		Description("Register a new Workflow.")
+	Method("create", func() {
+		Description("Create a new Workflow.")
 		Payload(Workflow, "Workflow descriptor")
 		Error("BadRequest", func() {
 			Description("If the workflow does not have the required fields, should return 400 Bad Request.")
@@ -146,8 +146,8 @@ var _ = Service("workflow", func() {
 		HTTP(func() {
 			POST("/workflows/assignments")
 			Param("name")
-			Param("codesetName")
 			Param("codesetProject")
+			Param("codesetName")
 			Response(StatusCreated)
 			Response("BadRequest", StatusBadRequest)
 			Response("NotFound", StatusNotFound)
@@ -186,8 +186,8 @@ var _ = Service("workflow", func() {
 		HTTP(func() {
 			DELETE("/workflows/assignments/{name}")
 			Param("name")
-			Param("codesetName")
 			Param("codesetProject")
+			Param("codesetName")
 			Response(StatusNoContent)
 			Response("BadRequest", StatusBadRequest)
 			Response("NotFound", StatusNotFound)
@@ -229,11 +229,11 @@ var _ = Service("workflow", func() {
 			Field(1, "name", String, "Name of the Workflow to list runs from", func() {
 				Example("mlflow-sklearn-e2e")
 			})
-			Field(2, "codesetName", String, "Name of the codeset to list runs from", func() {
-				Example("mlflow-project-001")
-			})
-			Field(3, "codesetProject", String, "Name of the codeset project to list runs from", func() {
+			Field(2, "codesetProject", String, "Name of the codeset project to list runs from", func() {
 				Example("workspace")
+			})
+			Field(3, "codesetName", String, "Name of the codeset to list runs from", func() {
+				Example("mlflow-project-001")
 			})
 			Field(4, "status", String, "status of the workflow runs to list", func() {
 				Enum("", "Started", "Running", "Cancelled", "Succeeded", "Failed", "Completed", "Timeout")
@@ -251,8 +251,8 @@ var _ = Service("workflow", func() {
 		HTTP(func() {
 			GET("/workflows/runs")
 			Param("name")
-			Param("codesetName")
 			Param("codesetProject")
+			Param("codesetName")
 			Param("status")
 			Response(StatusOK)
 			Response("NotFound", StatusNotFound)
