@@ -9,6 +9,7 @@ import (
 	"github.com/fuseml/fuseml-core/pkg/cli/codeset"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	"github.com/fuseml/fuseml-core/pkg/cli/runnable"
+	"github.com/fuseml/fuseml-core/pkg/cli/version"
 	"github.com/fuseml/fuseml-core/pkg/cli/workflow"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -42,6 +43,7 @@ func NewCmdRoot() *cobra.Command {
 	pf.BoolVarP(&o.Verbose, "verbose", "v", false, "(FUSEML_VERBOSE) print verbose information, such as HTTP request and response details")
 	viper.BindEnv("verbose", "FUSEML_VERBOSE")
 
+	cmd.AddCommand(version.NewCmdVersion(o))
 	cmd.AddCommand(codeset.NewCmdCodeset(o))
 	cmd.AddCommand(runnable.NewCmdRunnable(o))
 	cmd.AddCommand(workflow.NewCmdWorkflow(o))

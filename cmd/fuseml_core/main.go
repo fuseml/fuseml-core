@@ -15,10 +15,12 @@ import (
 	"github.com/fuseml/fuseml-core/gen/application"
 	"github.com/fuseml/fuseml-core/gen/codeset"
 	"github.com/fuseml/fuseml-core/gen/runnable"
+	"github.com/fuseml/fuseml-core/gen/version"
 	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/core"
 	"github.com/fuseml/fuseml-core/pkg/core/gitea"
 	"github.com/fuseml/fuseml-core/pkg/svc"
+	ver "github.com/fuseml/fuseml-core/pkg/version"
 )
 
 func main() {
@@ -42,6 +44,8 @@ func main() {
 		logger = log.New(os.Stderr, "[fuseml] ", log.Ltime)
 	}
 
+	logger.Printf("version: %s", ver.GetInfoStr())
+
 	gitAdmin, err := gitea.NewAdminClient(logger)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to initialize Gitea admin client: ", err.Error())
@@ -50,12 +54,14 @@ func main() {
 
 	// Initialize the services.
 	var (
+		versionSvc     version.Service
 		applicationSvc application.Service
 		runnableSvc    runnable.Service
 		codesetSvc     codeset.Service
 		workflowSvc    workflow.Service
 	)
 	{
+		versionSvc = svc.NewVersionService(logger)
 		codesetStore := core.NewGitCodesetStore(gitAdmin)
 		applicationSvc = svc.NewApplicationService(logger, core.NewApplicationStore())
 		runnableSvc = svc.NewRunnableService(logger, core.NewRunnableStore())
@@ -70,12 +76,14 @@ func main() {
 	// Wrap the services in endpoints that can be invoked from other services
 	// potentially running in different processes.
 	var (
+		versionEndpoints     *version.Endpoints
 		applicationEndpoints *application.Endpoints
 		runnableEndpoints    *runnable.Endpoints
 		codesetEndpoints     *codeset.Endpoints
 		workflowEndpoints    *workflow.Endpoints
 	)
 	{
+		versionEndpoints = version.NewEndpoints(versionSvc)
 		applicationEndpoints = application.NewEndpoints(applicationSvc)
 		runnableEndpoints = runnable.NewEndpoints(runnableSvc)
 		codesetEndpoints = codeset.NewEndpoints(codesetSvc)
@@ -123,7 +131,8 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "80")
 			}
-			handleHTTPServer(ctx, u, runnableEndpoints, codesetEndpoints, workflowEndpoints, applicationEndpoints, &wg, errc, logger, *dbgF)
+			handleHTTPServer(ctx, u, versionEndpoints, runnableEndpoints, codesetEndpoints, workflowEndpoints, applicationEndpoints,
+				&wg, errc, logger, *dbgF)
 		}
 
 		{
@@ -176,7 +185,8 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "80")
 			}
-			handleHTTPServer(ctx, u, runnableEndpoints, codesetEndpoints, workflowEndpoints, applicationEndpoints, &wg, errc, logger, *dbgF)
+			handleHTTPServer(ctx, u, versionEndpoints, runnableEndpoints, codesetEndpoints, workflowEndpoints, applicationEndpoints,
+				&wg, errc, logger, *dbgF)
 		}
 
 		{

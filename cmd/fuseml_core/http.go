@@ -17,8 +17,10 @@ import (
 	codesetsvr "github.com/fuseml/fuseml-core/gen/http/codeset/server"
 	openapisvr "github.com/fuseml/fuseml-core/gen/http/openapi/server"
 	runnablesvr "github.com/fuseml/fuseml-core/gen/http/runnable/server"
+	versionsvr "github.com/fuseml/fuseml-core/gen/http/version/server"
 	workflowsvr "github.com/fuseml/fuseml-core/gen/http/workflow/server"
 	runnable "github.com/fuseml/fuseml-core/gen/runnable"
+	"github.com/fuseml/fuseml-core/gen/version"
 	workflow "github.com/fuseml/fuseml-core/gen/workflow"
 
 	"github.com/goccy/go-yaml"
@@ -29,7 +31,7 @@ import (
 
 // handleHTTPServer starts configures and starts a HTTP server on the given
 // URL. It shuts down the server if any error is received in the error channel.
-func handleHTTPServer(ctx context.Context, u *url.URL, runnableEndpoints *runnable.Endpoints, codesetEndpoints *codeset.Endpoints, workflowEndpoints *workflow.Endpoints, applicationEndpoints *application.Endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
+func handleHTTPServer(ctx context.Context, u *url.URL, versionEndpoints *version.Endpoints, runnableEndpoints *runnable.Endpoints, codesetEndpoints *codeset.Endpoints, workflowEndpoints *workflow.Endpoints, applicationEndpoints *application.Endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
 	// Setup goa log adapter.
 	var (
 		adapter middleware.Logger
@@ -59,6 +61,7 @@ func handleHTTPServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 	// the service input and output data structures to HTTP requests and
 	// responses.
 	var (
+		versionServer     *versionsvr.Server
 		applicationServer *applicationsvr.Server
 		runnableServer    *runnablesvr.Server
 		codesetServer     *codesetsvr.Server
@@ -67,6 +70,7 @@ func handleHTTPServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 	)
 	{
 		eh := errorHandler(logger)
+		versionServer = versionsvr.New(versionEndpoints, mux, dec, enc, eh, nil)
 		applicationServer = applicationsvr.New(applicationEndpoints, mux, dec, enc, eh, nil)
 		runnableServer = runnablesvr.New(runnableEndpoints, mux, dec, enc, eh, nil)
 		codesetServer = codesetsvr.New(codesetEndpoints, mux, dec, enc, eh, nil)
@@ -74,6 +78,7 @@ func handleHTTPServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 		workflowServer = workflowsvr.New(workflowEndpoints, mux, dec, enc, eh, nil)
 		if debug {
 			servers := goahttp.Servers{
+				versionServer,
 				applicationServer,
 				runnableServer,
 				codesetServer,
@@ -84,6 +89,7 @@ func handleHTTPServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 		}
 	}
 	// Configure the mux.
+	versionsvr.Mount(mux, versionServer)
 	applicationsvr.Mount(mux, applicationServer)
 	runnablesvr.Mount(mux, runnableServer)
 	codesetsvr.Mount(mux, codesetServer)
@@ -101,6 +107,9 @@ func handleHTTPServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 	// Start HTTP server using default configuration, change the code to
 	// configure the server as required by your service.
 	srv := &http.Server{Addr: u.Host, Handler: handler}
+	for _, m := range versionServer.Mounts {
+		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
+	}
 	for _, m := range applicationServer.Mounts {
 		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
 	}
