@@ -16,14 +16,20 @@ func formatDesc(desc string) string {
 }
 
 func formatAge(startTime *string) string {
-	st, _ := time.Parse(time.RFC3339, *startTime)
-	return formatted.Age(&v1.Time{Time: st}, clockwork.NewRealClock())
+	if startTime != nil {
+		st, _ := time.Parse(time.RFC3339, *startTime)
+		return formatted.Age(&v1.Time{Time: st}, clockwork.NewRealClock())
+	}
+	return "---"
 }
 
 func formatDuration(startTime, completionTime *string) string {
 	layout := time.RFC3339
-	st, _ := time.Parse(layout, *startTime)
+	st := time.Time{}
 	ct := time.Time{}
+	if startTime != nil {
+		st, _ = time.Parse(layout, *startTime)
+	}
 	if completionTime != nil {
 		ct, _ = time.Parse(layout, *completionTime)
 	}
