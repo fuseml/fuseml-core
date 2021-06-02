@@ -134,7 +134,7 @@ deps:
 
 # Build the docker image
 docker-build: test
-	docker build . -t ${IMG}
+	docker build . -t ${IMG} --build-arg LDFLAGS="$(LDFLAGS)"
 
 # Push the docker image
 docker-push:
