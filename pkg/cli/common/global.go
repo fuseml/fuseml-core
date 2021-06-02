@@ -3,8 +3,6 @@ package common
 import "fmt"
 
 const (
-	// Version is the CLI version
-	Version = "0.1"
 	// ConfigFileName is the name of the FuseML configuration file (without extension)
 	ConfigFileName = "config"
 	// ConfigHomeSubdir is the subdirectory where the FuseML configuration files is located

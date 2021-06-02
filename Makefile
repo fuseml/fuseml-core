@@ -11,7 +11,28 @@ endif
 GOOS:=$(shell go env GOOS)
 GOARCH:=$(shell go env GOARCH)
 
-GO_LDFLAGS:=-ldflags '-s -w'
+LDFLAGS:= -w -s
+
+PKG_PATH=github.com/fuseml/fuseml-core/pkg
+
+GIT_COMMIT = $(shell git rev-parse --short=8 HEAD)
+GIT_TAG    = $(shell git describe --tags --abbrev=0 --exact-match 2>/dev/null)
+BUILD_DATE = $(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
+
+LDFLAGS += -X $(PKG_PATH)/version.GitCommit=$(GIT_COMMIT)
+LDFLAGS += -X $(PKG_PATH)/version.BuildDate=$(BUILD_DATE)
+
+ifdef VERSION
+	BINARY_VERSION = $(VERSION)
+endif
+BINARY_VERSION ?= ${GIT_TAG}
+
+# Only set Version if building a tag or VERSION is set
+ifneq ($(BINARY_VERSION),)
+	LDFLAGS += -X $(PKG_PATH)/version.Version=$(BINARY_VERSION)
+endif
+
+GO_LDFLAGS:=-ldflags '$(LDFLAGS)'
 
 all: fuseml
 
