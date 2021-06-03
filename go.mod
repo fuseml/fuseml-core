@@ -7,6 +7,7 @@ require (
 	github.com/dimfeld/httptreemux/v5 v5.3.0 // indirect
 	github.com/fatih/color v1.10.0
 	github.com/ghodss/yaml v1.0.0
+	github.com/go-git/go-git/v5 v5.4.2
 	github.com/goccy/go-yaml v1.8.9
 	github.com/google/go-cmp v0.5.5
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2

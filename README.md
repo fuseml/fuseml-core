@@ -122,7 +122,7 @@ Example:
     bin/fuseml codeset register --name "test" --project "mlflow-project-01" "/tmp/mlflow/mlflow-01"
     ```
 
-    Last argument points to the directory on your machine where your ML application code is located.
+    Last argument points either to the directory on your machine where your ML application code is located or it can actually point to a git repository with the application code. 
 
     After registering, use
     ```

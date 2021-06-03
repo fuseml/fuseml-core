@@ -10,11 +10,40 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/go-git/go-git/v5"
 	"github.com/pkg/errors"
 
 	config "github.com/fuseml/fuseml-core/pkg/core/config"
 	dircopy "github.com/otiai10/copy"
 )
+
+// check if the location is indeed pointing to local directory and if so, copy it to target dir
+func prepareLocalDirectory(location, target string) error {
+	info, err := os.Stat(location)
+	if os.IsNotExist(err) {
+		return err
+	}
+	if !info.IsDir() {
+		return errors.New(fmt.Sprintf("input path (%s) is not a directory", location))
+	}
+
+	err = dircopy.Copy(location, target)
+	if err != nil {
+		return errors.Wrap(err, "can't copy source directory "+location+" to "+target)
+	}
+	return nil
+}
+
+func fetchRemoteRepository(path, target string) error {
+
+	_, err := git.PlainClone(target, false, &git.CloneOptions{
+		URL: path,
+	})
+	if err != nil {
+		return errors.Wrap(err, "failed fetching remote repository")
+	}
+	return nil
+}
 
 // Push the code from local dir to remote repo
 // If username or password is not provided, use default values, but password
@@ -27,9 +56,17 @@ func Push(org, name, location, gitURL string, uname, pass *string, debug bool) e
 		return errors.Wrap(err, "can't create temp directory "+tmpDir)
 	}
 	defer os.Remove(tmpDir)
-	err = dircopy.Copy(location, tmpDir)
-	if err != nil {
-		return errors.Wrap(err, "can't copy source directory "+location+" to "+tmpDir)
+
+	// if location is URL pointing to git repo, clone the content localy
+	loc, err := url.Parse(location)
+	if err == nil && loc.IsAbs() && loc.Scheme != "" && loc.Host != "" {
+		if err := fetchRemoteRepository(location, tmpDir); err != nil {
+			return err
+		}
+	} else {
+		if err := prepareLocalDirectory(location, tmpDir); err != nil {
+			return err
+		}
 	}
 
 	u, err := url.Parse(gitURL)
