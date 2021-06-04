@@ -3,7 +3,6 @@ package codeset
 import (
 	"context"
 	"fmt"
-	"os"
 
 	"github.com/fuseml/fuseml-core/gen/codeset"
 	codesetc "github.com/fuseml/fuseml-core/gen/http/codeset/client"
@@ -35,16 +34,19 @@ func NewSubCmdCodesetRegister(gOpt *common.GlobalOptions) *cobra.Command {
 	o := NewRegisterOptions(gOpt)
 
 	cmd := &cobra.Command{
-		Use:   `register {-n|--name NAME} {-p|--project PROJECT} {-d|--desc DESCRIPTION} [--label LABEL] LOCATION`,
+		Use: `register {-n|--name NAME} {-p|--project PROJECT} {-d|--desc DESCRIPTION} [--label LABEL] LOCATION [flags]
+
+LOCATION can be path to local directory or URL of a git repository`,
 		Short: "Register codesets.",
-		Long:  `Register a codeset with FuseML`,
+		Long:  `Register a codeset with FuseML.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			o.Location = cmd.Flags().Arg(0)
 			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
 		},
-		Args: cobra.ExactArgs(1),
+		Args:                  cobra.ExactArgs(1),
+		DisableFlagsInUseLine: true,
 	}
 
 	cmd.Flags().StringVarP(&o.Name, "name", "n", "", "codeset name")
@@ -76,7 +78,6 @@ func (o *RegisterOptions) run() error {
 
 	err = gitc.Push(o.Project, o.Name, o.Location, *codeset.URL, result.Username, result.Password, o.global.Verbose)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err.Error())
 		return err
 	}
 
