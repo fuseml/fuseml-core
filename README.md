@@ -43,11 +43,13 @@ This repository contains the FuseML APIs definitions and core service. For the g
 
 ## Usage
 
-* Run the server localy
+* Run the server locally
 
-  After successful installation using [fuseml-installer](https://github.com/fuseml/fuseml), `fuseml-core` server is already running in the Kubernetes cluster. However, for developmnent and testing purposes it is possible to run it locally locally by setting the env variables
+  After successful installation using [fuseml-installer](https://github.com/fuseml/fuseml), `fuseml-core` server is already running in the Kubernetes cluster. However, for development and testing purposes it is also possible to run it locally by setting the following environment variables:
   
-  `GITEA_URL`, `GITEA_ADMIN_USERNAME`, `GITEA_ADMIN_PASSWORD`
+  - `GITEA_URL`
+  - `GITEA_ADMIN_USERNAME`
+  - `GITEA_ADMIN_PASSWORD`
   
   and executing `bin/fuseml_core`.
 
@@ -70,48 +72,38 @@ This repository contains the FuseML APIs definitions and core service. For the g
 
 * Run the client
 
-  Executing the client with `--help` option will show the usage instuctions
-```bash
-    > bin/fuseml --help
-bin/fuseml is a command line client for the FuseML API.
+  Executing the client with `--help` option will show the usage instructions
+  ```bash
+  > bin/fuseml --help
+  FuseML command line client
 
-Usage:
-    fuseml [-host HOST][-url URL][-timeout SECONDS][-verbose|-v] SERVICE ENDPOINT [flags]
+  Usage:
+    bin/fuseml [command]
 
-    -host HOST:  server host (dev). valid values: dev, prod
-    -url URL:    specify service URL overriding host URL (http://localhost:8080)
-    -timeout:    maximum number of seconds to wait for response (30)
-    -verbose|-v: print request and response details (false)
+  Available Commands:
+    application application management
+    codeset     codeset management
+    help        Help about any command
+    runnable    runnable management
+    version     display version information
+    workflow    Workflow management
 
-Commands:
-    application (list|register|get|delete)
-    codeset (list|register|get|delete)
-    runnable (list|register|get)
-    workflow (list|register|get|assign|list-runs)
+  Flags:
+    -h, --help          help for bin/fuseml
+        --timeout int   (FUSEML_HTTP_TIMEOUT) maximum number of seconds to wait for response (default 30)
+    -u, --url string    (FUSEML_SERVER_URL) URL where the FuseML service is running
+    -v, --verbose       (FUSEML_VERBOSE) print verbose information, such as HTTP request and response details
 
-Additional help:
-    bin/fuseml SERVICE [ENDPOINT] --help
+  Use "bin/fuseml [command] --help" for more information about a command.
+  ```
 
-Example:
-    bin/fuseml application list --type "predictor" --workflow "mlflow-sklearn-e2e"
-    bin/fuseml codeset list --project "mlflow-project-01" --label "mlflow"
-    bin/fuseml runnable list --id "ml-trainer-123" --kind "trainer" --labels '{
-          "function": "predict|train",
-          "library": "pytorch"
-       }'
-    bin/fuseml workflow list --name "workflow"
-```
-
-  Instead of providing `-url` argument to each command call, save the service URL into `FUSEML_SERVER_URL` environment variable and export it. Use this command to fill the variable with the URL of the `fuseml-core` server service that is installed in your Kubernetes cluster:
+  Instead of providing `--url` argument to each command call, you can save the service URL into `FUSEML_SERVER_URL` environment variable and export it. Use this command to fill the variable with the URL of the `fuseml-core` server service that is installed in your Kubernetes cluster:
 
   ```bash
   export FUSEML_SERVER_URL=http://$(kubectl get VirtualService -n fuseml-core fuseml-core -o jsonpath="{.spec.hosts[0]}")
   ```
 
-  If neither `FUSEML_SERVER_URL` nor `-url` value is set, client tries to connect to the server running locally at your machine.
-
-
-  The FuseML client allows you to manage the various supported artefacts (application, codeset, runnable and workflow). It offers multiple commands for managing these artefact. Use the `--help` option to get the description of any command usage.
+  The FuseML client allows you to manage the various supported artifacts (application, codeset, runnable and workflow). Use the `--help` on each available command to get a more detailed description the command and instructions on how to use it.
 
   * Codesets contain the code of your ML application, for example MLflow project. They are currently implemented as git repositories.
 
@@ -135,12 +127,12 @@ Example:
 
   * Workflows define the full AI/ML workflow. In short, this could be described as a way to process the input (the Codeset) and turn it into the output application (e.g. ML predictor).
 
-    For registering new workflow, use
+    To create a new workflow, use
     ```bash
-    bin/fuseml workflow register
+    bin/fuseml workflow create workflow.yaml
     ``` command.
 
-    After the workflow is registered, you should assign a codeset to it. That way the workflow will be automatically executed every time you push a new change to your git repository that is represented by a codeset. For the first time the workflow is executed right after `workflow assign` command, even without any code changes.
+    After the workflow is created it can be assigned to a codeset. By doing that, the workflow will be automatically executed every time you push a new change to the codeset that the workflow has been assigned to. The first time the workflow is assigned to a codeset a workflow run is also created, which will execute the workflow with its default inputs and the codeset it has been assigned to.
 
     ```bash
     bin/fuseml workflow assign --name "workflow-name" --codeset-name "test" --codeset-project "mlflow-project-01"
@@ -151,11 +143,11 @@ Example:
     bin/fuseml workflow list-runs --workflow-name mlflow-sklearn-e2e
     ```
 
-    To get even more details follow the `url` value that is part of the output section from the `list-runs`. This will get you to the Tekton Pipeline status on the Tekton Dashboard. Alternativly go to Tekton dashboard in your browser (remember `TEKTON_DASHBOARD_URL` extracted earlier) and select among available Tekton Pipelines in the menu.
+    To get even more details follow, use the `yaml` format for the output (`--format yaml`) which will provide a `url` to the Tekton Pipeline status on the Tekton Dashboard. Alternatively go to Tekton dashboard in your browser (remember `TEKTON_DASHBOARD_URL` extracted earlier) and select the correspondent pipeline run under the PipelineRuns menu.
 
-  * Applications are basically the output services of AI/ML workflow. So if your workflow describes the way from the code, to the trained model, to the serving, the application being server as the last step is considered the FuseML application.
+  * Applications are basically the output services of AI/ML workflow. So if your workflow describes the way from the code, to the trained model, to the serving, the application being served as the last step is considered the FuseML application.
 
-    Applications are registed automatically by workflows. Use
+    Applications are registered automatically by workflows. Use
 
     ```bash
     bin/fuseml application list
@@ -176,7 +168,7 @@ Let's look at the example for MLflow model, being trained by MLflow and served w
   Set the value of `FUSEML_SERVER_URL`, to point to the server URL:
 
   ```bash
-  export FUSEML_SERVER_URL=http//$(kubectl get VirtualService -n fuseml-core fuseml-core -o jsonpath="{.spec.hosts[0]}")
+  export FUSEML_SERVER_URL=http://$(kubectl get VirtualService -n fuseml-core fuseml-core -o jsonpath="{.spec.hosts[0]}")
   ```
   
 
@@ -186,34 +178,33 @@ Let's look at the example for MLflow model, being trained by MLflow and served w
 
   ```bash
   git clone git@github.com:fuseml/examples.git fuseml-examples
-  cd fuseml-examples
   ```
 
-  Under `models/mlflow-wines` directory there is the example MLflow project. It's only slightly modified example based on the [upstream MLflow](https://github.com/mlflow/mlflow/tree/master/examples) one.
+  Under `codesets/mlflow-wines` directory there is the example MLflow project. It is a slightly modified example based on [upstream MLflow](https://github.com/mlflow/mlflow/tree/master/examples).
 
-  Under `pipelines` directory there is an example of FuseML workflow definition.
+  Under `workflows` directory there is an example definition of a FuseML workflow.
 
 * Register the codeset
 
-  Register the example MLflow model as a codeset:
+  Register the example MLflow project as a codeset:
   ```bash
-  fuseml codeset register --name "mlflow-test" --project "mlflow-project-01" "models/mlflow-wines"
+  fuseml codeset register --name "mlflow-wines" --project "mlflow-project-01" "fuseml-examples/codesets/mlflow-wines"
   ```
 
-* Update the example to fit your setup
+* Update the example workflow to fit your setup
 
-  The [workflow definition example](https://github.com/fuseml/examples/blob/main/pipelines/pipeline-01.yaml) has some hardcoded values that need to be changed for your specific environment. Namely, see the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` values: these are the credentials to the S3 based minio store that was installed to your cluster by `fuseml-installer`.
+  The [workflow definition example](https://github.com/fuseml/examples/blob/main/workflows/mlflow-sklearn-e2e.yaml) has some hardcoded values that need to be changed for your specific environment. Namely, see the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` values, these are the credentials to the S3 based minio store that was installed into your kubernetes cluster by `fuseml-installer`.
 
-  To get these values from your cluster setup, run
+  To get these values from your setup, run:
   ```bash
-  export ACCESS=$(kubectl get secret -n fuseml-workloads mlflow-minio -o json| jq -r '.["data"]["accesskey"]' | base64 -d)
-  export SECRET=$(kubectl get secret -n fuseml-workloads mlflow-minio -o json| jq -r '.["data"]["secretkey"]' | base64 -d)
+  export ACCESS=$(kubectl get secret -n fuseml-workloads mlflow-minio -o json | jq -r '.["data"]["accesskey"]' | base64 -d)
+  export SECRET=$(kubectl get secret -n fuseml-workloads mlflow-minio -o json | jq -r '.["data"]["secretkey"]' | base64 -d)
   ```
 
-  Now replace the original values in the pipeline-01.yaml example. You can do it by editing the file manually or by running following command:
+  Now replace the original values in the `mlflow-sklearn-e2e.yaml` example. You can do it by editing the file manually or by running following commands:
   ```bash
-  sed -i -e "/AWS_ACCESS_KEY_ID/{N;s/value: [^ \t]*/value: $ACCESS/}" pipelines/pipeline-01.yaml
-  sed -i -e "/AWS_SECRET_ACCESS_KEY/{N;s/value: [^ \t]*/value: $SECRET/}" pipelines/pipeline-01.yaml
+  sed -i -e "/AWS_ACCESS_KEY_ID/{N;s/value: [^ \t]*/value: $ACCESS/}" fuseml-examples/workflows/mlflow-sklearn-e2e.yaml
+  sed -i -e "/AWS_SECRET_ACCESS_KEY/{N;s/value: [^ \t]*/value: $SECRET/}" fuseml-examples/workflows/mlflow-sklearn-e2e.yaml
   ```
 
 * Create a workflow
@@ -221,48 +212,53 @@ Let's look at the example for MLflow model, being trained by MLflow and served w
   Use the modified example workflow definition:
 
   ```bash
-  workflow=$(cat pipelines/pipeline-01.json)
-  fuseml workflow register --body "$(cat pipelines/pipeline-01.yaml)"
+  fuseml workflow create fuseml-examples/workflows/mlflow-sklearn-e2e.yaml
   ```
 
-* Assign the codeset to workflow
+* Assign the workflow to the codeset
 
   ```bash
-  fuseml workflow assign --name mlflow-sklearn-e2e --codeset-name mlflow-test --codeset-project mlflow-project-01
+  fuseml workflow assign --name mlflow-sklearn-e2e --codeset-name mlflow-wines --codeset-project mlflow-project-01
   ```
 
-  Now that the Workflow is assigned to the Codeset, a new workflow run was created. To watch the workflow progress, check "workflow run" with
+  Now that the Workflow is assigned to the Codeset, a new workflow run was created. To check the workflow run status, execute the following command:
 
   ```bash
-  fuseml workflow list-runs --workflow-name mlflow-sklearn-e2e
+  fuseml workflow list-runs --name mlflow-sklearn-e2e
   ```
 
-  This command shows you detailed information about running workflow. Follow the `url` value under `output` section to see relevant Tekton PipelineRun which implements the workflow run.
-
-  Or browse to `TEKTON_DASHBOARD_URL` to check all available PipelineRuns. Once the run is succeeded, new FuseML application will be created.
+  This command shows you detailed information about workflows runs. You can also access the `TEKTON_DASHBOARD_URL` to check all available workflow runs.
+  
+  Once the running workflow reaches the `Succeeded` state, a new FuseML application has been be created serving the trained model from the Codeset.
 
 * Use the prediction service
 
-  Once the application is created, check the applications list with
+  Check the available applications by running the following command:
 
   ```bash
   fuseml application list
   ```
 
-  This should produce output similar to this one (notice the fake "example.io" domain here):
+  This should produce output similar to the following (notice the fake "example.io" domain here):
 
   ```bash
-  - name: mlflow-project-01-mlflow-test
-    type: predictor
-    description: Application generated by mlflow-sklearn-e2e workflow
-    url: http://mlflow-project-01-mlflow-test.fuseml-workloads.example.io/v2/models/mlflow-project-01-mlflow-test/infer
-    workflow: mlflow-sklearn-e2e
+  +--------------------------------+-----------+------------------------------------------------------+------------------------------------------------------------------------------------------------------------------+--------------------+
+  | NAME                           | TYPE      | DESCRIPTION                                          | URL                                                                                                              | WORKFLOW           |
+  +--------------------------------+-----------+------------------------------------------------------+------------------------------------------------------------------------------------------------------------------+--------------------+
+  | mlflow-project-01-mlflow-wines | predictor | Application generated by mlflow-sklearn-e2e workflow | http://mlflow-project-01-mlflow-wines.fuseml-workloads.example.io/v2/models/mlflow-project-01-mlflow-wines/infer | mlflow-sklearn-e2e |
+  +--------------------------------+-----------+------------------------------------------------------+------------------------------------------------------------------------------------------------------------------+--------------------+
   ```
   
-  Use the URL from the new application to run the prediction. First, prepare the data
+  Save the application URL in a variable for using in a later step:
 
   ```bash
-  > cat data.json
+  PREDICTION_URL=$(fuseml application get -n mlflow-project-01-mlflow-wines --format json | jq -r ".url")
+  ```
+
+  Take a look at the example data file from the examples repository, the prediction will be made according to the submitted `data`:
+
+  ```bash
+  > cat fuseml-examples/prediction/data-wines-kfserving.json
   {
     "inputs": [
       {
@@ -277,17 +273,17 @@ Let's look at the example for MLflow model, being trained by MLflow and served w
   }
   ```
 
-  and pass the data to the the prediction service. Assuming the service URL was saved to `PREDICTOR_URL`, call
+  Now perform a request to `$PREDICTION_URL` with the example data:
 
   ```bash
-  curl -d @data.json http://$PREDICTOR_URL
+  curl -d @fuseml-examples/prediction/data-wines-kfserving.json $PREDICTION_URL
   ```
 
-  The output should look like
+  The output should look as follows, the prediction result is under `outputs/data`:
 
   ```json
   {
-    "model_name":"mlflow-project-01-mlflow-test",
+    "model_name":"mlflow-project-01-mlflow-wines",
     "model_version":null,
     "id":"44d5d037-052b-49b6-aace-1c5346a35004",
     "parameters":null,
@@ -314,12 +310,12 @@ If you find a problem or have a suggestion for an enhancement, use the [https://
 * `design/` - contains specification consumed by Goa out of which REST API server and cli code are generated (HTTP and gRPC)
   * `api.go` - defines the http server and a list of services that the server will host
   * `runnable.go` - definition of the runnable service
-  * `openapi.go` - defintion fo the openapi service, which exposes a HTTP file server endpoint serving the generated OpenAPI specification
+  * `openapi.go` - definition fo the openapi service, which exposes a HTTP file server endpoint serving the generated OpenAPI specification
 * `gen/` - contains the boilerplate code generated by Goa (output of `$ goa gen github.com/fuseml/fuseml-core/design`)
   * `runnable/` - houses the transport-independent runnable service code
   * `grpc/` - contains the protocol buffer descriptions for the runnable gRPC service as well as the server and client code which hooks up the protoc-generated gRPC server and client code along with the logic to encode and decode requests and responses. The cli subdirectory contains the CLI code to build gRPC requests from the command line.
   * `http/` - describes the HTTP transport which defines server and client code with the logic to encode and decode requests and responses and the CLI code to build HTTP requests from the command line. It also contains the Open API 2.0/3.0 specification files in both json and yaml formats
-* `cmd/` - a basic implementation of the service along with buildable server files that spins up goroutines to start a HTTP and a gRPC server and client files that can make requests to the server (outpug of `$ goa example github.com/fuseml/fuseml-core/design`)
+* `cmd/` - a basic implementation of the service along with buildable server files that spins up goroutines to start a HTTP and a gRPC server and client files that can make requests to the server (output of `$ goa example github.com/fuseml/fuseml-core/design`)
 * `runnable.go` - contains a dummy implementation of the methods described in the design (`design/runnable.go`) for the runnable service, the actual implementation goes here.
 
 ## NOTES
