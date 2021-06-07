@@ -25,6 +25,8 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GO111MODULE=on go build -a -ldflags "$
 # for more details
 FROM scratch
 WORKDIR /
+
+COPY --from=builder /workspace/gen/http/openapi*.* ./gen/http/
 COPY --from=builder /workspace/fuseml_core .
 
 ENTRYPOINT ["/fuseml_core", "-host", "prod"]
