@@ -84,6 +84,29 @@ func initializeConfig(cmd *cobra.Command) error {
 	return nil
 }
 
+func defaultForMissingFlagPossible(flag, defaultKey string) bool {
+	if !viper.IsSet(defaultKey) {
+		return false
+	}
+	if defaultKey == "CurrentProject" {
+		if flag == "project" || flag == "codeset-project" {
+			return true
+		}
+		if flag == "name" && os.Args[1] == "project" {
+			return true
+		}
+	}
+	if defaultKey == "CurrentCodeset" {
+		if flag == "codeset-name" {
+			return true
+		}
+		if flag == "name" && os.Args[1] == "codeset" {
+			return true
+		}
+	}
+	return false
+}
+
 // Bind each cobra flag to its associated viper configuration (config file and environment variable)
 // This is required because viper doesn't work with cobra flags that are also bound to a variable
 // (e.g. using StringVar to bind a flag to a string variable). See https://github.com/spf13/viper/issues/671.
@@ -94,6 +117,14 @@ func bindFlags(cmd *cobra.Command) {
 		if !f.Changed && viper.IsSet(f.Name) {
 			val := viper.Get(f.Name)
 			cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+		}
+		// use CurrentProject as a backup for missing project flag
+		if !f.Changed && defaultForMissingFlagPossible(f.Name, "CurrentProject") {
+			cmd.Flags().Set(f.Name, viper.GetString("CurrentProject"))
+		}
+		// use CurrentCodeset as a backup for missing codeset name flag
+		if !f.Changed && defaultForMissingFlagPossible(f.Name, "CurrentCodeset") {
+			cmd.Flags().Set(f.Name, viper.GetString("CurrentCodeset"))
 		}
 	})
 
