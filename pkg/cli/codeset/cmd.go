@@ -17,6 +17,7 @@ func NewCmdCodeset(c *common.GlobalOptions) *cobra.Command {
 	cmd.AddCommand(NewSubCmdCodesetGet(c))
 	cmd.AddCommand(NewSubCmdCodesetList(c))
 	cmd.AddCommand(NewSubCmdCodesetDelete(c))
+	cmd.AddCommand(NewSubCmdCodesetSet(c))
 
 	return cmd
 }
