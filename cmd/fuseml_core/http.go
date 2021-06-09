@@ -16,9 +16,11 @@ import (
 	applicationsvr "github.com/fuseml/fuseml-core/gen/http/application/server"
 	codesetsvr "github.com/fuseml/fuseml-core/gen/http/codeset/server"
 	openapisvr "github.com/fuseml/fuseml-core/gen/http/openapi/server"
+	projectsvr "github.com/fuseml/fuseml-core/gen/http/project/server"
 	runnablesvr "github.com/fuseml/fuseml-core/gen/http/runnable/server"
 	versionsvr "github.com/fuseml/fuseml-core/gen/http/version/server"
 	workflowsvr "github.com/fuseml/fuseml-core/gen/http/workflow/server"
+	project "github.com/fuseml/fuseml-core/gen/project"
 	runnable "github.com/fuseml/fuseml-core/gen/runnable"
 	"github.com/fuseml/fuseml-core/gen/version"
 	workflow "github.com/fuseml/fuseml-core/gen/workflow"
@@ -31,7 +33,7 @@ import (
 
 // handleHTTPServer starts configures and starts a HTTP server on the given
 // URL. It shuts down the server if any error is received in the error channel.
-func handleHTTPServer(ctx context.Context, u *url.URL, versionEndpoints *version.Endpoints, runnableEndpoints *runnable.Endpoints, codesetEndpoints *codeset.Endpoints, workflowEndpoints *workflow.Endpoints, applicationEndpoints *application.Endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
+func handleHTTPServer(ctx context.Context, u *url.URL, versionEndpoints *version.Endpoints, runnableEndpoints *runnable.Endpoints, codesetEndpoints *codeset.Endpoints, projectEndpoints *project.Endpoints, workflowEndpoints *workflow.Endpoints, applicationEndpoints *application.Endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
 	// Setup goa log adapter.
 	var (
 		adapter middleware.Logger
@@ -65,6 +67,7 @@ func handleHTTPServer(ctx context.Context, u *url.URL, versionEndpoints *version
 		applicationServer *applicationsvr.Server
 		runnableServer    *runnablesvr.Server
 		codesetServer     *codesetsvr.Server
+		projectServer     *projectsvr.Server
 		openapiServer     *openapisvr.Server
 		workflowServer    *workflowsvr.Server
 	)
@@ -74,6 +77,7 @@ func handleHTTPServer(ctx context.Context, u *url.URL, versionEndpoints *version
 		applicationServer = applicationsvr.New(applicationEndpoints, mux, dec, enc, eh, nil)
 		runnableServer = runnablesvr.New(runnableEndpoints, mux, dec, enc, eh, nil)
 		codesetServer = codesetsvr.New(codesetEndpoints, mux, dec, enc, eh, nil)
+		projectServer = projectsvr.New(projectEndpoints, mux, dec, enc, eh, nil)
 		openapiServer = openapisvr.New(nil, mux, dec, enc, eh, nil)
 		workflowServer = workflowsvr.New(workflowEndpoints, mux, dec, enc, eh, nil)
 		if debug {
@@ -82,6 +86,7 @@ func handleHTTPServer(ctx context.Context, u *url.URL, versionEndpoints *version
 				applicationServer,
 				runnableServer,
 				codesetServer,
+				projectServer,
 				openapiServer,
 				workflowServer,
 			}
@@ -93,6 +98,7 @@ func handleHTTPServer(ctx context.Context, u *url.URL, versionEndpoints *version
 	applicationsvr.Mount(mux, applicationServer)
 	runnablesvr.Mount(mux, runnableServer)
 	codesetsvr.Mount(mux, codesetServer)
+	projectsvr.Mount(mux, projectServer)
 	openapisvr.Mount(mux)
 	workflowsvr.Mount(mux, workflowServer)
 
@@ -117,6 +123,9 @@ func handleHTTPServer(ctx context.Context, u *url.URL, versionEndpoints *version
 		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
 	}
 	for _, m := range codesetServer.Mounts {
+		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
+	}
+	for _, m := range projectServer.Mounts {
 		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
 	}
 	for _, m := range openapiServer.Mounts {

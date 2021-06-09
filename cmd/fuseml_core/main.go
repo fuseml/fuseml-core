@@ -14,6 +14,7 @@ import (
 
 	"github.com/fuseml/fuseml-core/gen/application"
 	"github.com/fuseml/fuseml-core/gen/codeset"
+	"github.com/fuseml/fuseml-core/gen/project"
 	"github.com/fuseml/fuseml-core/gen/runnable"
 	"github.com/fuseml/fuseml-core/gen/version"
 	"github.com/fuseml/fuseml-core/gen/workflow"
@@ -58,14 +59,17 @@ func main() {
 		applicationSvc application.Service
 		runnableSvc    runnable.Service
 		codesetSvc     codeset.Service
+		projectSvc     project.Service
 		workflowSvc    workflow.Service
 	)
 	{
 		versionSvc = svc.NewVersionService(logger)
 		codesetStore := core.NewGitCodesetStore(gitAdmin)
+		projectStore := core.NewGitProjectStore(gitAdmin)
 		applicationSvc = svc.NewApplicationService(logger, core.NewApplicationStore())
 		runnableSvc = svc.NewRunnableService(logger, core.NewRunnableStore())
 		codesetSvc = svc.NewCodesetService(logger, codesetStore)
+		projectSvc = svc.NewProjectService(logger, projectStore)
 		workflowSvc, err = svc.NewWorkflowService(logger, core.NewWorkflowStore(), codesetStore)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "Failed to initialize Workflow service:", err.Error())
@@ -80,6 +84,7 @@ func main() {
 		applicationEndpoints *application.Endpoints
 		runnableEndpoints    *runnable.Endpoints
 		codesetEndpoints     *codeset.Endpoints
+		projectEndpoints     *project.Endpoints
 		workflowEndpoints    *workflow.Endpoints
 	)
 	{
@@ -87,6 +92,7 @@ func main() {
 		applicationEndpoints = application.NewEndpoints(applicationSvc)
 		runnableEndpoints = runnable.NewEndpoints(runnableSvc)
 		codesetEndpoints = codeset.NewEndpoints(codesetSvc)
+		projectEndpoints = project.NewEndpoints(projectSvc)
 		workflowEndpoints = workflow.NewEndpoints(workflowSvc)
 	}
 
@@ -131,7 +137,14 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "80")
 			}
-			handleHTTPServer(ctx, u, versionEndpoints, runnableEndpoints, codesetEndpoints, workflowEndpoints, applicationEndpoints,
+			handleHTTPServer(
+				ctx, u,
+				versionEndpoints,
+				runnableEndpoints,
+				codesetEndpoints,
+				projectEndpoints,
+				workflowEndpoints,
+				applicationEndpoints,
 				&wg, errc, logger, *dbgF)
 		}
 
@@ -158,7 +171,14 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "8080")
 			}
-			handleGRPCServer(ctx, u, runnableEndpoints, codesetEndpoints, workflowEndpoints, applicationEndpoints, &wg, errc, logger, *dbgF)
+			handleGRPCServer(
+				ctx, u,
+				runnableEndpoints,
+				codesetEndpoints,
+				projectEndpoints,
+				workflowEndpoints,
+				applicationEndpoints,
+				&wg, errc, logger, *dbgF)
 		}
 
 	case "prod":
@@ -185,7 +205,14 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "80")
 			}
-			handleHTTPServer(ctx, u, versionEndpoints, runnableEndpoints, codesetEndpoints, workflowEndpoints, applicationEndpoints,
+			handleHTTPServer(
+				ctx, u,
+				versionEndpoints,
+				runnableEndpoints,
+				codesetEndpoints,
+				projectEndpoints,
+				workflowEndpoints,
+				applicationEndpoints,
 				&wg, errc, logger, *dbgF)
 		}
 
@@ -212,7 +239,14 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "8080")
 			}
-			handleGRPCServer(ctx, u, runnableEndpoints, codesetEndpoints, workflowEndpoints, applicationEndpoints, &wg, errc, logger, *dbgF)
+			handleGRPCServer(
+				ctx, u,
+				runnableEndpoints,
+				codesetEndpoints,
+				projectEndpoints,
+				workflowEndpoints,
+				applicationEndpoints,
+				&wg, errc, logger, *dbgF)
 		}
 
 	default:

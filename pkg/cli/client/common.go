@@ -10,6 +10,7 @@ import (
 
 	applicationc "github.com/fuseml/fuseml-core/gen/http/application/client"
 	codesetc "github.com/fuseml/fuseml-core/gen/http/codeset/client"
+	projectc "github.com/fuseml/fuseml-core/gen/http/project/client"
 	runnablec "github.com/fuseml/fuseml-core/gen/http/runnable/client"
 	yaml "github.com/goccy/go-yaml"
 	goahttp "goa.design/goa/v3/http"
@@ -20,6 +21,7 @@ type Clients struct {
 	CodesetClient     *codesetc.Client
 	ApplicationClient *applicationc.Client
 	WorkflowClient    *WorkflowClient
+	ProjectClient     *projectc.Client
 	RunnableClient    *runnablec.Client
 	VersionClient     *VersionClient
 }
@@ -50,11 +52,12 @@ func (c *Clients) InitializeClients(URL string, timeout int, verbose bool) error
 		doer = goahttp.NewDebugDoer(doer)
 	}
 
-	c.CodesetClient = codesetc.NewClient(scheme, host, doer, encoder, decoder, verbose)
 	c.ApplicationClient = applicationc.NewClient(scheme, host, doer, encoder, decoder, verbose)
-	c.WorkflowClient = NewWorkflowClient(scheme, host, doer, encoder, decoder, verbose)
+	c.CodesetClient = codesetc.NewClient(scheme, host, doer, encoder, decoder, verbose)
+	c.ProjectClient = projectc.NewClient(scheme, host, doer, encoder, decoder, verbose)
 	c.RunnableClient = runnablec.NewClient(scheme, host, doer, encoder, decoder, verbose)
 	c.VersionClient = NewVersionClient(scheme, host, doer, encoder, decoder, verbose)
+	c.WorkflowClient = NewWorkflowClient(scheme, host, doer, encoder, decoder, verbose)
 
 	return nil
 }

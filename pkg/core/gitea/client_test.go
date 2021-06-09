@@ -78,6 +78,12 @@ func (tc testGiteaClient) AddTeamMember(id int64, username string) (*gitea.Respo
 	tc.testStore.teams[id] = append(tc.testStore.teams[id], username)
 	return nil, nil
 }
+
+func (tc testGiteaClient) ListTeamMembers(id int64, opts gitea.ListTeamMembersOptions) ([]*gitea.User, *gitea.Response, error) {
+	users := make([]*gitea.User, 0)
+	return users, &gitea.Response{Response: &httpResp200}, nil
+}
+
 func (tc testGiteaClient) GetRepo(owner, reponame string) (*gitea.Repository, *gitea.Response, error) {
 	if repo, ok := tc.testStore.projects2repos[owner][reponame]; ok {
 		return &repo, &gitea.Response{Response: &httpResp200}, nil
