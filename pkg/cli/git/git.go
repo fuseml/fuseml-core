@@ -48,8 +48,7 @@ func fetchRemoteRepository(path, target string) error {
 }
 
 // Push the code from local dir to remote repo
-// If username or password is not provided, use default values, but password
-// provided from env variable GITEA_PROJECT_PASSWORD has the highest priority.
+// If username or password is not provided, use default values
 func Push(org, name, location, gitURL string, uname, pass *string, debug bool) error {
 	log.Printf("Pushing the code to the git repository...")
 
@@ -87,10 +86,6 @@ func Push(org, name, location, gitURL string, uname, pass *string, debug bool) e
 	}
 	if pass != nil {
 		password = *pass
-	}
-	envPassword, exists := os.LookupEnv("FUSEML_PROJECT_PASSWORD")
-	if exists {
-		password = envPassword
 	}
 
 	u.User = url.UserPassword(username, password)

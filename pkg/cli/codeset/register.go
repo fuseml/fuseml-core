@@ -10,6 +10,7 @@ import (
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	gitc "github.com/fuseml/fuseml-core/pkg/cli/git"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // RegisterOptions holds the options for 'codeset register' sub command
@@ -21,6 +22,8 @@ type RegisterOptions struct {
 	Description string
 	Labels      []string
 	Location    string
+	Password    string
+	User        string
 }
 
 // NewRegisterOptions creates a CodesetRegisterOptions struct
@@ -53,6 +56,13 @@ LOCATION can be path to local directory or URL of a git repository`,
 	cmd.Flags().StringVarP(&o.Project, "project", "p", "", "the project to which the codeset belongs")
 	cmd.Flags().StringVarP(&o.Description, "desc", "d", "", "codeset description")
 	cmd.Flags().StringSliceVar(&o.Labels, "label", []string{}, "one or more codeset labels associated with the codeset")
+
+	cmd.Flags().StringVarP(&o.Password, "password", "", "", "(FUSEML_PROJECT_PASSWORD) Password of the user accessing a project")
+	viper.BindEnv("password", "FUSEML_PROJECT_PASSWORD")
+
+	cmd.Flags().StringVarP(&o.User, "user", "", "", "(FUSEML_PROJECT_USER) Username of the user accessing a project")
+	viper.BindEnv("user", "FUSEML_PROJECT_USER")
+
 	cmd.MarkFlagRequired("name")
 	cmd.MarkFlagRequired("project")
 	return cmd
@@ -76,7 +86,17 @@ func (o *RegisterOptions) run() error {
 	result := response.(*codeset.RegisterResult)
 	codeset := result.Codeset
 
-	err = gitc.Push(o.Project, o.Name, o.Location, *codeset.URL, result.Username, result.Password, o.global.Verbose)
+	// priority have username/password from the registering (when the new user was created)
+	password := result.Password
+	username := result.Username
+	if username == nil {
+		username = &o.User
+	}
+	if password == nil {
+		password = &o.Password
+	}
+
+	err = gitc.Push(o.Project, o.Name, o.Location, *codeset.URL, username, password, o.global.Verbose)
 	if err != nil {
 		return err
 	}
@@ -88,6 +108,5 @@ func (o *RegisterOptions) run() error {
 	if result.Password != nil {
 		fmt.Printf("Password for accessing the project %s\n", *result.Password)
 	}
-
 	return nil
 }

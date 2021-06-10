@@ -106,6 +106,12 @@ func defaultForMissingFlagPossible(flag, defaultKey string) bool {
 			return true
 		}
 	}
+	if defaultKey == "CurrentPassword" && flag == "password" {
+		return true
+	}
+	if defaultKey == "CurrentUser" && flag == "user" {
+		return true
+	}
 	return false
 }
 
@@ -127,6 +133,12 @@ func bindFlags(cmd *cobra.Command) {
 		// use CurrentCodeset as a backup for missing codeset name flag
 		if !f.Changed && defaultForMissingFlagPossible(f.Name, "CurrentCodeset") {
 			cmd.Flags().Set(f.Name, viper.GetString("CurrentCodeset"))
+		}
+		if !f.Changed && defaultForMissingFlagPossible(f.Name, "CurrentPassword") {
+			cmd.Flags().Set(f.Name, viper.GetString("CurrentPassword"))
+		}
+		if !f.Changed && defaultForMissingFlagPossible(f.Name, "CurrentUser") {
+			cmd.Flags().Set(f.Name, viper.GetString("CurrentUser"))
 		}
 	})
 
