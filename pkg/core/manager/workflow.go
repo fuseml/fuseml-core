@@ -8,6 +8,10 @@ import (
 	"github.com/fuseml/fuseml-core/pkg/domain"
 )
 
+// createWorkflowListenerTimeout is the time (in minutes) that FuseML waits for the workflow listener
+// to be available
+const createWorkflowListenerTimeout = 1
+
 type workflowManager struct {
 	workflowBackend domain.WorkflowBackend
 	workflowStore   domain.WorkflowStore
@@ -42,6 +46,28 @@ func (mgr *workflowManager) Delete(ctx context.Context, name string) error {
 }
 
 func (mgr *workflowManager) AssignToCodeset(ctx context.Context, name, codesetProject, codesetName string) (wfListener *domain.WorkflowListener, webhookID *int64, err error) {
+	_, err = mgr.workflowStore.GetWorkflow(ctx, name)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	codeset, err := mgr.codesetStore.Find(ctx, codesetProject, codesetName)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	wfListener, err = mgr.workflowBackend.CreateWorkflowListener(ctx, name, createWorkflowListenerTimeout*time.Minute)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	webhookID, err = mgr.codesetStore.CreateWebhook(ctx, codeset, wfListener.URL)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	mgr.workflowStore.AddCodesetAssignment(ctx, name, &domain.AssignedCodeset{Codeset: codeset, WebhookID: webhookID})
+	mgr.workflowBackend.CreateWorkflowRun(ctx, name, codeset)
 	return
 }
 
