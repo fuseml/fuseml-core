@@ -7,7 +7,24 @@ import (
 	"github.com/fuseml/fuseml-core/gen/workflow"
 )
 
-// WorkflowStore is an inteface to workflow stores
+const (
+	// ErrWorkflowExists describes the error message returned when trying to create a workflow with that already exists.
+	ErrWorkflowExists = WorkflowErr("workflow already exists")
+	// ErrWorkflowNotFound describes the error message returned when trying to get a workflow that does not exist.
+	ErrWorkflowNotFound = WorkflowErr("could not find a workflow with the specified name")
+	// ErrWorkflowNotAssignedToCodeset describes the error message returned when trying to unassign a workflow from a codeset
+	// but it is not assigned to the codeset.
+	ErrWorkflowNotAssignedToCodeset = WorkflowErr("workflow not assigned to codeset")
+)
+
+// WorkflowErr are expected errors returned when performing operations on workflows
+type WorkflowErr string
+
+func (e WorkflowErr) Error() string {
+	return string(e)
+}
+
+// WorkflowStore is an interface to workflow stores
 type WorkflowStore interface {
 	GetWorkflow(ctx context.Context, name string) *workflow.Workflow
 	GetWorkflows(ctx context.Context, name *string) (result []*workflow.Workflow)

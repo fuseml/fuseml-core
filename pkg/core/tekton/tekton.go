@@ -25,23 +25,20 @@ import (
 )
 
 const (
-	errWorkflowExists      = WorkflowBackendErr("workflow already exists")
-	errDashboardURLMissing = WorkflowBackendErr("Value for Tekton Dashboard URL (TEKTON_DASHBOARD_URL) was not provided.")
+	errDashboardURLMissing = WorkflowBackendErr("value for Tekton Dashboard URL (TEKTON_DASHBOARD_URL) was not provided.")
 	errWaitListenerTimeout = WorkflowBackendErr("time out waiting for listener to become ready")
 )
+
+var globalEnvVars []EnvVar
+
+// WorkflowBackendErr are expected errors returned from the WorkflowBackend
+type WorkflowBackendErr string
 
 // EnvVar describes environment variable and its value that needs to be passed to tekton task
 type EnvVar struct {
 	name  string
 	value string
 }
-
-var (
-	globalEnvVars []EnvVar
-)
-
-// WorkflowBackendErr are expected errors returned from the WorkflowBackend
-type WorkflowBackendErr string
 
 // WorkflowBackend implements the FuseML WorkflowBackend interface for tekton
 type WorkflowBackend struct {
@@ -71,7 +68,7 @@ func (w *WorkflowBackend) CreateWorkflow(ctx context.Context, workflow *workflow
 	_, err := w.tektonClients.PipelineClient.Create(ctx, pipeline, metav1.CreateOptions{})
 	if err != nil {
 		if k8serr.IsAlreadyExists(err) {
-			return errWorkflowExists
+			return domain.ErrWorkflowExists
 		}
 		return fmt.Errorf("error creating tekton pipeline for workflow %q: %w", workflow.Name, err)
 	}

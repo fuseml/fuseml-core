@@ -78,7 +78,7 @@ func TestCreateWorkflow(t *testing.T) {
 			t.Fatal(err)
 		}
 		got := b.CreateWorkflow(ctx, &w)
-		assertError(t, got, errWorkflowExists)
+		assertError(t, got, domain.ErrWorkflowExists)
 	})
 }
 
