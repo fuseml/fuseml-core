@@ -180,7 +180,7 @@ func (s *workflowsrvc) ListRuns(ctx context.Context, w *workflow.ListRunsPayload
 	}
 
 	for _, workflow := range workflows {
-		runs, err := s.backend.ListWorkflowRuns(ctx, *workflow, filters)
+		runs, err := s.backend.ListWorkflowRuns(ctx, workflow, &filters)
 		if err != nil {
 			s.logger.Print(err)
 			return nil, err

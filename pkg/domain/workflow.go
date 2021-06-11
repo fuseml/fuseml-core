@@ -25,7 +25,7 @@ type WorkflowBackend interface {
 	CreateWorkflow(ctx context.Context, workflow *workflow.Workflow) error
 	DeleteWorkflow(ctx context.Context, workflowName string) error
 	CreateWorkflowRun(ctx context.Context, workflowName string, codeset *Codeset) error
-	ListWorkflowRuns(ctx context.Context, workflow workflow.Workflow, filter WorkflowRunFilter) ([]*workflow.WorkflowRun, error)
+	ListWorkflowRuns(ctx context.Context, workflow *workflow.Workflow, filter *WorkflowRunFilter) ([]*workflow.WorkflowRun, error)
 	CreateWorkflowListener(ctx context.Context, workflowName string, timeout time.Duration) (*WorkflowListener, error)
 	DeleteWorkflowListener(ctx context.Context, workflowName string) error
 	GetWorkflowListener(ctx context.Context, workflowName string) (*WorkflowListener, error)

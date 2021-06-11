@@ -113,10 +113,10 @@ func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, workflowName st
 }
 
 // ListWorkflowRuns returns a list of WorkflowRun for the given Workflow
-func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf workflow.Workflow, filters domain.WorkflowRunFilter) ([]*workflow.WorkflowRun, error) {
+func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf *workflow.Workflow, filter *domain.WorkflowRunFilter) ([]*workflow.WorkflowRun, error) {
 	labelSelector := fmt.Sprintf("%s=%s", LabelWorkflowRef, wf.Name)
-	if filters.ByLabel != nil && len(filters.ByLabel) > 0 {
-		labelSelector = fmt.Sprintf("%s,%s", labelSelector, strings.Join(filters.ByLabel, ","))
+	if filter.ByLabel != nil && len(filter.ByLabel) > 0 {
+		labelSelector = fmt.Sprintf("%s,%s", labelSelector, strings.Join(filter.ByLabel, ","))
 	}
 	runs, err := w.tektonClients.PipelineRunClient.List(ctx, metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
@@ -124,9 +124,9 @@ func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf workflow.Work
 	}
 	workflowRuns := []*workflow.WorkflowRun{}
 
-	if filters.ByStatus != nil && len(filters.ByStatus) > 0 {
+	if filter.ByStatus != nil && len(filter.ByStatus) > 0 {
 		for _, run := range runs.Items {
-			if len(run.Status.Conditions) > 0 && contains(filters.ByStatus,
+			if len(run.Status.Conditions) > 0 && contains(filter.ByStatus,
 				pipelineReasonToWorkflowStatus(run.Status.Conditions[0].Reason)) {
 				workflowRuns = append(workflowRuns, w.toWorkflowRun(wf, run))
 			}
@@ -570,7 +570,7 @@ func getInputCodesetPath(inputs []*workflow.WorkflowStepInput) string {
 	return ""
 }
 
-func (w *WorkflowBackend) toWorkflowRun(wf workflow.Workflow, p v1beta1.PipelineRun) *workflow.WorkflowRun {
+func (w *WorkflowBackend) toWorkflowRun(wf *workflow.Workflow, p v1beta1.PipelineRun) *workflow.WorkflowRun {
 
 	wfr := workflow.WorkflowRun{
 		Name:        &p.ObjectMeta.Name,
