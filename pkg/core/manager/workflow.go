@@ -20,7 +20,7 @@ func NewWorkflowManager(workflowBackend domain.WorkflowBackend, workflowStore do
 }
 
 func (mgr *workflowManager) List(ctx context.Context, name *string) []*workflow.Workflow {
-	return nil
+	return mgr.workflowStore.GetWorkflows(ctx, name)
 }
 
 func (mgr *workflowManager) Create(ctx context.Context, wf *workflow.Workflow) (*workflow.Workflow, error) {

@@ -41,8 +41,12 @@ func (ws *WorkflowStore) GetWorkflow(ctx context.Context, name string) (*workflo
 func (ws *WorkflowStore) GetWorkflows(ctx context.Context, name *string) (result []*workflow.Workflow) {
 	result = make([]*workflow.Workflow, 0, len(ws.items))
 	if name != nil {
-		result = append(result, ws.items[*name].workflow)
-		return
+		if sw, ok := ws.items[*name]; ok {
+			result = append(result, sw.workflow)
+			return
+		}
+		return result
+
 	}
 	for _, sw := range ws.items {
 		result = append(result, sw.workflow)

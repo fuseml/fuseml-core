@@ -10,6 +10,7 @@ import (
 	"github.com/fuseml/fuseml-core/pkg/core"
 	"github.com/fuseml/fuseml-core/pkg/domain"
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/tektoncd/pipeline/test/diff"
 )
 
@@ -77,7 +78,55 @@ func TestCreate(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
+	t.Run("all", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+		want := []*workflow.Workflow{}
 
+		// no workflows
+		got := mgr.List(context.TODO(), nil)
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected Workflow list: %s", diff.PrintWantGot(d))
+		}
+
+		// create 3 workflows (wf0, wf1, wf2)
+		for i := 0; i < 3; i++ {
+			wf, err := mgr.Create(context.Background(), &workflow.Workflow{Name: fmt.Sprintf("wf%d", i)})
+			assertError(t, err, nil)
+			want = append(want, wf)
+		}
+
+		got = mgr.List(context.TODO(), nil)
+		if d := cmp.Diff(want, got, cmpopts.SortSlices(func(x, y *workflow.Workflow) bool { return x.Name < y.Name })); d != "" {
+			t.Errorf("Unexpected Workflow list: %s", diff.PrintWantGot(d))
+		}
+	})
+
+	t.Run("by workflow name", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+		want := []*workflow.Workflow{}
+
+		// no workflows
+		wfName := "does-not-exist"
+		got := mgr.List(context.TODO(), &wfName)
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected Workflow list: %s", diff.PrintWantGot(d))
+		}
+
+		// create 3 workflows (wf0, wf1, wf2)
+		for i := 0; i < 3; i++ {
+			wf, err := mgr.Create(context.Background(), &workflow.Workflow{Name: fmt.Sprintf("wf%d", i)})
+			assertError(t, err, nil)
+			want = append(want, wf)
+		}
+
+		for i := 0; i < len(want); i++ {
+			name := fmt.Sprintf("wf%d", i)
+			got := mgr.List(context.TODO(), &name)
+			if d := cmp.Diff([]*workflow.Workflow{want[i]}, got, cmpopts.SortSlices(func(x, y *workflow.Workflow) bool { return x.Name < y.Name })); d != "" {
+				t.Errorf("Unexpected Workflow list: %s", diff.PrintWantGot(d))
+			}
+		}
+	})
 }
 
 func TestGet(t *testing.T) {
