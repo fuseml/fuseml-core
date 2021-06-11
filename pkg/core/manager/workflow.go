@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"time"
 
 	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/domain"
@@ -23,7 +24,13 @@ func (mgr *workflowManager) List(ctx context.Context, name *string) []*workflow.
 }
 
 func (mgr *workflowManager) Create(ctx context.Context, wf *workflow.Workflow) (*workflow.Workflow, error) {
-	return nil, nil
+	workflowDateCreated := time.Now().Format(time.RFC3339)
+	wf.Created = &workflowDateCreated
+	err := mgr.workflowBackend.CreateWorkflow(ctx, wf)
+	if err != nil {
+		return nil, err
+	}
+	return mgr.workflowStore.AddWorkflow(ctx, wf)
 }
 
 func (mgr *workflowManager) Get(ctx context.Context, name string) (*workflow.Workflow, error) {

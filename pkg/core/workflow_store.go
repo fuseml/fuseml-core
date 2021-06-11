@@ -30,11 +30,11 @@ func NewWorkflowStore() *WorkflowStore {
 }
 
 // GetWorkflow returns a workflow identified by its name
-func (ws *WorkflowStore) GetWorkflow(ctx context.Context, name string) *workflow.Workflow {
+func (ws *WorkflowStore) GetWorkflow(ctx context.Context, name string) (*workflow.Workflow, error) {
 	if _, exists := ws.items[name]; exists {
-		return ws.items[name].workflow
+		return ws.items[name].workflow, nil
 	}
-	return nil
+	return nil, domain.ErrWorkflowNotFound
 }
 
 // GetWorkflows returns all workflows or the one that matches a given name.

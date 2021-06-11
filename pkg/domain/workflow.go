@@ -38,8 +38,8 @@ type WorkflowManager interface {
 
 // WorkflowStore is an interface to workflow stores
 type WorkflowStore interface {
-	GetWorkflow(ctx context.Context, name string) *workflow.Workflow
-	GetWorkflows(ctx context.Context, name *string) (result []*workflow.Workflow)
+	GetWorkflow(ctx context.Context, name string) (*workflow.Workflow, error)
+	GetWorkflows(ctx context.Context, name *string) []*workflow.Workflow
 	AddWorkflow(ctx context.Context, w *workflow.Workflow) (*workflow.Workflow, error)
 	DeleteWorkflow(ctx context.Context, name string) error
 	GetAssignedCodeset(ctx context.Context, workflowName string, codeset *Codeset) *AssignedCodeset
