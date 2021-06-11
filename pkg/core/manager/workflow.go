@@ -116,7 +116,22 @@ func (mgr *workflowManager) ListAssignments(ctx context.Context, name *string) (
 }
 
 func (mgr *workflowManager) ListRuns(ctx context.Context, filter *domain.WorkflowRunFilter) ([]*workflow.WorkflowRun, error) {
-	return nil, nil
+	workflowRuns := []*workflow.WorkflowRun{}
+	var wfName *string
+	if filter != nil {
+		wfName = filter.WorkflowName
+	}
+	workflows := mgr.workflowStore.GetWorkflows(ctx, wfName)
+
+	for _, workflow := range workflows {
+		runs, err := mgr.workflowBackend.ListWorkflowRuns(ctx, workflow, filter)
+		if err != nil {
+			return nil, err
+		}
+		workflowRuns = append(workflowRuns, runs...)
+	}
+
+	return workflowRuns, nil
 }
 
 func newWorkflowAssignment(workflowName string, codesets []*domain.AssignedCodeset, listener *domain.WorkflowListener) *workflow.WorkflowAssignment {

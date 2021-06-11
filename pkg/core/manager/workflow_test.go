@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"strings"
 	"testing"
 	"time"
 
@@ -394,7 +395,273 @@ func TestListAssignments(t *testing.T) {
 }
 
 func TestListRuns(t *testing.T) {
+	t.Run("all", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
 
+		want := []*workflow.WorkflowRun{}
+
+		// filter nil, no runs
+		got, err := mgr.ListRuns(context.Background(), nil)
+		assertError(t, err, nil)
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
+		}
+
+		// with filter, no runs
+		filter := domain.WorkflowRunFilter{}
+		got, err = mgr.ListRuns(context.Background(), &filter)
+		assertError(t, err, nil)
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
+		}
+
+		wf, err := mgr.Create(context.Background(), &workflow.Workflow{Name: "wf"})
+		assertError(t, err, nil)
+
+		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
+		// create 3 runs with (cs0, csproject0, "Succeeded", "Failed", "Succeeded") and list
+		for i := 0; i < 3; i++ {
+			// currently, assigning a workflow to a codeset is the only function that creates a workflow run
+			_, _, err = mgr.AssignToCodeset(context.Background(), wf.Name, codesets[0].Project, codesets[0].Name)
+			assertError(t, err, nil)
+
+			got, err = mgr.ListRuns(context.Background(), &filter)
+			assertError(t, err, nil)
+
+			want, _ = workflowBackend.ListWorkflowRuns(context.TODO(), wf, nil)
+			if d := cmp.Diff(want, got); d != "" {
+				t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
+			}
+		}
+	})
+
+	t.Run("filter by workflow", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+
+		want := []*workflow.WorkflowRun{}
+
+		// non existing workflow, no runs
+		wfName := "unknownWf"
+		filterNoRunsNoWf := domain.WorkflowRunFilter{WorkflowName: &wfName}
+		got, err := mgr.ListRuns(context.Background(), &filterNoRunsNoWf)
+		assertError(t, err, nil)
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
+		}
+
+		// create a workflow
+		wf, err := mgr.Create(context.Background(), &workflow.Workflow{Name: "wf"})
+		assertError(t, err, nil)
+
+		// existing workflow, no runs
+		filterNoRunsExistingWf := domain.WorkflowRunFilter{WorkflowName: &wf.Name}
+		got, err = mgr.ListRuns(context.Background(), &filterNoRunsExistingWf)
+		assertError(t, err, nil)
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
+		}
+
+		// create multiple workflows/runs:
+		// wf0 -> 0 runs
+		// wf1 -> 1 run (cs0, csproject0, Succeeded)
+		// wf2 -> 2 runs (cs0, csproject0, Succeeded, Failed)
+		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
+		for i := 0; i < len(codesets); i++ {
+			wf, err := mgr.Create(context.Background(), &workflow.Workflow{Name: fmt.Sprintf("wf%d", i)})
+			assertError(t, err, nil)
+
+			for j := 0; j < i; j++ {
+				_, _, err = mgr.AssignToCodeset(context.Background(), wf.Name, codesets[0].Project, codesets[0].Name)
+				assertError(t, err, nil)
+			}
+
+		}
+
+		// iterate over each workflow listing its runs
+		workflows := workflowStore.GetWorkflows(context.TODO(), nil)
+		for _, wf := range workflows {
+			filter := domain.WorkflowRunFilter{WorkflowName: &wf.Name}
+			got, err = mgr.ListRuns(context.Background(), &filter)
+			assertError(t, err, nil)
+
+			want, _ := workflowBackend.ListWorkflowRuns(context.TODO(), &workflow.Workflow{Name: wf.Name}, nil)
+			if d := cmp.Diff(want, got); d != "" {
+				t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
+			}
+		}
+	})
+
+	t.Run("filter by codeset", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+
+		want := []*workflow.WorkflowRun{}
+
+		// non existing codeset, no runs
+		csName := "unknownCs"
+		filterNoRunsNoCs := domain.WorkflowRunFilter{CodesetName: csName}
+		got, err := mgr.ListRuns(context.Background(), &filterNoRunsNoCs)
+		assertError(t, err, nil)
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
+		}
+
+		// existing codeset, no runs
+		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
+		filterNoRuns := domain.WorkflowRunFilter{CodesetName: codesets[0].Name}
+		got, err = mgr.ListRuns(context.Background(), &filterNoRuns)
+		assertError(t, err, nil)
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
+		}
+
+		wf, err := mgr.Create(context.Background(), &workflow.Workflow{Name: "wf"})
+		assertError(t, err, nil)
+
+		// create multiple runs for the same workflow (wf) using different codesets:
+		// 1. (cs0, csproject0, Succeeded)
+		// 2. (cs1, csproject1, Failed)
+		// 3. (cs2, csproject1, Succeeded)
+		for i := 0; i < len(codesets); i++ {
+			_, _, err = mgr.AssignToCodeset(context.Background(), wf.Name, codesets[i].Project, codesets[i].Name)
+			assertError(t, err, nil)
+		}
+
+		// iterate over each codeset and list runs by codeset name
+		for _, cs := range codesets {
+			filter := domain.WorkflowRunFilter{CodesetName: cs.Name}
+			got, err = mgr.ListRuns(context.Background(), &filter)
+			assertError(t, err, nil)
+
+			want, _ := workflowBackend.ListWorkflowRuns(context.TODO(), wf, &filter)
+			if d := cmp.Diff(want, got); d != "" {
+				t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
+			}
+		}
+
+		// iterate over each codeset and list runs by codeset project
+		for _, cs := range codesets {
+			filter := domain.WorkflowRunFilter{CodesetProject: cs.Project}
+			got, err = mgr.ListRuns(context.Background(), &filter)
+			assertError(t, err, nil)
+
+			want, _ := workflowBackend.ListWorkflowRuns(context.TODO(), wf, &filter)
+			if d := cmp.Diff(want, got); d != "" {
+				t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
+			}
+		}
+
+		// iterate over each codeset and list runs by codeset name and project
+		for _, cs := range codesets {
+			filter := domain.WorkflowRunFilter{CodesetName: cs.Name, CodesetProject: cs.Project}
+			got, err = mgr.ListRuns(context.Background(), &filter)
+			assertError(t, err, nil)
+
+			want, _ := workflowBackend.ListWorkflowRuns(context.TODO(), wf, &filter)
+			if d := cmp.Diff(want, got); d != "" {
+				t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
+			}
+		}
+	})
+
+	t.Run("filter by status", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+
+		want := []*workflow.WorkflowRun{}
+
+		// nil status, no runs
+		filterNoRunsNilStatus := domain.WorkflowRunFilter{Status: nil}
+		got, err := mgr.ListRuns(context.Background(), &filterNoRunsNilStatus)
+		assertError(t, err, nil)
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
+		}
+
+		// empty status, no runs
+		filterNoRunsEmptyStatus := domain.WorkflowRunFilter{Status: []string{}}
+		got, err = mgr.ListRuns(context.Background(), &filterNoRunsEmptyStatus)
+		assertError(t, err, nil)
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
+		}
+
+		// with status, no runs
+		filterNoRunsWithStatus := domain.WorkflowRunFilter{Status: []string{"Succeeded"}}
+		got, err = mgr.ListRuns(context.Background(), &filterNoRunsWithStatus)
+		assertError(t, err, nil)
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
+		}
+
+		wf, err := mgr.Create(context.Background(), &workflow.Workflow{Name: "wf"})
+		assertError(t, err, nil)
+
+		// create 3 runs for workflow 'wf' using cs0:
+		// 1. (cs0, csproject0, Succeeded)
+		// 2. (cs0, csproject0, Failed)
+		// 3. (cs0, csproject0, Succeeded)
+		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
+		for i := 0; i < len(codesets); i++ {
+			_, _, err = mgr.AssignToCodeset(context.Background(), wf.Name, codesets[0].Project, codesets[0].Name)
+			assertError(t, err, nil)
+		}
+
+		// iterate over the worklow statuses and list by it
+		for _, s := range workflowRunStatuses {
+			status := []string{s}
+			filter := domain.WorkflowRunFilter{Status: status}
+			got, err = mgr.ListRuns(context.Background(), &filter)
+			assertError(t, err, nil)
+
+			want, _ := workflowBackend.ListWorkflowRuns(context.TODO(), wf, &filter)
+			if d := cmp.Diff(want, got); d != "" {
+				t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
+			}
+		}
+	})
+
+	t.Run("filter by workflow, codeset and status", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+
+		// create multiple workflows, and runs using varying codesets
+		// wf0 -> 0 runs
+		// wf1 -> 1 run (cs0, project0, Succeeded)
+		// wf2 -> 2 runs (cs1, project1, Succeeded) (cs2, project1, Failed)
+		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
+		for i := 0; i < len(codesets); i++ {
+			wf, err := mgr.Create(context.Background(), &workflow.Workflow{Name: fmt.Sprintf("wf%d", i)})
+			assertError(t, err, nil)
+
+			for j := 0; j < i; j++ {
+				csIndex := j
+				if i == 2 {
+					csIndex = j + 1
+				}
+				_, _, err = mgr.AssignToCodeset(context.Background(), wf.Name, codesets[csIndex].Project, codesets[csIndex].Name)
+				assertError(t, err, nil)
+			}
+		}
+
+		// iterate over all workflows, codesets, status listing runs and filtering for each combination
+		workflows := workflowStore.GetWorkflows(context.TODO(), nil)
+		for _, wf := range workflows {
+			wfName := wf.Name
+			for _, cs := range codesets {
+				csName := cs.Name
+				csProject := cs.Project
+				for _, status := range workflowRunStatuses {
+					status := []string{status}
+					filter := domain.WorkflowRunFilter{WorkflowName: &wfName, CodesetName: csName, CodesetProject: csProject, Status: status}
+					got, err := mgr.ListRuns(context.Background(), &filter)
+					assertError(t, err, nil)
+
+					want, _ := workflowBackend.ListWorkflowRuns(context.TODO(), &workflow.Workflow{Name: wfName}, &filter)
+					if d := cmp.Diff(want, got); d != "" {
+						t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
+					}
+				}
+			}
+		}
+	})
 }
 
 func assertError(t testing.TB, got, want error) {
@@ -499,7 +766,50 @@ func (b *fakeWorkflowBackend) CreateWorkflowRun(ctx context.Context, workflowNam
 func (b *fakeWorkflowBackend) ListWorkflowRuns(ctx context.Context, wf *workflow.Workflow, filter *domain.WorkflowRunFilter) ([]*workflow.WorkflowRun, error) {
 	b.t.Helper()
 
-	return nil, nil
+	res := []*workflow.WorkflowRun{}
+	if sw, exists := b.workflows[wf.Name]; !exists || len(sw.runs) == 0 {
+		return res, nil
+	}
+
+	runs := b.workflows[wf.Name].runs
+	if filter == nil || (filter.CodesetName == "" && filter.CodesetProject == "" && len(filter.Status) == 0) {
+		return runs, nil
+	}
+
+	getCodesetProjectName := func(inputValue string) (string, string) {
+		nameAndValue := strings.Split(inputValue, "/")
+		return nameAndValue[0], nameAndValue[1]
+	}
+
+	if filter.CodesetName != "" || filter.CodesetProject != "" {
+		for _, run := range runs {
+			if len(filter.Status) == 0 || contains(filter.Status, *run.Status) {
+				for _, input := range run.Inputs {
+					if *input.Input.Type == "codeset" {
+						csProject, csName := getCodesetProjectName(*input.Value)
+						if filter.CodesetName != "" && filter.CodesetProject != "" {
+							if filter.CodesetName == csName && filter.CodesetProject == csProject {
+								res = append(res, run)
+							}
+						} else if (filter.CodesetName == csName && filter.CodesetProject == "") || (filter.CodesetProject == csProject && filter.CodesetName == "") {
+							res = append(res, run)
+						}
+					}
+				}
+			}
+		}
+		return res, nil
+	}
+
+	if len(filter.Status) > 0 {
+		for _, run := range runs {
+			if contains(filter.Status, *run.Status) {
+				res = append(res, run)
+			}
+		}
+	}
+
+	return res, nil
 }
 
 func (b *fakeWorkflowBackend) CreateWorkflowListener(ctx context.Context, workflowName string, timeout time.Duration) (*domain.WorkflowListener, error) {
@@ -594,4 +904,13 @@ func (fcs *fakeCodesetStore) GetAll(ctx context.Context, project, label *string)
 		res = append(res, c.codeset)
 	}
 	return res, nil
+}
+
+func contains(slice []string, item string) bool {
+	for _, s := range slice {
+		if s == item {
+			return true
+		}
+	}
+	return false
 }
