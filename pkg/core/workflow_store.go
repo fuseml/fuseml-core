@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/domain"
@@ -57,10 +56,8 @@ func (ws *WorkflowStore) GetWorkflows(ctx context.Context, name *string) (result
 // AddWorkflow adds a new workflow based on the Workflow structure provided as argument
 func (ws *WorkflowStore) AddWorkflow(ctx context.Context, w *workflow.Workflow) (*workflow.Workflow, error) {
 	if _, exists := ws.items[w.Name]; exists {
-		return nil, fmt.Errorf("workflow %q already exists", w.Name)
+		return nil, domain.ErrWorkflowExists
 	}
-	workflowCreated := time.Now().Format(time.RFC3339)
-	w.Created = &workflowCreated
 	sw := storableWorkflow{workflow: w}
 	ws.items[w.Name] = &sw
 	return w, nil

@@ -19,6 +19,7 @@ type workflowManager struct {
 }
 
 // NewWorkflowManager initializes a Workflow Manager
+// FIXME: instead of CodesetStore, receive a CodesetManager
 func NewWorkflowManager(workflowBackend domain.WorkflowBackend, workflowStore domain.WorkflowStore, codesetStore domain.CodesetStore) domain.WorkflowManager {
 	return &workflowManager{workflowBackend, workflowStore, codesetStore}
 }

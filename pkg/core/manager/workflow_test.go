@@ -8,12 +8,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fuseml/fuseml-core/gen/workflow"
-	"github.com/fuseml/fuseml-core/pkg/core"
-	"github.com/fuseml/fuseml-core/pkg/domain"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/tektoncd/pipeline/test/diff"
+
+	"github.com/fuseml/fuseml-core/gen/workflow"
+	"github.com/fuseml/fuseml-core/pkg/core"
+	"github.com/fuseml/fuseml-core/pkg/domain"
 )
 
 const errCodesetNotFound = codesetErr("codeset not found")
@@ -76,7 +77,6 @@ func TestCreate(t *testing.T) {
 			t.Errorf("Unexpected Workflow: %s", diff.PrintWantGot(d))
 		}
 	})
-
 }
 
 func TestList(t *testing.T) {
