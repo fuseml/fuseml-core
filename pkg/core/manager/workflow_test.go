@@ -330,7 +330,67 @@ func TestUnassignFromCodeset(t *testing.T) {
 }
 
 func TestListAssignments(t *testing.T) {
+	t.Run("list", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
 
+		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
+		want := make(map[string]*workflow.WorkflowAssignment, len(codesets))
+
+		addToWant := func(wf string, cs *domain.Codeset, webhookID *int64, listener *domain.WorkflowListener) {
+			if acs, exists := want[wf]; exists {
+				want[wf].Codesets = append(acs.Codesets, &workflow.Codeset{Name: cs.Name, Project: cs.Project, URL: &cs.URL})
+			} else {
+				want[wf] = newWorkflowAssignment(wf, []*domain.AssignedCodeset{{Codeset: cs, WebhookID: webhookID}}, listener)
+			}
+		}
+
+		// wf0 -> not assigned
+		// wf1 -> cs1
+		// wf2 -> cs0, cs2
+		for i := 0; i < len(codesets); i++ {
+			wf, err := mgr.Create(context.Background(), &workflow.Workflow{Name: fmt.Sprintf("wf%d", i)})
+			assertError(t, err, nil)
+			if i != 0 {
+				if i == 2 {
+					cs := codesets[i-2]
+					listener, webhookID, err := mgr.AssignToCodeset(context.Background(), wf.Name, cs.Project, cs.Name)
+					assertError(t, err, nil)
+					addToWant(wf.Name, cs, webhookID, listener)
+				}
+				listener, webhookID, err := mgr.AssignToCodeset(context.Background(), wf.Name, codesets[i].Project, codesets[i].Name)
+				assertError(t, err, nil)
+				addToWant(wf.Name, codesets[i], webhookID, listener)
+			}
+		}
+
+		// list all
+		got, err := mgr.ListAssignments(context.Background(), nil)
+		assertError(t, err, nil)
+		wantAll := make([]*workflow.WorkflowAssignment, 0, len(want))
+		for _, ass := range want {
+			wantAll = append(wantAll, ass)
+		}
+
+		if d := cmp.Diff(wantAll, got, cmpopts.SortSlices(func(x, y *workflow.WorkflowAssignment) bool { return *x.Workflow < *y.Workflow })); d != "" {
+			t.Errorf("Unexpected Workflow Assignments: %s", diff.PrintWantGot(d))
+		}
+
+		// list from a specific workflow
+		for i := 0; i < len(codesets); i++ {
+			wf := fmt.Sprintf("wf%d", i)
+			got, err := mgr.ListAssignments(context.Background(), &wf)
+			assertError(t, err, nil)
+
+			wantByName := []*workflow.WorkflowAssignment{}
+			if i != 0 {
+				wantByName = append(wantByName, want[wf])
+			}
+
+			if d := cmp.Diff(wantByName, got); d != "" {
+				t.Errorf("Unexpected Workflow Assignments: %s", diff.PrintWantGot(d))
+			}
+		}
+	})
 }
 
 func TestListRuns(t *testing.T) {

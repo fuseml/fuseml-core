@@ -101,9 +101,40 @@ func (mgr *workflowManager) UnassignFromCodeset(ctx context.Context, name, codes
 }
 
 func (mgr *workflowManager) ListAssignments(ctx context.Context, name *string) ([]*workflow.WorkflowAssignment, error) {
-	return nil, nil
+	assignments := []*workflow.WorkflowAssignment{}
+	for wf, acs := range mgr.workflowStore.GetAssignments(ctx, name) {
+
+		listener, err := mgr.workflowBackend.GetWorkflowListener(ctx, wf)
+		if err != nil {
+			return nil, err
+		}
+
+		assignment := newWorkflowAssignment(wf, acs, listener)
+		assignments = append(assignments, assignment)
+	}
+	return assignments, nil
 }
 
 func (mgr *workflowManager) ListRuns(ctx context.Context, filter *domain.WorkflowRunFilter) ([]*workflow.WorkflowRun, error) {
 	return nil, nil
+}
+
+func newWorkflowAssignment(workflowName string, codesets []*domain.AssignedCodeset, listener *domain.WorkflowListener) *workflow.WorkflowAssignment {
+	assignment := &workflow.WorkflowAssignment{
+		Workflow: &workflowName,
+		Status: &workflow.WorkflowAssignmentStatus{
+			Available: &listener.Available,
+			URL:       &listener.DashboardURL,
+		},
+	}
+	for _, c := range codesets {
+		assignment.Codesets = append(assignment.Codesets, &workflow.Codeset{
+			Name:        c.Codeset.Name,
+			Project:     c.Codeset.Project,
+			Description: c.Codeset.Description,
+			Labels:      c.Codeset.Labels,
+			URL:         &c.Codeset.URL,
+		})
+	}
+	return assignment
 }
