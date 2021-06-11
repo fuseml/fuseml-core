@@ -130,7 +130,24 @@ func TestList(t *testing.T) {
 }
 
 func TestGet(t *testing.T) {
+	t.Run("get", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+		want, err := mgr.Create(context.Background(), &workflow.Workflow{Name: "wf"})
+		assertError(t, err, nil)
 
+		got, err := mgr.Get(context.Background(), want.Name)
+		assertError(t, err, nil)
+
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected Workflow: %s", diff.PrintWantGot(d))
+		}
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+		_, err := mgr.Get(context.Background(), "wf")
+		assertError(t, err, domain.ErrWorkflowNotFound)
+	})
 }
 
 func TestDelete(t *testing.T) {

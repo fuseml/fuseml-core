@@ -34,7 +34,7 @@ func (mgr *workflowManager) Create(ctx context.Context, wf *workflow.Workflow) (
 }
 
 func (mgr *workflowManager) Get(ctx context.Context, name string) (*workflow.Workflow, error) {
-	return nil, nil
+	return mgr.workflowStore.GetWorkflow(ctx, name)
 }
 
 func (mgr *workflowManager) Delete(ctx context.Context, name string) error {
