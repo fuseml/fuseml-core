@@ -24,6 +24,18 @@ func (e WorkflowErr) Error() string {
 	return string(e)
 }
 
+// WorkflowManager describes the interface for a Workflow Manager
+type WorkflowManager interface {
+	Create(ctx context.Context, workflow *workflow.Workflow) (*workflow.Workflow, error)
+	Get(ctx context.Context, name string) (*workflow.Workflow, error)
+	Delete(ctx context.Context, name string) error
+	List(ctx context.Context, name *string) []*workflow.Workflow
+	AssignToCodeset(ctx context.Context, name, codesetProject, codesetName string) (*WorkflowListener, *int64, error)
+	UnassignFromCodeset(ctx context.Context, name, codesetProject, codesetName string) error
+	ListAssignments(ctx context.Context, name *string) ([]*workflow.WorkflowAssignment, error)
+	ListRuns(ctx context.Context, filter *WorkflowRunFilter) ([]*workflow.WorkflowRun, error)
+}
+
 // WorkflowStore is an interface to workflow stores
 type WorkflowStore interface {
 	GetWorkflow(ctx context.Context, name string) *workflow.Workflow
