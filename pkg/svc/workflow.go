@@ -169,14 +169,15 @@ func (s *workflowsrvc) ListRuns(ctx context.Context, w *workflow.ListRunsPayload
 	workflowRuns := []*workflow.WorkflowRun{}
 	workflows := s.store.GetWorkflows(ctx, w.Name)
 	filters := domain.WorkflowRunFilter{}
+	filter := domain.WorkflowRunFilter{WorkflowName: w.Name}
 	if w.CodesetName != nil {
-		filters.ByLabel = append(filters.ByLabel, fmt.Sprintf("%s=%s", tekton.LabelCodesetName, *w.CodesetName))
+		filter.CodesetName = *w.CodesetName
 	}
 	if w.CodesetProject != nil {
-		filters.ByLabel = append(filters.ByLabel, fmt.Sprintf("%s=%s", tekton.LabelCodesetProject, *w.CodesetProject))
+		filter.CodesetProject = *w.CodesetProject
 	}
 	if w.Status != nil {
-		filters.ByStatus = append(filters.ByStatus, *w.Status)
+		filter.Status = []string{*w.Status}
 	}
 
 	for _, workflow := range workflows {

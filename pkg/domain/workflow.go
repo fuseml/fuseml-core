@@ -33,8 +33,10 @@ type WorkflowBackend interface {
 
 // WorkflowRunFilter defines the available filter when listing workflow runs
 type WorkflowRunFilter struct {
-	ByLabel  []string
-	ByStatus []string
+	WorkflowName   *string
+	CodesetName    string
+	CodesetProject string
+	Status         []string
 }
 
 // WorkflowListener defines a listener for a workflow

@@ -115,8 +115,11 @@ func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, workflowName st
 // ListWorkflowRuns returns a list of WorkflowRun for the given Workflow
 func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf *workflow.Workflow, filter *domain.WorkflowRunFilter) ([]*workflow.WorkflowRun, error) {
 	labelSelector := fmt.Sprintf("%s=%s", LabelWorkflowRef, wf.Name)
-	if filter.ByLabel != nil && len(filter.ByLabel) > 0 {
-		labelSelector = fmt.Sprintf("%s,%s", labelSelector, strings.Join(filter.ByLabel, ","))
+	if filter.CodesetName != "" {
+		labelSelector = fmt.Sprintf("%s,%s=%s", labelSelector, LabelCodesetName, filter.CodesetName)
+	}
+	if filter.CodesetProject != "" {
+		labelSelector = fmt.Sprintf("%s,%s=%s", labelSelector, LabelCodesetProject, filter.CodesetProject)
 	}
 	runs, err := w.tektonClients.PipelineRunClient.List(ctx, metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
@@ -124,9 +127,9 @@ func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf *workflow.Wor
 	}
 	workflowRuns := []*workflow.WorkflowRun{}
 
-	if filter.ByStatus != nil && len(filter.ByStatus) > 0 {
+	if filter.Status != nil && len(filter.Status) > 0 {
 		for _, run := range runs.Items {
-			if len(run.Status.Conditions) > 0 && contains(filter.ByStatus,
+			if len(run.Status.Conditions) > 0 && contains(filter.Status,
 				pipelineReasonToWorkflowStatus(run.Status.Conditions[0].Reason)) {
 				workflowRuns = append(workflowRuns, w.toWorkflowRun(wf, run))
 			}
@@ -437,7 +440,7 @@ func generateTriggerTemplate(p *v1beta1.Pipeline) *v1alpha1.TriggerTemplate {
 		} else {
 			ttb.Param(param.Name, param.Description)
 		}
-		// if there is a codeset paramter we also need to add the codeset-url as paramter to
+		// if there is a codeset parameter we also need to add the codeset-url as parameter to
 		// the template
 		resolver.addReference(param.Name, fmt.Sprintf("$(tt.params.%s)", param.Name))
 		switch param.Name {

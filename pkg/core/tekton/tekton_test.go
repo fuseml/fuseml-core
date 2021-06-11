@@ -262,9 +262,9 @@ func TestListWorkflowRuns(t *testing.T) {
 			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
 		}
 
-		filterEmpty := domain.WorkflowRunFilter{ByLabel: []string{}}
+		filterEmptyCsName := domain.WorkflowRunFilter{CodesetName: ""}
 		want = wants
-		got, err = b.ListWorkflowRuns(ctx, &w, &filterEmpty)
+		got, err = b.ListWorkflowRuns(ctx, &w, &filterEmptyCsName)
 		if err != nil {
 			t.Fatalf("Failed to list WorkflowRun: %s", err)
 		}
@@ -272,7 +272,17 @@ func TestListWorkflowRuns(t *testing.T) {
 			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
 		}
 
-		filterNoResult := domain.WorkflowRunFilter{ByLabel: []string{fmt.Sprintf("%s=%s", LabelCodesetName, "do-no-exist")}}
+		filterEmptyCsProject := domain.WorkflowRunFilter{CodesetName: ""}
+		want = wants
+		got, err = b.ListWorkflowRuns(ctx, &w, &filterEmptyCsProject)
+		if err != nil {
+			t.Fatalf("Failed to list WorkflowRun: %s", err)
+		}
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
+		}
+
+		filterNoResult := domain.WorkflowRunFilter{CodesetName: "do-no-exist"}
 		want = []*workflow.WorkflowRun{}
 		got, err = b.ListWorkflowRuns(ctx, &w, &filterNoResult)
 		if err != nil {
@@ -283,7 +293,7 @@ func TestListWorkflowRuns(t *testing.T) {
 		}
 
 		for i := 0; i < len(codesets); i++ {
-			filterCodesetName := domain.WorkflowRunFilter{ByLabel: []string{fmt.Sprintf("%s=%s", LabelCodesetName, codesets[i].Name)}}
+			filterCodesetName := domain.WorkflowRunFilter{CodesetName: codesets[i].Name}
 			want := []*workflow.WorkflowRun{wants[i]}
 			got, err := b.ListWorkflowRuns(ctx, &w, &filterCodesetName)
 			if err != nil {
@@ -296,7 +306,7 @@ func TestListWorkflowRuns(t *testing.T) {
 		}
 
 		for i := 0; i < len(codesets); i++ {
-			filterCodesetProject := domain.WorkflowRunFilter{ByLabel: []string{fmt.Sprintf("%s=%s", LabelCodesetProject, codesets[i].Project)}}
+			filterCodesetProject := domain.WorkflowRunFilter{CodesetProject: codesets[i].Project}
 			want := []*workflow.WorkflowRun{wants[i]}
 			got, err := b.ListWorkflowRuns(ctx, &w, &filterCodesetProject)
 			if err != nil {
@@ -309,8 +319,7 @@ func TestListWorkflowRuns(t *testing.T) {
 		}
 
 		for i := 0; i < len(codesets); i++ {
-			filterCodesetNameProject := domain.WorkflowRunFilter{ByLabel: []string{fmt.Sprintf("%s=%s", LabelCodesetName, codesets[i].Name),
-				fmt.Sprintf("%s=%s", LabelCodesetProject, codesets[i].Project)}}
+			filterCodesetNameProject := domain.WorkflowRunFilter{CodesetName: codesets[i].Name, CodesetProject: codesets[i].Project}
 			want := []*workflow.WorkflowRun{wants[i]}
 			got, err := b.ListWorkflowRuns(ctx, &w, &filterCodesetNameProject)
 			if err != nil {
@@ -363,7 +372,7 @@ func TestListWorkflowRuns(t *testing.T) {
 			})
 		}
 
-		filterNil := domain.WorkflowRunFilter{ByStatus: nil}
+		filterNil := domain.WorkflowRunFilter{Status: nil}
 		want := wants
 		got, err := b.ListWorkflowRuns(ctx, &w, &filterNil)
 		if err != nil {
@@ -373,7 +382,7 @@ func TestListWorkflowRuns(t *testing.T) {
 			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
 		}
 
-		filterEmpty := domain.WorkflowRunFilter{ByStatus: []string{}}
+		filterEmpty := domain.WorkflowRunFilter{Status: []string{}}
 		want = wants
 		got, err = b.ListWorkflowRuns(ctx, &w, &filterEmpty)
 		if err != nil {
@@ -383,7 +392,7 @@ func TestListWorkflowRuns(t *testing.T) {
 			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
 		}
 
-		filterNoResult := domain.WorkflowRunFilter{ByStatus: []string{"Timeout"}}
+		filterNoResult := domain.WorkflowRunFilter{Status: []string{"Timeout"}}
 		want = []*workflow.WorkflowRun{}
 		got, err = b.ListWorkflowRuns(ctx, &w, &filterNoResult)
 		if err != nil {
@@ -394,7 +403,7 @@ func TestListWorkflowRuns(t *testing.T) {
 		}
 
 		for i := 0; i < len(runsStatus); i++ {
-			filterStatus := domain.WorkflowRunFilter{ByStatus: []string{pipelineReasonToWorkflowStatus(runsStatus[i])}}
+			filterStatus := domain.WorkflowRunFilter{Status: []string{pipelineReasonToWorkflowStatus(runsStatus[i])}}
 			want := []*workflow.WorkflowRun{wants[i]}
 			got, err := b.ListWorkflowRuns(ctx, &w, &filterStatus)
 			if err != nil {
@@ -407,7 +416,7 @@ func TestListWorkflowRuns(t *testing.T) {
 
 		filterMultipleStatus := domain.WorkflowRunFilter{}
 		for i := 0; i < len(runsStatus); i++ {
-			filterMultipleStatus.ByStatus = append(filterMultipleStatus.ByStatus, pipelineReasonToWorkflowStatus(runsStatus[i]))
+			filterMultipleStatus.Status = append(filterMultipleStatus.Status, pipelineReasonToWorkflowStatus(runsStatus[i]))
 		}
 		want = wants
 		got, err = b.ListWorkflowRuns(ctx, &w, &filterMultipleStatus)
