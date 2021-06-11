@@ -219,7 +219,114 @@ func TestAssignToCodeset(t *testing.T) {
 }
 
 func TestUnassignFromCodeset(t *testing.T) {
+	t.Run("unassign", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
 
+		wf, err := mgr.Create(context.Background(), &workflow.Workflow{Name: "wf"})
+		assertError(t, err, nil)
+
+		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
+		var listener *domain.WorkflowListener
+		var webhookID *int64
+		webhooks := map[*domain.Codeset][]*int64{}
+		for i := 0; i < 2; i++ {
+			codeset := codesets[i]
+			listener, webhookID, err = mgr.AssignToCodeset(context.Background(), wf.Name, codeset.Project, codeset.Name)
+			assertError(t, err, nil)
+
+			if webhook, exists := webhooks[codeset]; exists {
+				webhooks[codeset] = append(webhook, webhookID)
+			} else {
+				webhooks[codeset] = []*int64{webhookID}
+			}
+		}
+
+		// delete wf assignment to cs0
+		err = mgr.UnassignFromCodeset(context.Background(), wf.Name, codesets[0].Project, codesets[0].Name)
+		assertError(t, err, nil)
+
+		// should have only one assignment to cs1
+		gotAss := workflowStore.GetAssignments(context.TODO(), &wf.Name)
+		wantAss := map[string][]*domain.AssignedCodeset{wf.Name: {{Codeset: codesets[1], WebhookID: webhooks[codesets[1]][0]}}}
+		if d := cmp.Diff(wantAss, gotAss); d != "" {
+			t.Errorf("Unexpected Assignment: %s", diff.PrintWantGot(d))
+		}
+
+		// listener should still exist
+		gotListener, err := workflowBackend.GetWorkflowListener(context.TODO(), wf.Name)
+		assertError(t, err, nil)
+		if d := cmp.Diff(listener, gotListener); d != "" {
+			t.Errorf("Unexpected Listener: %s", diff.PrintWantGot(d))
+		}
+
+		// delete wf assignment to cs1
+		err = mgr.UnassignFromCodeset(context.Background(), wf.Name, codesets[1].Project, codesets[1].Name)
+		assertError(t, err, nil)
+
+		// should have no assignment
+		gotAss = workflowStore.GetAssignments(context.TODO(), &wf.Name)
+		wantAss = map[string][]*domain.AssignedCodeset{}
+		if d := cmp.Diff(wantAss, gotAss); d != "" {
+			t.Errorf("Unexpected Assignment: %s", diff.PrintWantGot(d))
+		}
+
+		// listener should be gone
+		_, err = workflowBackend.GetWorkflowListener(context.TODO(), wf.Name)
+		assertStrings(t, err.Error(), "listener not found")
+	})
+
+	t.Run("workflow not found", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+
+		wfName := "unknownWf"
+		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
+		got := mgr.UnassignFromCodeset(context.Background(), wfName, codesets[0].Project, codesets[0].Name)
+		assertError(t, got, domain.ErrWorkflowNotFound)
+
+		// should have no assignment
+		gotAss := workflowStore.GetAssignments(context.TODO(), nil)
+		wantAss := map[string][]*domain.AssignedCodeset{}
+		if d := cmp.Diff(wantAss, gotAss); d != "" {
+			t.Errorf("Unexpected Assignment: %s", diff.PrintWantGot(d))
+		}
+
+		// should have no listener
+		_, err := workflowBackend.GetWorkflowListener(context.TODO(), wfName)
+		assertStrings(t, err.Error(), "listener not found")
+	})
+
+	t.Run("codeset not found", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+
+		wfName := "wf"
+		wf, err := mgr.Create(context.Background(), &workflow.Workflow{Name: wfName})
+		assertError(t, err, nil)
+
+		got := mgr.UnassignFromCodeset(context.Background(), wf.Name, "unknownProj", "unknownCs")
+		assertError(t, got, errCodesetNotFound)
+
+		// should have no assignment
+		gotAss := workflowStore.GetAssignments(context.TODO(), nil)
+		wantAss := map[string][]*domain.AssignedCodeset{}
+		if d := cmp.Diff(wantAss, gotAss); d != "" {
+			t.Errorf("Unexpected Assignment: %s", diff.PrintWantGot(d))
+		}
+
+		// should have no listener
+		_, err = workflowBackend.GetWorkflowListener(context.TODO(), wfName)
+		assertStrings(t, err.Error(), "listener not found")
+	})
+
+	t.Run("workflow not assigned", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+
+		wf, err := mgr.Create(context.Background(), &workflow.Workflow{Name: "wf"})
+		assertError(t, err, nil)
+
+		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
+		got := mgr.UnassignFromCodeset(context.Background(), wf.Name, codesets[0].Project, codesets[0].Name)
+		assertError(t, got, domain.ErrWorkflowNotAssignedToCodeset)
+	})
 }
 
 func TestListAssignments(t *testing.T) {
@@ -350,6 +457,12 @@ func (b *fakeWorkflowBackend) CreateWorkflowListener(ctx context.Context, workfl
 func (b *fakeWorkflowBackend) DeleteWorkflowListener(ctx context.Context, workflowName string) error {
 	b.t.Helper()
 
+	wf, exists := b.workflows[workflowName]
+	if !exists {
+		return nil
+	}
+
+	wf.listener = nil
 	return nil
 }
 
@@ -397,6 +510,7 @@ func (fcs *fakeCodesetStore) CreateWebhook(ctx context.Context, c *domain.Codese
 func (fcs *fakeCodesetStore) DeleteWebhook(ctx context.Context, c *domain.Codeset, id *int64) error {
 	fcs.t.Helper()
 
+	delete(fcs.store[codesetID{c.Name, c.Project}].webhooks, *id)
 	return nil
 }
 

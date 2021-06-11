@@ -126,13 +126,16 @@ func (ws *WorkflowStore) DeleteCodesetAssignment(ctx context.Context, workflowNa
 }
 
 // GetAssignedCodeset returns a AssignedCodeset for the Workflow and Codeset
-func (ws *WorkflowStore) GetAssignedCodeset(ctx context.Context, workflowName string, codeset *domain.Codeset) *domain.AssignedCodeset {
+func (ws *WorkflowStore) GetAssignedCodeset(ctx context.Context, workflowName string, codeset *domain.Codeset) (*domain.AssignedCodeset, error) {
 	sw, exists := ws.items[workflowName]
 	if !exists {
-		return nil
+		return nil, domain.ErrWorkflowNotFound
 	}
 	ac, _ := getAssignedCodeset(sw.assignedCodesets, codeset)
-	return ac
+	if ac == nil {
+		return nil, domain.ErrWorkflowNotAssignedToCodeset
+	}
+	return ac, nil
 }
 
 func getAssignedCodeset(assignedCodesets []*domain.AssignedCodeset, codeset *domain.Codeset) (*domain.AssignedCodeset, int) {

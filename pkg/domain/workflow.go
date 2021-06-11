@@ -42,7 +42,7 @@ type WorkflowStore interface {
 	GetWorkflows(ctx context.Context, name *string) []*workflow.Workflow
 	AddWorkflow(ctx context.Context, w *workflow.Workflow) (*workflow.Workflow, error)
 	DeleteWorkflow(ctx context.Context, name string) error
-	GetAssignedCodeset(ctx context.Context, workflowName string, codeset *Codeset) *AssignedCodeset
+	GetAssignedCodeset(ctx context.Context, workflowName string, codeset *Codeset) (*AssignedCodeset, error)
 	GetAssignedCodesets(ctx context.Context, workflowName string) []*AssignedCodeset
 	GetAssignments(ctx context.Context, workflowName *string) map[string][]*AssignedCodeset
 	AddCodesetAssignment(ctx context.Context, workflowName string, assignedCodeset *AssignedCodeset) []*AssignedCodeset

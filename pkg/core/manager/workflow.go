@@ -72,6 +72,31 @@ func (mgr *workflowManager) AssignToCodeset(ctx context.Context, name, codesetPr
 }
 
 func (mgr *workflowManager) UnassignFromCodeset(ctx context.Context, name, codesetProject, codesetName string) (err error) {
+	codeset, err := mgr.codesetStore.Find(ctx, codesetProject, codesetName)
+	if err != nil {
+		return err
+	}
+
+	assignment, err := mgr.workflowStore.GetAssignedCodeset(ctx, name, codeset)
+	if err != nil {
+		return err
+	}
+
+	if assignment.WebhookID != nil {
+		err = mgr.codesetStore.DeleteWebhook(ctx, codeset, assignment.WebhookID)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(mgr.workflowStore.GetAssignedCodesets(ctx, name)) == 1 {
+		err = mgr.workflowBackend.DeleteWorkflowListener(ctx, name)
+		if err != nil {
+			return err
+		}
+	}
+
+	mgr.workflowStore.DeleteCodesetAssignment(ctx, name, codeset)
 	return
 }
 
