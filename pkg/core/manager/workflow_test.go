@@ -153,7 +153,43 @@ func TestGet(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
+	t.Run("not assigned", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+		wf, err := mgr.Create(context.Background(), &workflow.Workflow{Name: "wf"})
+		assertError(t, err, nil)
 
+		err = mgr.Delete(context.Background(), wf.Name)
+		assertError(t, err, nil)
+
+		got := workflowStore.GetWorkflows(context.TODO(), &wf.Name)
+		if d := cmp.Diff([]*workflow.Workflow{}, got); d != "" {
+			t.Errorf("Unexpected Workflow: %s", diff.PrintWantGot(d))
+		}
+
+		err = workflowBackend.CreateWorkflowRun(context.TODO(), wf.Name, nil)
+		assertStrings(t, err.Error(), "workflow not found")
+
+	})
+
+	t.Run("assigned", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+
+		wf, err := mgr.Create(context.Background(), &workflow.Workflow{Name: "wf"})
+		assertError(t, err, nil)
+
+		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
+		_, _, got := mgr.AssignToCodeset(context.Background(), wf.Name, codesets[0].Project, codesets[0].Name)
+		assertError(t, got, nil)
+
+		err = mgr.Delete(context.Background(), wf.Name)
+		assertError(t, err, nil)
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+		err := mgr.Delete(context.Background(), "wf")
+		assertError(t, err, nil)
+	})
 }
 
 func TestAssignToCodeset(t *testing.T) {
@@ -732,6 +768,7 @@ func (b *fakeWorkflowBackend) CreateWorkflow(ctx context.Context, w *workflow.Wo
 func (b *fakeWorkflowBackend) DeleteWorkflow(ctx context.Context, workflowName string) error {
 	b.t.Helper()
 
+	delete(b.workflows, workflowName)
 	return nil
 }
 

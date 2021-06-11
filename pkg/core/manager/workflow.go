@@ -42,6 +42,26 @@ func (mgr *workflowManager) Get(ctx context.Context, name string) (*workflow.Wor
 }
 
 func (mgr *workflowManager) Delete(ctx context.Context, name string) error {
+	// unassign all assigned codesets, if there's any
+	assignedCodesets := mgr.workflowStore.GetAssignedCodesets(ctx, name)
+	for _, ac := range assignedCodesets {
+		err := mgr.UnassignFromCodeset(ctx, name, ac.Codeset.Project, ac.Codeset.Name)
+		if err != nil {
+			return err
+		}
+	}
+
+	// delete tekton pipeline
+	err := mgr.workflowBackend.DeleteWorkflow(ctx, name)
+	if err != nil {
+		return err
+	}
+
+	// delete workflow
+	err = mgr.workflowStore.DeleteWorkflow(ctx, name)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
