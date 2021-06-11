@@ -28,7 +28,7 @@ type workflowsrvc struct {
 
 // NewWorkflowService returns the workflow service implementation.
 func NewWorkflowService(logger *log.Logger, store domain.WorkflowStore, codesetStore domain.CodesetStore) (workflow.Service, error) {
-	backend, err := tekton.NewWorkflowBackend(config.FuseMLNamespace)
+	backend, err := tekton.NewWorkflowBackend(logger, config.FuseMLNamespace)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +44,7 @@ func (s *workflowsrvc) List(ctx context.Context, w *workflow.ListPayload) (res [
 // Create a new Workflow.
 func (s *workflowsrvc) Create(ctx context.Context, w *workflow.Workflow) (res *workflow.Workflow, err error) {
 	s.logger.Print("workflow.create")
-	err = s.backend.CreateWorkflow(ctx, s.logger, w)
+	err = s.backend.CreateWorkflow(ctx, w)
 	if err != nil {
 		s.logger.Print(err)
 		if err.Error() == "workflow already exists" {
@@ -79,7 +79,7 @@ func (s *workflowsrvc) Delete(ctx context.Context, d *workflow.DeletePayload) (e
 	}
 
 	// delete tekton pipeline
-	err = s.backend.DeleteWorkflow(ctx, s.logger, d.Name)
+	err = s.backend.DeleteWorkflow(ctx, d.Name)
 	if err != nil {
 		s.logger.Print(err)
 		return err
@@ -108,7 +108,7 @@ func (s *workflowsrvc) Assign(ctx context.Context, w *workflow.AssignPayload) (e
 		return workflow.MakeNotFound(err)
 	}
 
-	wfListener, err := s.backend.CreateWorkflowListener(ctx, s.logger, w.Name, createWorkflowListenerTimeout*time.Minute)
+	wfListener, err := s.backend.CreateWorkflowListener(ctx, w.Name, createWorkflowListenerTimeout*time.Minute)
 	if err != nil {
 		s.logger.Print(err)
 		return err
@@ -122,7 +122,7 @@ func (s *workflowsrvc) Assign(ctx context.Context, w *workflow.AssignPayload) (e
 
 	s.store.AddCodesetAssignment(ctx, w.Name, &domain.AssignedCodeset{Codeset: codeset, WebhookID: webhookID})
 
-	err = s.backend.CreateWorkflowRun(ctx, s.logger, w.Name, codeset)
+	err = s.backend.CreateWorkflowRun(ctx, w.Name, codeset)
 	if err != nil {
 		s.logger.Print(err)
 		return err
@@ -239,7 +239,7 @@ func (s *workflowsrvc) unassignCodesetFromWorkflow(ctx context.Context, workflow
 	}
 
 	if len(s.store.GetAssignedCodesets(ctx, workflowName)) == 1 {
-		err = s.backend.DeleteWorkflowListener(ctx, s.logger, workflowName)
+		err = s.backend.DeleteWorkflowListener(ctx, workflowName)
 		if err != nil {
 			s.logger.Print(err)
 			return err
