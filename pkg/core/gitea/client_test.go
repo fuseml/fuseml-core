@@ -69,6 +69,9 @@ func (tc testGiteaClient) GetUserInfo(string) (*gitea.User, *gitea.Response, err
 func (tc testGiteaClient) AdminCreateUser(gitea.CreateUserOption) (*gitea.User, *gitea.Response, error) {
 	return nil, nil, nil
 }
+func (tc testGiteaClient) AdminDeleteUser(user string) (*gitea.Response, error) {
+	return nil, nil
+}
 func (tc testGiteaClient) ListOrgTeams(string, gitea.ListTeamsOptions) ([]*gitea.Team, *gitea.Response, error) {
 	// return default team for any org
 	teams := []*gitea.Team{{Name: "Owners", ID: 42}}
@@ -77,6 +80,9 @@ func (tc testGiteaClient) ListOrgTeams(string, gitea.ListTeamsOptions) ([]*gitea
 func (tc testGiteaClient) AddTeamMember(id int64, username string) (*gitea.Response, error) {
 	tc.testStore.teams[id] = append(tc.testStore.teams[id], username)
 	return nil, nil
+}
+func (tc testGiteaClient) DeleteOrgMembership(org, user string) (*gitea.Response, error) {
+	return &gitea.Response{Response: &httpResp200}, nil
 }
 
 func (tc testGiteaClient) ListTeamMembers(id int64, opts gitea.ListTeamMembersOptions) ([]*gitea.User, *gitea.Response, error) {
@@ -107,6 +113,11 @@ func (tc testGiteaClient) ListOrgRepos(org string, opt gitea.ListOrgReposOptions
 	return repos, nil, nil
 }
 
+func (tc testGiteaClient) ListUserOrgs(user string, opt gitea.ListOrgsOptions) ([]*gitea.Organization, *gitea.Response, error) {
+	userOrgs := make([]*gitea.Organization, 0)
+	return userOrgs, nil, nil
+}
+
 func (tc testGiteaClient) CreateRepoHook(string, string, gitea.CreateHookOption) (*gitea.Hook, *gitea.Response, error) {
 	return &gitea.Hook{ID: int64(1)}, nil, nil
 }
@@ -127,6 +138,10 @@ func (tc testGiteaClient) ListMyOrgs(gitea.ListOrgsOptions) ([]*gitea.Organizati
 
 func (tc testGiteaClient) DeleteRepo(owner, repo string) (*gitea.Response, error) {
 	delete(tc.testStore.projects2repos[owner], repo)
+	return nil, nil
+}
+
+func (tc testGiteaClient) DeleteOrg(orgname string) (*gitea.Response, error) {
 	return nil, nil
 }
 
