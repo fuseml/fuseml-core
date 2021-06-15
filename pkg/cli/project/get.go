@@ -1,10 +1,8 @@
 package project
 
 import (
-	"context"
 	"os"
 
-	projectc "github.com/fuseml/fuseml-core/gen/http/project/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	"github.com/spf13/cobra"
@@ -53,17 +51,12 @@ func (o *GetOptions) validate() error {
 }
 
 func (o *GetOptions) run() error {
-	request, err := projectc.BuildGetPayload(o.Name)
+	project, err := o.ProjectClient.Get(o.Name)
 	if err != nil {
 		return err
 	}
 
-	response, err := o.ProjectClient.Get()(context.Background(), request)
-	if err != nil {
-		return err
-	}
-
-	o.format.FormatValue(os.Stdout, response)
+	o.format.FormatValue(os.Stdout, project)
 
 	return nil
 }

@@ -1,10 +1,8 @@
 package project
 
 import (
-	"context"
 	"fmt"
 
-	projectc "github.com/fuseml/fuseml-core/gen/http/project/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	"github.com/spf13/cobra"
@@ -49,12 +47,7 @@ func (o *DeleteOptions) validate() error {
 }
 
 func (o *DeleteOptions) run() error {
-	request, err := projectc.BuildDeletePayload(o.Name)
-	if err != nil {
-		return err
-	}
-
-	_, err = o.ProjectClient.Delete()(context.Background(), request)
+	err := o.ProjectClient.Delete(o.Name)
 	if err != nil {
 		return err
 	}

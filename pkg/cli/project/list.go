@@ -1,11 +1,9 @@
 package project
 
 import (
-	"context"
 	"fmt"
 	"os"
 
-	projectc "github.com/fuseml/fuseml-core/gen/http/project/client"
 	project "github.com/fuseml/fuseml-core/gen/project"
 
 	"github.com/fuseml/fuseml-core/pkg/cli/client"
@@ -72,12 +70,12 @@ func (o *ListOptions) validate() error {
 }
 
 func (o *ListOptions) run() error {
-	response, err := o.ProjectClient.List()(context.Background(), nil)
+	projects, err := o.ProjectClient.List()
 	if err != nil {
 		return err
 	}
 
-	o.format.FormatValue(os.Stdout, response)
+	o.format.FormatValue(os.Stdout, projects)
 
 	return nil
 }
