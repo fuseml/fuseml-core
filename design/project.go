@@ -56,6 +56,45 @@ var _ = Service("project", func() {
 		})
 	})
 
+	Method("create", func() {
+		Description("Create a new Project.")
+
+		Payload(func() {
+			Field(1, "name", String, "The name of the Project", func() {
+				Example("mlflow-project-01")
+				Pattern(`^[A-Za-z0-9_][A-Za-z0-9-_]*$`)
+			})
+			Field(2, "description", String, "Project description", func() {
+				Example("Set of MLFlow applications")
+				Default("")
+			})
+			Required("name")
+		})
+
+		Error("BadRequest", func() {
+			Description("If the project does not have the required fields, should return 400 Bad Request.")
+		})
+		Error("Conflict", func() {
+			Description("If a project with the same name already exists, should return 409 Conflict.")
+		})
+		Result(Project)
+
+		HTTP(func() {
+			POST("/projects")
+			Param("name")
+			Param("description")
+			Response(StatusCreated)
+			Response("BadRequest", StatusBadRequest)
+			Response("Conflict", StatusConflict)
+		})
+
+		GRPC(func() {
+			Response(CodeOK)
+			Response("BadRequest", CodeInvalidArgument)
+			Response("Conflict", CodeAlreadyExists)
+		})
+	})
+
 	Method("delete", func() {
 		Description("Delete a FuseML Project.")
 

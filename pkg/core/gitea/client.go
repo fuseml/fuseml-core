@@ -23,6 +23,7 @@ type AdminClient interface {
 	GetProjects() ([]*domain.Project, error)
 	GetProject(org string) (*domain.Project, error)
 	DeleteProject(org string) error
+	CreateProject(string, string, bool) (*domain.Project, error)
 }
 
 // Client describes the interface of Gitea Client
@@ -61,6 +62,7 @@ var errGITEAURLMissing = "Value for gitea URL (GITEA_URL) was not provided."
 var errGITEAADMINUSERNAMEMissing = "Value for gitea admin user name (GITEA_ADMIN_USERNAME) was not provided."
 var errGITEAADMINPASSWORDMissing = "Value for gitea admin user password (GITEA_ADMIN_PASSWORD) was not provided."
 var errRepoNotFound = "Repository by that name not found"
+var errProjectExists = "Project with that name already exists"
 var lettersForPassword = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 var generatedPasswordLength = 16
 
@@ -120,28 +122,44 @@ func (gac giteaAdminClient) GetGiteaURL() (string, error) {
 	return gac.url, nil
 }
 
-// CreateOrg creates an Org in gitea
-func (gac giteaAdminClient) CreateOrganization(org string) error {
+// Create a Project (= implemented as Organization in git).
+// If ignoreExisting argument is true, the call will not fail when a project with same name already exists.
+func (gac giteaAdminClient) CreateProject(name, desc string, ignoreExisting bool) (*domain.Project, error) {
+	gac.logger.Printf("Creating project %s....", name)
 
-	gac.logger.Println("creating org " + org)
-	_, resp, err := gac.giteaClient.GetOrg(org)
+	_, resp, err := gac.giteaClient.GetOrg(name)
 	if resp == nil && err != nil {
-		return errors.Wrap(err, "Failed to make get org request")
+		return nil, errors.Wrap(err, "Failed to make get org request")
 	}
 
 	if resp != nil && resp.StatusCode == 200 {
-		gac.logger.Printf("Organization already exists.")
-		return nil
+		gac.logger.Printf("Project already exists.")
+		if ignoreExisting {
+			return nil, nil
+		}
+		return nil, errors.New(errProjectExists)
 	}
 
 	_, _, err = gac.giteaClient.CreateOrg(gitea.CreateOrgOption{
-		Name: org,
+		Name:        name,
+		Description: desc,
 	})
 
 	if err != nil {
-		return errors.Wrap(err, "Failed to create org")
+		return nil, errors.Wrap(err, "Failed to create project")
 	}
-	return nil
+
+	return &domain.Project{
+		Name:        name,
+		Description: desc,
+	}, nil
+}
+
+// CreateOrg creates an Org in gitea. Does not return an error if it already exists
+func (gac giteaAdminClient) createOrganizationIfNotPresent(org string) error {
+
+	_, err := gac.CreateProject(org, "", true)
+	return err
 }
 
 // create user assigned to current project
@@ -283,7 +301,7 @@ func (gac giteaAdminClient) DeleteRepoWebhook(org, name string, hookID *int64) e
 // Prepare the org, repository, and create user that clients can use for pushing
 func (gac giteaAdminClient) PrepareRepository(code *domain.Codeset, listenerURL *string) (*string, *string, error) {
 
-	err := gac.CreateOrganization(code.Project)
+	err := gac.createOrganizationIfNotPresent(code.Project)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Create org failed")
 	}

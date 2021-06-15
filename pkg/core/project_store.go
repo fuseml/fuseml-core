@@ -29,6 +29,15 @@ func (cs *GitProjectStore) Find(ctx context.Context, project string) (*domain.Pr
 	return result, nil
 }
 
+// Create creates a new project
+func (cs *GitProjectStore) Create(ctx context.Context, name, desc string) (*domain.Project, error) {
+	result, err := cs.gitAdmin.CreateProject(name, desc, false)
+	if err != nil {
+		return nil, errors.Wrap(err, "Creating Project failed")
+	}
+	return result, nil
+}
+
 // GetAll returns all projects matching given project and label
 func (cs *GitProjectStore) GetAll(ctx context.Context) ([]*domain.Project, error) {
 	result, err := cs.gitAdmin.GetProjects()

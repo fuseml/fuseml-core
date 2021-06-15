@@ -25,4 +25,5 @@ type ProjectStore interface {
 	Find(ctx context.Context, name string) (*Project, error)
 	GetAll(ctx context.Context) ([]*Project, error)
 	Delete(ctx context.Context, name string) error
+	Create(ctx context.Context, name, desc string) (*Project, error)
 }

@@ -57,6 +57,18 @@ func (s *projectsrvc) Get(ctx context.Context, p *project.GetPayload) (res *proj
 	return projectDomainToRest(c), nil
 }
 
+func (s *projectsrvc) Create(ctx context.Context, p *project.CreatePayload) (res *project.Project, err error) {
+	s.logger.Print("project.create")
+	c, err := s.store.Create(ctx, p.Name, p.Description)
+	if err != nil {
+		if err.Error() == "Project with that name already exists" {
+			return nil, project.MakeConflict(err)
+		}
+		return nil, err
+	}
+	return projectDomainToRest(c), nil
+}
+
 func (s *projectsrvc) Delete(ctx context.Context, p *project.DeletePayload) error {
 	s.logger.Print("project.delete")
 	return s.store.Delete(ctx, p.Name)

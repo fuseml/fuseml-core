@@ -13,6 +13,7 @@ func NewCmdProject(c *common.GlobalOptions) *cobra.Command {
 		Long:  `Perform operations on projects`,
 	}
 
+	cmd.AddCommand(NewSubCmdProjectCreate(c))
 	cmd.AddCommand(NewSubCmdProjectDelete(c))
 	cmd.AddCommand(NewSubCmdProjectGet(c))
 	cmd.AddCommand(NewSubCmdProjectList(c))
