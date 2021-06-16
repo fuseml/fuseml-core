@@ -20,6 +20,7 @@ type Clients struct {
 	CodesetClient     *codesetc.Client
 	ApplicationClient *applicationc.Client
 	WorkflowClient    *WorkflowClient
+	ProjectClient     *ProjectClient
 	RunnableClient    *runnablec.Client
 	VersionClient     *VersionClient
 }
@@ -50,11 +51,12 @@ func (c *Clients) InitializeClients(URL string, timeout int, verbose bool) error
 		doer = goahttp.NewDebugDoer(doer)
 	}
 
-	c.CodesetClient = codesetc.NewClient(scheme, host, doer, encoder, decoder, verbose)
 	c.ApplicationClient = applicationc.NewClient(scheme, host, doer, encoder, decoder, verbose)
-	c.WorkflowClient = NewWorkflowClient(scheme, host, doer, encoder, decoder, verbose)
+	c.CodesetClient = codesetc.NewClient(scheme, host, doer, encoder, decoder, verbose)
+	c.ProjectClient = NewProjectClient(scheme, host, doer, encoder, decoder, verbose)
 	c.RunnableClient = runnablec.NewClient(scheme, host, doer, encoder, decoder, verbose)
 	c.VersionClient = NewVersionClient(scheme, host, doer, encoder, decoder, verbose)
+	c.WorkflowClient = NewWorkflowClient(scheme, host, doer, encoder, decoder, verbose)
 
 	return nil
 }

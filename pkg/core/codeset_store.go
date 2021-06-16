@@ -16,6 +16,10 @@ type GitAdmin interface {
 	GetRepositories(org, label *string) ([]*domain.Codeset, error)
 	GetRepository(org, name string) (*domain.Codeset, error)
 	DeleteRepository(org, name string) error
+	GetProjects() ([]*domain.Project, error)
+	GetProject(org string) (*domain.Project, error)
+	DeleteProject(org string) error
+	CreateProject(string, string, bool) (*domain.Project, error)
 }
 
 // GitCodesetStore describes a stucture that accesses codeset store implemented in git

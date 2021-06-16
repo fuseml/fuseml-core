@@ -20,6 +20,10 @@ type AdminClient interface {
 	GetRepositories(org, label *string) ([]*domain.Codeset, error)
 	GetRepository(org, name string) (*domain.Codeset, error)
 	DeleteRepository(org, name string) error
+	GetProjects() ([]*domain.Project, error)
+	GetProject(org string) (*domain.Project, error)
+	DeleteProject(org string) error
+	CreateProject(string, string, bool) (*domain.Project, error)
 }
 
 // Client describes the interface of Gitea Client
@@ -28,8 +32,10 @@ type Client interface {
 	CreateOrg(gitea.CreateOrgOption) (*gitea.Organization, *gitea.Response, error)
 	GetUserInfo(string) (*gitea.User, *gitea.Response, error)
 	AdminCreateUser(gitea.CreateUserOption) (*gitea.User, *gitea.Response, error)
+	AdminDeleteUser(string) (*gitea.Response, error)
 	ListOrgTeams(string, gitea.ListTeamsOptions) ([]*gitea.Team, *gitea.Response, error)
 	AddTeamMember(int64, string) (*gitea.Response, error)
+	ListTeamMembers(int64, gitea.ListTeamMembersOptions) ([]*gitea.User, *gitea.Response, error)
 	GetRepo(string, string) (*gitea.Repository, *gitea.Response, error)
 	CreateOrgRepo(string, gitea.CreateRepoOption) (*gitea.Repository, *gitea.Response, error)
 	AddRepoTopic(string, string, string) (*gitea.Response, error)
@@ -39,7 +45,10 @@ type Client interface {
 	DeleteRepoHook(string, string, int64) (*gitea.Response, error)
 	ListRepoTopics(string, string, gitea.ListRepoTopicsOptions) ([]string, *gitea.Response, error)
 	ListMyOrgs(gitea.ListOrgsOptions) ([]*gitea.Organization, *gitea.Response, error)
+	ListUserOrgs(string, gitea.ListOrgsOptions) ([]*gitea.Organization, *gitea.Response, error)
 	DeleteRepo(string, string) (*gitea.Response, error)
+	DeleteOrg(string) (*gitea.Response, error)
+	DeleteOrgMembership(org, user string) (*gitea.Response, error)
 }
 
 // giteaAdminClient is the struct holding information about gitea client
@@ -53,6 +62,7 @@ var errGITEAURLMissing = "Value for gitea URL (GITEA_URL) was not provided."
 var errGITEAADMINUSERNAMEMissing = "Value for gitea admin user name (GITEA_ADMIN_USERNAME) was not provided."
 var errGITEAADMINPASSWORDMissing = "Value for gitea admin user password (GITEA_ADMIN_PASSWORD) was not provided."
 var errRepoNotFound = "Repository by that name not found"
+var errProjectExists = "Project with that name already exists"
 var lettersForPassword = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 var generatedPasswordLength = 16
 
@@ -112,28 +122,44 @@ func (gac giteaAdminClient) GetGiteaURL() (string, error) {
 	return gac.url, nil
 }
 
-// CreateOrg creates an Org in gitea
-func (gac giteaAdminClient) CreateOrganization(org string) error {
+// Create a Project (= implemented as Organization in git).
+// If ignoreExisting argument is true, the call will not fail when a project with same name already exists.
+func (gac giteaAdminClient) CreateProject(name, desc string, ignoreExisting bool) (*domain.Project, error) {
+	gac.logger.Printf("Creating project %s....", name)
 
-	gac.logger.Println("creating org " + org)
-	_, resp, err := gac.giteaClient.GetOrg(org)
+	_, resp, err := gac.giteaClient.GetOrg(name)
 	if resp == nil && err != nil {
-		return errors.Wrap(err, "Failed to make get org request")
+		return nil, errors.Wrap(err, "Failed to make get org request")
 	}
 
 	if resp != nil && resp.StatusCode == 200 {
-		gac.logger.Printf("Organization already exists.")
-		return nil
+		gac.logger.Printf("Project already exists.")
+		if ignoreExisting {
+			return nil, nil
+		}
+		return nil, errors.New(errProjectExists)
 	}
 
 	_, _, err = gac.giteaClient.CreateOrg(gitea.CreateOrgOption{
-		Name: org,
+		Name:        name,
+		Description: desc,
 	})
 
 	if err != nil {
-		return errors.Wrap(err, "Failed to create org")
+		return nil, errors.Wrap(err, "Failed to create project")
 	}
-	return nil
+
+	return &domain.Project{
+		Name:        name,
+		Description: desc,
+	}, nil
+}
+
+// CreateOrg creates an Org in gitea. Does not return an error if it already exists
+func (gac giteaAdminClient) createOrganizationIfNotPresent(org string) error {
+
+	_, err := gac.CreateProject(org, "", true)
+	return err
 }
 
 // create user assigned to current project
@@ -275,7 +301,7 @@ func (gac giteaAdminClient) DeleteRepoWebhook(org, name string, hookID *int64) e
 // Prepare the org, repository, and create user that clients can use for pushing
 func (gac giteaAdminClient) PrepareRepository(code *domain.Codeset, listenerURL *string) (*string, *string, error) {
 
-	err := gac.CreateOrganization(code.Project)
+	err := gac.createOrganizationIfNotPresent(code.Project)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Create org failed")
 	}
@@ -412,5 +438,129 @@ func (gac giteaAdminClient) DeleteRepository(org, name string) error {
 	if err != nil {
 		return errors.Wrap(err, "Failed to delete repository")
 	}
+	return nil
+}
+
+// return all non-admin users that are Owners for given organization
+func (gac giteaAdminClient) getProjectOwners(name string) ([]*domain.User, error) {
+
+	var ret []*domain.User
+	teams, _, err := gac.giteaClient.ListOrgTeams(name, gitea.ListTeamsOptions{})
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to list org teams")
+	}
+	for _, team := range teams {
+		if team.Name != "Owners" {
+			continue
+		}
+		users, _, err := gac.giteaClient.ListTeamMembers(team.ID, gitea.ListTeamMembersOptions{})
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed listing members of Owners team")
+		}
+		for _, u := range users {
+			if u.IsAdmin {
+				continue
+			}
+			ret = append(ret, &domain.User{
+				Name:  u.UserName,
+				Email: u.Email,
+			})
+		}
+		break // no need to continue after checking Owners
+	}
+	return ret, nil
+}
+
+// get all projects
+func (gac giteaAdminClient) GetProjects() ([]*domain.Project, error) {
+	gac.logger.Printf("listing git orgs....")
+
+	orgs, _, err := gac.giteaClient.ListMyOrgs(gitea.ListOrgsOptions{})
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to list orgs")
+	}
+
+	var ret []*domain.Project
+	for _, o := range orgs {
+		users, err := gac.getProjectOwners(o.UserName)
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, &domain.Project{
+			Name:        o.UserName,
+			Description: o.Description,
+			Users:       users,
+		})
+	}
+	return ret, nil
+}
+
+// return project specified by name
+func (gac giteaAdminClient) GetProject(name string) (*domain.Project, error) {
+	gac.logger.Printf("Fetching git org %s....", name)
+
+	org, _, err := gac.giteaClient.GetOrg(name)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to make get org request")
+	}
+	users, err := gac.getProjectOwners(name)
+	if err != nil {
+		return nil, err
+	}
+	ret := domain.Project{
+		Name:        org.UserName,
+		Description: org.Description,
+		Users:       users,
+	}
+	return &ret, nil
+}
+
+func (gac giteaAdminClient) DeleteProject(org string) error {
+	gac.logger.Printf("Deleting project %s....", org)
+	// 1. check if they are no repos
+	repos, _, err := gac.giteaClient.ListOrgRepos(org, gitea.ListOrgReposOptions{})
+	if err != nil {
+		return errors.Wrap(err, "Failed to list project repos")
+	}
+
+	if len(repos) > 0 {
+		return errors.New("Project has still codesets assigned. Delete them first")
+	}
+
+	// 2. delete all members of the project, if they are not owning any other project
+	owners, err := gac.getProjectOwners(org)
+	if err != nil {
+		return errors.Wrap(err, "Failed to list project owners")
+	}
+	usersOrgs := make(map[string]int)
+	for _, owner := range owners {
+		orgsForUser, _, err := gac.giteaClient.ListUserOrgs(owner.Name, gitea.ListOrgsOptions{})
+		if err != nil {
+			return errors.Wrap(err, "Failed to list orgs for user")
+		}
+		for range orgsForUser {
+			usersOrgs[owner.Name]++
+		}
+	}
+	for userName, orgNumber := range usersOrgs {
+		if orgNumber == 1 {
+			gac.logger.Printf("Removing user %s from %s ....", userName, org)
+			if _, err := gac.giteaClient.DeleteOrgMembership(org, userName); err != nil {
+				return errors.Wrap(err, "Failed to remove user from project")
+			}
+
+			gac.logger.Printf("Deleting user %s....", userName)
+			if _, err := gac.giteaClient.AdminDeleteUser(userName); err != nil {
+				return errors.Wrap(err, "Failed to delete user")
+			}
+		}
+	}
+
+	// 3. delete org now
+	_, err = gac.giteaClient.DeleteOrg(org)
+	if err != nil {
+		return errors.Wrap(err, "Failed deleting project")
+	}
+
 	return nil
 }

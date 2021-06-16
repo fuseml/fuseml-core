@@ -13,10 +13,13 @@ import (
 	applicationsvr "github.com/fuseml/fuseml-core/gen/grpc/application/server"
 	codesetpb "github.com/fuseml/fuseml-core/gen/grpc/codeset/pb"
 	codesetsvr "github.com/fuseml/fuseml-core/gen/grpc/codeset/server"
+	projectpb "github.com/fuseml/fuseml-core/gen/grpc/project/pb"
+	projectsvr "github.com/fuseml/fuseml-core/gen/grpc/project/server"
 	runnablepb "github.com/fuseml/fuseml-core/gen/grpc/runnable/pb"
 	runnablesvr "github.com/fuseml/fuseml-core/gen/grpc/runnable/server"
 	workflowpb "github.com/fuseml/fuseml-core/gen/grpc/workflow/pb"
 	workflowsvr "github.com/fuseml/fuseml-core/gen/grpc/workflow/server"
+	project "github.com/fuseml/fuseml-core/gen/project"
 	runnable "github.com/fuseml/fuseml-core/gen/runnable"
 	workflow "github.com/fuseml/fuseml-core/gen/workflow"
 
@@ -29,7 +32,7 @@ import (
 
 // handleGRPCServer starts configures and starts a gRPC server on the given
 // URL. It shuts down the server if any error is received in the error channel.
-func handleGRPCServer(ctx context.Context, u *url.URL, runnableEndpoints *runnable.Endpoints, codesetEndpoints *codeset.Endpoints, workflowEndpoints *workflow.Endpoints, applicationEndpoints *application.Endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
+func handleGRPCServer(ctx context.Context, u *url.URL, runnableEndpoints *runnable.Endpoints, codesetEndpoints *codeset.Endpoints, projectEndpoints *project.Endpoints, workflowEndpoints *workflow.Endpoints, applicationEndpoints *application.Endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
 	// Setup goa log adapter.
 	var (
 		adapter middleware.Logger
@@ -46,12 +49,14 @@ func handleGRPCServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 		applicationServer *applicationsvr.Server
 		runnableServer    *runnablesvr.Server
 		codesetServer     *codesetsvr.Server
+		projectServer     *projectsvr.Server
 		workflowServer    *workflowsvr.Server
 	)
 	{
 		applicationServer = applicationsvr.New(applicationEndpoints, nil)
 		runnableServer = runnablesvr.New(runnableEndpoints, nil)
 		codesetServer = codesetsvr.New(codesetEndpoints, nil)
+		projectServer = projectsvr.New(projectEndpoints, nil)
 		workflowServer = workflowsvr.New(workflowEndpoints, nil)
 	}
 
@@ -67,6 +72,7 @@ func handleGRPCServer(ctx context.Context, u *url.URL, runnableEndpoints *runnab
 	applicationpb.RegisterApplicationServer(srv, applicationServer)
 	runnablepb.RegisterRunnableServer(srv, runnableServer)
 	codesetpb.RegisterCodesetServer(srv, codesetServer)
+	projectpb.RegisterProjectServer(srv, projectServer)
 	workflowpb.RegisterWorkflowServer(srv, workflowServer)
 
 	for svc, info := range srv.GetServiceInfo() {

@@ -19,6 +19,10 @@ type GlobalOptions struct {
 	Timeout int
 	// Verbose mode prints out additional information
 	Verbose bool
+	// CurrentProject says which project to use if "project" flag is not passed
+	CurrentProject string
+	// CurrentCodeset sets which codeset to use if the name is not provided
+	CurrentCodeset string
 }
 
 // Validate validates the global configuration
