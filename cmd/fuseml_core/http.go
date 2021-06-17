@@ -11,8 +11,6 @@ import (
 	"sync"
 	"time"
 
-	application "github.com/fuseml/fuseml-core/gen/application"
-	codeset "github.com/fuseml/fuseml-core/gen/codeset"
 	applicationsvr "github.com/fuseml/fuseml-core/gen/http/application/server"
 	codesetsvr "github.com/fuseml/fuseml-core/gen/http/codeset/server"
 	openapisvr "github.com/fuseml/fuseml-core/gen/http/openapi/server"
@@ -20,10 +18,6 @@ import (
 	runnablesvr "github.com/fuseml/fuseml-core/gen/http/runnable/server"
 	versionsvr "github.com/fuseml/fuseml-core/gen/http/version/server"
 	workflowsvr "github.com/fuseml/fuseml-core/gen/http/workflow/server"
-	project "github.com/fuseml/fuseml-core/gen/project"
-	runnable "github.com/fuseml/fuseml-core/gen/runnable"
-	"github.com/fuseml/fuseml-core/gen/version"
-	workflow "github.com/fuseml/fuseml-core/gen/workflow"
 
 	"github.com/goccy/go-yaml"
 	goahttp "goa.design/goa/v3/http"
@@ -33,7 +27,7 @@ import (
 
 // handleHTTPServer starts configures and starts a HTTP server on the given
 // URL. It shuts down the server if any error is received in the error channel.
-func handleHTTPServer(ctx context.Context, u *url.URL, versionEndpoints *version.Endpoints, runnableEndpoints *runnable.Endpoints, codesetEndpoints *codeset.Endpoints, projectEndpoints *project.Endpoints, workflowEndpoints *workflow.Endpoints, applicationEndpoints *application.Endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
+func handleHTTPServer(ctx context.Context, u *url.URL, endpoints *endpoints, wg *sync.WaitGroup, errc chan error, logger *log.Logger, debug bool) {
 	// Setup goa log adapter.
 	var (
 		adapter middleware.Logger
@@ -73,13 +67,13 @@ func handleHTTPServer(ctx context.Context, u *url.URL, versionEndpoints *version
 	)
 	{
 		eh := errorHandler(logger)
-		versionServer = versionsvr.New(versionEndpoints, mux, dec, enc, eh, nil)
-		applicationServer = applicationsvr.New(applicationEndpoints, mux, dec, enc, eh, nil)
-		runnableServer = runnablesvr.New(runnableEndpoints, mux, dec, enc, eh, nil)
-		codesetServer = codesetsvr.New(codesetEndpoints, mux, dec, enc, eh, nil)
-		projectServer = projectsvr.New(projectEndpoints, mux, dec, enc, eh, nil)
+		versionServer = versionsvr.New(endpoints.version, mux, dec, enc, eh, nil)
+		applicationServer = applicationsvr.New(endpoints.application, mux, dec, enc, eh, nil)
+		runnableServer = runnablesvr.New(endpoints.runnable, mux, dec, enc, eh, nil)
+		codesetServer = codesetsvr.New(endpoints.codeset, mux, dec, enc, eh, nil)
+		projectServer = projectsvr.New(endpoints.project, mux, dec, enc, eh, nil)
+		workflowServer = workflowsvr.New(endpoints.workflow, mux, dec, enc, eh, nil)
 		openapiServer = openapisvr.New(nil, mux, dec, enc, eh, nil)
-		workflowServer = workflowsvr.New(workflowEndpoints, mux, dec, enc, eh, nil)
 		if debug {
 			servers := goahttp.Servers{
 				versionServer,

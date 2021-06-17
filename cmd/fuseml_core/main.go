@@ -18,14 +18,18 @@ import (
 	"github.com/fuseml/fuseml-core/gen/runnable"
 	"github.com/fuseml/fuseml-core/gen/version"
 	"github.com/fuseml/fuseml-core/gen/workflow"
-	"github.com/fuseml/fuseml-core/pkg/core"
 	"github.com/fuseml/fuseml-core/pkg/core/config"
-	"github.com/fuseml/fuseml-core/pkg/core/gitea"
-	"github.com/fuseml/fuseml-core/pkg/core/manager"
-	"github.com/fuseml/fuseml-core/pkg/core/tekton"
-	"github.com/fuseml/fuseml-core/pkg/svc"
 	ver "github.com/fuseml/fuseml-core/pkg/version"
 )
+
+type endpoints struct {
+	application *application.Endpoints
+	codeset     *codeset.Endpoints
+	project     *project.Endpoints
+	runnable    *runnable.Endpoints
+	version     *version.Endpoints
+	workflow    *workflow.Endpoints
+}
 
 func main() {
 	// Define command line flags, add any other flag required to configure the
@@ -50,60 +54,10 @@ func main() {
 
 	logger.Printf("version: %s", ver.GetInfoStr())
 
-	gitAdmin, err := gitea.NewAdminClient(logger)
+	endpoints, err := InitializeEndpoints(logger, config.FuseMLNamespace)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to initialize Gitea admin client: ", err.Error())
+		fmt.Fprintln(os.Stderr, "Failed to initialize fuseml-core: ", err.Error())
 		os.Exit(1)
-	}
-
-	workflowBackend, err := tekton.NewWorkflowBackend(logger, config.FuseMLNamespace)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Failed to initialize Tekton workflow nackend: ", err.Error())
-		os.Exit(1)
-	}
-
-	// Initialize the services.
-	var (
-		versionSvc     version.Service
-		applicationSvc application.Service
-		runnableSvc    runnable.Service
-		codesetSvc     codeset.Service
-		projectSvc     project.Service
-		workflowSvc    workflow.Service
-	)
-	{
-		codesetStore := core.NewGitCodesetStore(gitAdmin)
-		projectStore := core.NewGitProjectStore(gitAdmin)
-		workflowStore := core.NewWorkflowStore()
-
-		// FIXME: instead of CodesetStore, pass a CodesetManager
-		workflowManager := manager.NewWorkflowManager(workflowBackend, workflowStore, codesetStore)
-
-		applicationSvc = svc.NewApplicationService(logger, core.NewApplicationStore())
-		codesetSvc = svc.NewCodesetService(logger, codesetStore)
-		projectSvc = svc.NewProjectService(logger, projectStore)
-		runnableSvc = svc.NewRunnableService(logger, core.NewRunnableStore())
-		versionSvc = svc.NewVersionService(logger)
-		workflowSvc = svc.NewWorkflowService(logger, workflowManager)
-	}
-
-	// Wrap the services in endpoints that can be invoked from other services
-	// potentially running in different processes.
-	var (
-		versionEndpoints     *version.Endpoints
-		applicationEndpoints *application.Endpoints
-		runnableEndpoints    *runnable.Endpoints
-		codesetEndpoints     *codeset.Endpoints
-		projectEndpoints     *project.Endpoints
-		workflowEndpoints    *workflow.Endpoints
-	)
-	{
-		versionEndpoints = version.NewEndpoints(versionSvc)
-		applicationEndpoints = application.NewEndpoints(applicationSvc)
-		runnableEndpoints = runnable.NewEndpoints(runnableSvc)
-		codesetEndpoints = codeset.NewEndpoints(codesetSvc)
-		projectEndpoints = project.NewEndpoints(projectSvc)
-		workflowEndpoints = workflow.NewEndpoints(workflowSvc)
 	}
 
 	// Create channel used by both the signal handler and server goroutines
@@ -147,15 +101,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "80")
 			}
-			handleHTTPServer(
-				ctx, u,
-				versionEndpoints,
-				runnableEndpoints,
-				codesetEndpoints,
-				projectEndpoints,
-				workflowEndpoints,
-				applicationEndpoints,
-				&wg, errc, logger, *dbgF)
+			handleHTTPServer(ctx, u, endpoints, &wg, errc, logger, *dbgF)
 		}
 
 		{
@@ -181,14 +127,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "8080")
 			}
-			handleGRPCServer(
-				ctx, u,
-				runnableEndpoints,
-				codesetEndpoints,
-				projectEndpoints,
-				workflowEndpoints,
-				applicationEndpoints,
-				&wg, errc, logger, *dbgF)
+			handleGRPCServer(ctx, u, endpoints, &wg, errc, logger, *dbgF)
 		}
 
 	case "prod":
@@ -215,15 +154,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "80")
 			}
-			handleHTTPServer(
-				ctx, u,
-				versionEndpoints,
-				runnableEndpoints,
-				codesetEndpoints,
-				projectEndpoints,
-				workflowEndpoints,
-				applicationEndpoints,
-				&wg, errc, logger, *dbgF)
+			handleHTTPServer(ctx, u, endpoints, &wg, errc, logger, *dbgF)
 		}
 
 		{
@@ -249,14 +180,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "8080")
 			}
-			handleGRPCServer(
-				ctx, u,
-				runnableEndpoints,
-				codesetEndpoints,
-				projectEndpoints,
-				workflowEndpoints,
-				applicationEndpoints,
-				&wg, errc, logger, *dbgF)
+			handleGRPCServer(ctx, u, endpoints, &wg, errc, logger, *dbgF)
 		}
 
 	default:
