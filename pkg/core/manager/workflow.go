@@ -12,7 +12,8 @@ import (
 // to be available
 const createWorkflowListenerTimeout = 1
 
-type workflowManager struct {
+// WorkflowManager implements the domain.WorkflowManager interface
+type WorkflowManager struct {
 	workflowBackend domain.WorkflowBackend
 	workflowStore   domain.WorkflowStore
 	codesetStore    domain.CodesetStore
@@ -20,15 +21,17 @@ type workflowManager struct {
 
 // NewWorkflowManager initializes a Workflow Manager
 // FIXME: instead of CodesetStore, receive a CodesetManager
-func NewWorkflowManager(workflowBackend domain.WorkflowBackend, workflowStore domain.WorkflowStore, codesetStore domain.CodesetStore) domain.WorkflowManager {
-	return &workflowManager{workflowBackend, workflowStore, codesetStore}
+func NewWorkflowManager(workflowBackend domain.WorkflowBackend, workflowStore domain.WorkflowStore, codesetStore domain.CodesetStore) *WorkflowManager {
+	return &WorkflowManager{workflowBackend, workflowStore, codesetStore}
 }
 
-func (mgr *workflowManager) List(ctx context.Context, name *string) []*workflow.Workflow {
+// List Workflows.
+func (mgr *WorkflowManager) List(ctx context.Context, name *string) []*workflow.Workflow {
 	return mgr.workflowStore.GetWorkflows(ctx, name)
 }
 
-func (mgr *workflowManager) Create(ctx context.Context, wf *workflow.Workflow) (*workflow.Workflow, error) {
+// Create a new Workflow.
+func (mgr *WorkflowManager) Create(ctx context.Context, wf *workflow.Workflow) (*workflow.Workflow, error) {
 	workflowDateCreated := time.Now().Format(time.RFC3339)
 	wf.Created = &workflowDateCreated
 	err := mgr.workflowBackend.CreateWorkflow(ctx, wf)
@@ -38,11 +41,13 @@ func (mgr *workflowManager) Create(ctx context.Context, wf *workflow.Workflow) (
 	return mgr.workflowStore.AddWorkflow(ctx, wf)
 }
 
-func (mgr *workflowManager) Get(ctx context.Context, name string) (*workflow.Workflow, error) {
+// Get a Workflow.
+func (mgr *WorkflowManager) Get(ctx context.Context, name string) (*workflow.Workflow, error) {
 	return mgr.workflowStore.GetWorkflow(ctx, name)
 }
 
-func (mgr *workflowManager) Delete(ctx context.Context, name string) error {
+// Delete a Workflow and its assignments.
+func (mgr *WorkflowManager) Delete(ctx context.Context, name string) error {
 	// unassign all assigned codesets, if there's any
 	assignedCodesets := mgr.workflowStore.GetAssignedCodesets(ctx, name)
 	for _, ac := range assignedCodesets {
@@ -66,7 +71,8 @@ func (mgr *workflowManager) Delete(ctx context.Context, name string) error {
 	return nil
 }
 
-func (mgr *workflowManager) AssignToCodeset(ctx context.Context, name, codesetProject, codesetName string) (wfListener *domain.WorkflowListener, webhookID *int64, err error) {
+// AssignToCodeset assigns a Workflow to a Codeset.
+func (mgr *WorkflowManager) AssignToCodeset(ctx context.Context, name, codesetProject, codesetName string) (wfListener *domain.WorkflowListener, webhookID *int64, err error) {
 	_, err = mgr.workflowStore.GetWorkflow(ctx, name)
 	if err != nil {
 		return nil, nil, err
@@ -92,7 +98,8 @@ func (mgr *workflowManager) AssignToCodeset(ctx context.Context, name, codesetPr
 	return
 }
 
-func (mgr *workflowManager) UnassignFromCodeset(ctx context.Context, name, codesetProject, codesetName string) (err error) {
+// UnassignFromCodeset unassign a Workflow from a Codeset
+func (mgr *WorkflowManager) UnassignFromCodeset(ctx context.Context, name, codesetProject, codesetName string) (err error) {
 	codeset, err := mgr.codesetStore.Find(ctx, codesetProject, codesetName)
 	if err != nil {
 		return err
@@ -121,7 +128,8 @@ func (mgr *workflowManager) UnassignFromCodeset(ctx context.Context, name, codes
 	return
 }
 
-func (mgr *workflowManager) ListAssignments(ctx context.Context, name *string) ([]*workflow.WorkflowAssignment, error) {
+// ListAssignments lists Workflow assignments.
+func (mgr *WorkflowManager) ListAssignments(ctx context.Context, name *string) ([]*workflow.WorkflowAssignment, error) {
 	assignments := []*workflow.WorkflowAssignment{}
 	for wf, acs := range mgr.workflowStore.GetAssignments(ctx, name) {
 
@@ -136,7 +144,8 @@ func (mgr *workflowManager) ListAssignments(ctx context.Context, name *string) (
 	return assignments, nil
 }
 
-func (mgr *workflowManager) ListRuns(ctx context.Context, filter *domain.WorkflowRunFilter) ([]*workflow.WorkflowRun, error) {
+// ListRuns lists Workflow runs.
+func (mgr *WorkflowManager) ListRuns(ctx context.Context, filter *domain.WorkflowRunFilter) ([]*workflow.WorkflowRun, error) {
 	workflowRuns := []*workflow.WorkflowRun{}
 	var wfName *string
 	if filter != nil {
