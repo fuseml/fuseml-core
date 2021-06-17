@@ -8,13 +8,13 @@ import (
 	"github.com/fuseml/fuseml-core/pkg/domain"
 )
 
-// GitProjectStore describes a stucture that accesses project store implemented in git
+// GitProjectStore describes a structure that accesses project store implemented in git
 type GitProjectStore struct {
-	gitAdmin GitAdmin
+	gitAdmin domain.GitAdminClient
 }
 
 // NewGitProjectStore returns project store instance
-func NewGitProjectStore(gitAdmin GitAdmin) *GitProjectStore {
+func NewGitProjectStore(gitAdmin domain.GitAdminClient) *GitProjectStore {
 	return &GitProjectStore{
 		gitAdmin: gitAdmin,
 	}

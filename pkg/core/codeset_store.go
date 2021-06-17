@@ -8,27 +8,13 @@ import (
 	"github.com/fuseml/fuseml-core/pkg/domain"
 )
 
-// GitAdmin is an inteface to git administration clients
-type GitAdmin interface {
-	PrepareRepository(*domain.Codeset, *string) (*string, *string, error)
-	CreateRepoWebhook(string, string, *string) (*int64, error)
-	DeleteRepoWebhook(string, string, *int64) error
-	GetRepositories(org, label *string) ([]*domain.Codeset, error)
-	GetRepository(org, name string) (*domain.Codeset, error)
-	DeleteRepository(org, name string) error
-	GetProjects() ([]*domain.Project, error)
-	GetProject(org string) (*domain.Project, error)
-	DeleteProject(org string) error
-	CreateProject(string, string, bool) (*domain.Project, error)
-}
-
-// GitCodesetStore describes a stucture that accesses codeset store implemented in git
+// GitCodesetStore describes a structure that accesses codeset store implemented in git
 type GitCodesetStore struct {
-	gitAdmin GitAdmin
+	gitAdmin domain.GitAdminClient
 }
 
 // NewGitCodesetStore returns codeset store instance
-func NewGitCodesetStore(gitAdmin GitAdmin) *GitCodesetStore {
+func NewGitCodesetStore(gitAdmin domain.GitAdminClient) *GitCodesetStore {
 	return &GitCodesetStore{
 		gitAdmin: gitAdmin,
 	}

@@ -20,7 +20,7 @@ type User struct {
 	Email string
 }
 
-// ProjectStore is an inteface to project stores
+// ProjectStore is an interface to project stores
 type ProjectStore interface {
 	Find(ctx context.Context, name string) (*Project, error)
 	GetAll(ctx context.Context) ([]*Project, error)
