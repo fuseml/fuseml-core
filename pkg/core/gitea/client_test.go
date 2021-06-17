@@ -322,7 +322,7 @@ func TestAddDeleteOrgs(t *testing.T) {
 
 	// create same project, fail if it exists
 	_, err = testGiteaAdminClient.CreateProject(project2, "description of "+project2, false)
-	assertError(t, err, errProjectExists)
+	assertError(t, err, domain.ErrProjectExists)
 
 	// list all projects, there should be 2
 	projects, err := testGiteaAdminClient.GetProjects()

@@ -63,7 +63,6 @@ const (
 	errGITEAADMINUSERNAMEMissing = giteaErr("Value for gitea admin user name (GITEA_ADMIN_USERNAME) was not provided.")
 	errGITEAADMINPASSWORDMissing = giteaErr("Value for gitea admin user password (GITEA_ADMIN_PASSWORD) was not provided.")
 	errRepoNotFound              = giteaErr("Repository by that name not found")
-	errProjectExists             = giteaErr("Project with that name already exists")
 	errProjectNotEmpty           = giteaErr("Project has still codesets assigned. Delete them first")
 )
 
@@ -147,7 +146,7 @@ func (gac giteaAdminClient) CreateProject(name, desc string, ignoreExisting bool
 		if ignoreExisting {
 			return nil, nil
 		}
-		return nil, errProjectExists
+		return nil, domain.ErrProjectExists
 	}
 
 	_, _, err = gac.giteaClient.CreateOrg(gitea.CreateOrgOption{
