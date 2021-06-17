@@ -58,11 +58,21 @@ type giteaAdminClient struct {
 	logger      *log.Logger
 }
 
-var errGITEAURLMissing = "Value for gitea URL (GITEA_URL) was not provided."
-var errGITEAADMINUSERNAMEMissing = "Value for gitea admin user name (GITEA_ADMIN_USERNAME) was not provided."
-var errGITEAADMINPASSWORDMissing = "Value for gitea admin user password (GITEA_ADMIN_PASSWORD) was not provided."
-var errRepoNotFound = "Repository by that name not found"
-var errProjectExists = "Project with that name already exists"
+const (
+	errGITEAURLMissing           = giteaErr("Value for gitea URL (GITEA_URL) was not provided.")
+	errGITEAADMINUSERNAMEMissing = giteaErr("Value for gitea admin user name (GITEA_ADMIN_USERNAME) was not provided.")
+	errGITEAADMINPASSWORDMissing = giteaErr("Value for gitea admin user password (GITEA_ADMIN_PASSWORD) was not provided.")
+	errRepoNotFound              = giteaErr("Repository by that name not found")
+	errProjectExists             = giteaErr("Project with that name already exists")
+	errProjectNotEmpty           = giteaErr("Project has still codesets assigned. Delete them first")
+)
+
+type giteaErr string
+
+func (e giteaErr) Error() string {
+	return string(e)
+}
+
 var lettersForPassword = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 var generatedPasswordLength = 16
 
@@ -76,15 +86,15 @@ func NewAdminClient(logger *log.Logger) (AdminClient, error) {
 
 	url, exists := os.LookupEnv("GITEA_URL")
 	if !exists {
-		return nil, errors.New(errGITEAURLMissing)
+		return nil, errGITEAURLMissing
 	}
 	username, exists := os.LookupEnv("GITEA_ADMIN_USERNAME")
 	if !exists {
-		return nil, errors.New(errGITEAADMINUSERNAMEMissing)
+		return nil, errGITEAADMINUSERNAMEMissing
 	}
 	password, exists := os.LookupEnv("GITEA_ADMIN_PASSWORD")
 	if !exists {
-		return nil, errors.New(errGITEAADMINPASSWORDMissing)
+		return nil, errGITEAADMINPASSWORDMissing
 	}
 
 	client, err := gitea.NewClient(url)
@@ -137,7 +147,7 @@ func (gac giteaAdminClient) CreateProject(name, desc string, ignoreExisting bool
 		if ignoreExisting {
 			return nil, nil
 		}
-		return nil, errors.New(errProjectExists)
+		return nil, errProjectExists
 	}
 
 	_, _, err = gac.giteaClient.CreateOrg(gitea.CreateOrgOption{
@@ -402,7 +412,7 @@ func (gac giteaAdminClient) GetRepository(org, name string) (*domain.Codeset, er
 		return nil, errors.Wrap(err, "Failed to read repository")
 	}
 	if repo == nil || repo.Name == "" {
-		return nil, errors.New(errRepoNotFound)
+		return nil, errRepoNotFound
 	}
 
 	ret := domain.Codeset{
@@ -524,7 +534,7 @@ func (gac giteaAdminClient) DeleteProject(org string) error {
 	}
 
 	if len(repos) > 0 {
-		return errors.New("Project has still codesets assigned. Delete them first")
+		return errProjectNotEmpty
 	}
 
 	// 2. delete all members of the project, if they are not owning any other project

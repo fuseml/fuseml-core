@@ -21,6 +21,7 @@ type TestStore struct {
 // on local structures instead of git server
 type testGiteaClient struct {
 	testStore *TestStore
+	logger    *log.Logger
 }
 
 func NewTestStore() *TestStore {
@@ -42,7 +43,7 @@ func testLogger() *log.Logger {
 
 func newTestGiteaAdminClient(testStore *TestStore) *giteaAdminClient {
 	return &giteaAdminClient{
-		giteaClient: &testGiteaClient{testStore},
+		giteaClient: &testGiteaClient{testStore, testLogger()},
 		logger:      testLogger(),
 		url:         testURL,
 	}
@@ -142,6 +143,7 @@ func (tc testGiteaClient) DeleteRepo(owner, repo string) (*gitea.Response, error
 }
 
 func (tc testGiteaClient) DeleteOrg(orgname string) (*gitea.Response, error) {
+	delete(tc.testStore.projects, orgname)
 	return nil, nil
 }
 
@@ -166,14 +168,11 @@ func getTestCodeset() *domain.Codeset {
 	}
 }
 
-func assertError(t testing.TB, got error, want string) {
+func assertError(t testing.TB, got, want error) {
 	t.Helper()
-	if got == nil {
-		t.Fatal("didn't get an error but wanted one")
-	}
 
-	if got.Error() != want {
-		t.Errorf("got %q, want %q", got, want)
+	if got != want {
+		t.Errorf("got error %q, want %q", got, want)
 	}
 }
 
@@ -294,6 +293,59 @@ func TestGetRepositories(t *testing.T) {
 	repos, _ = testGiteaAdminClient.GetRepositories(nil, nil)
 	if len(repos) != 2 {
 		t.Errorf("There are not 2 repos in total")
+	}
+}
+
+func TestAddDeleteOrgs(t *testing.T) {
+
+	testGiteaAdminClient := newTestGiteaAdminClient(NewTestStore())
+
+	testGiteaAdminClient.PrepareRepository(getTestCodeset(), testListenerURL)
+
+	p1, err := testGiteaAdminClient.GetProject(project1)
+	assertError(t, err, nil)
+
+	if p1.Name != project1 {
+		t.Errorf("wrong name of project: %v, not %s", p1.Name, project1)
+	}
+
+	p2, err := testGiteaAdminClient.CreateProject(project2, "description of "+project2, false)
+	assertError(t, err, nil)
+
+	if p2.Name != project2 {
+		t.Errorf("wrong name of project: %v, not %s", p2.Name, project2)
+	}
+
+	// create same project, ignore if it exists
+	_, err = testGiteaAdminClient.CreateProject(project2, "description of "+project2, true)
+	assertError(t, err, nil)
+
+	// create same project, fail if it exists
+	_, err = testGiteaAdminClient.CreateProject(project2, "description of "+project2, false)
+	assertError(t, err, errProjectExists)
+
+	// list all projects, there should be 2
+	projects, err := testGiteaAdminClient.GetProjects()
+	assertError(t, err, nil)
+
+	if len(projects) != 2 {
+		t.Errorf("There are not 2 projects in total")
+	}
+
+	// project2 is empty, should not be a problem to delete
+	err = testGiteaAdminClient.DeleteProject(project2)
+	assertError(t, err, nil)
+
+	// project1 is not empty, error on delete
+	err = testGiteaAdminClient.DeleteProject(project1)
+	assertError(t, err, errProjectNotEmpty)
+
+	// list all projects after delete
+	projects, err = testGiteaAdminClient.GetProjects()
+	assertError(t, err, nil)
+
+	if len(projects) != 1 {
+		t.Errorf("There is not just 1 project in total (got %d)", len(projects))
 	}
 }
 
