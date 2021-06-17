@@ -5,6 +5,8 @@ import "fmt"
 const (
 	// ConfigFileName is the name of the FuseML configuration file (without extension)
 	ConfigFileName = "config"
+	// ConfigFileType is the type of default config file
+	ConfigFileType = "yaml"
 	// ConfigHomeSubdir is the subdirectory where the FuseML configuration files is located
 	ConfigHomeSubdir = ".fuseml"
 	// DefaultHTTPTimeout is the default HTTP timeout value
