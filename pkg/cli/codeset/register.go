@@ -89,10 +89,10 @@ func (o *RegisterOptions) run() error {
 	// priority have username/password from the registering (when the new user was created)
 	password := result.Password
 	username := result.Username
-	if username == nil {
+	if username == nil && o.User != "" {
 		username = &o.User
 	}
-	if password == nil {
+	if password == nil && o.Password != "" {
 		password = &o.Password
 	}
 
