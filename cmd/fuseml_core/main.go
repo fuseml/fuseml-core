@@ -19,7 +19,10 @@ import (
 	"github.com/fuseml/fuseml-core/gen/version"
 	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/core"
+	"github.com/fuseml/fuseml-core/pkg/core/config"
 	"github.com/fuseml/fuseml-core/pkg/core/gitea"
+	"github.com/fuseml/fuseml-core/pkg/core/manager"
+	"github.com/fuseml/fuseml-core/pkg/core/tekton"
 	"github.com/fuseml/fuseml-core/pkg/svc"
 	ver "github.com/fuseml/fuseml-core/pkg/version"
 )
@@ -53,6 +56,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	workflowBackend, err := tekton.NewWorkflowBackend(logger, config.FuseMLNamespace)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Failed to initialize Tekton workflow nackend: ", err.Error())
+		os.Exit(1)
+	}
+
 	// Initialize the services.
 	var (
 		versionSvc     version.Service
@@ -63,18 +72,19 @@ func main() {
 		workflowSvc    workflow.Service
 	)
 	{
-		versionSvc = svc.NewVersionService(logger)
 		codesetStore := core.NewGitCodesetStore(gitAdmin)
 		projectStore := core.NewGitProjectStore(gitAdmin)
+		workflowStore := core.NewWorkflowStore()
+
+		// FIXME: instead of CodesetStore, pass a CodesetManager
+		workflowManager := manager.NewWorkflowManager(workflowBackend, workflowStore, codesetStore)
+
 		applicationSvc = svc.NewApplicationService(logger, core.NewApplicationStore())
-		runnableSvc = svc.NewRunnableService(logger, core.NewRunnableStore())
 		codesetSvc = svc.NewCodesetService(logger, codesetStore)
 		projectSvc = svc.NewProjectService(logger, projectStore)
-		workflowSvc, err = svc.NewWorkflowService(logger, core.NewWorkflowStore(), codesetStore)
-		if err != nil {
-			fmt.Fprintln(os.Stderr, "Failed to initialize Workflow service:", err.Error())
-			os.Exit(1)
-		}
+		runnableSvc = svc.NewRunnableService(logger, core.NewRunnableStore())
+		versionSvc = svc.NewVersionService(logger)
+		workflowSvc = svc.NewWorkflowService(logger, workflowManager)
 	}
 
 	// Wrap the services in endpoints that can be invoked from other services

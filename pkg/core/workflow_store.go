@@ -3,7 +3,6 @@ package core
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/domain"
@@ -30,19 +29,23 @@ func NewWorkflowStore() *WorkflowStore {
 }
 
 // GetWorkflow returns a workflow identified by its name
-func (ws *WorkflowStore) GetWorkflow(ctx context.Context, name string) *workflow.Workflow {
+func (ws *WorkflowStore) GetWorkflow(ctx context.Context, name string) (*workflow.Workflow, error) {
 	if _, exists := ws.items[name]; exists {
-		return ws.items[name].workflow
+		return ws.items[name].workflow, nil
 	}
-	return nil
+	return nil, domain.ErrWorkflowNotFound
 }
 
 // GetWorkflows returns all workflows or the one that matches a given name.
 func (ws *WorkflowStore) GetWorkflows(ctx context.Context, name *string) (result []*workflow.Workflow) {
 	result = make([]*workflow.Workflow, 0, len(ws.items))
 	if name != nil {
-		result = append(result, ws.items[*name].workflow)
-		return
+		if sw, ok := ws.items[*name]; ok {
+			result = append(result, sw.workflow)
+			return
+		}
+		return result
+
 	}
 	for _, sw := range ws.items {
 		result = append(result, sw.workflow)
@@ -53,10 +56,8 @@ func (ws *WorkflowStore) GetWorkflows(ctx context.Context, name *string) (result
 // AddWorkflow adds a new workflow based on the Workflow structure provided as argument
 func (ws *WorkflowStore) AddWorkflow(ctx context.Context, w *workflow.Workflow) (*workflow.Workflow, error) {
 	if _, exists := ws.items[w.Name]; exists {
-		return nil, fmt.Errorf("workflow %q already exists", w.Name)
+		return nil, domain.ErrWorkflowExists
 	}
-	workflowCreated := time.Now().Format(time.RFC3339)
-	w.Created = &workflowCreated
 	sw := storableWorkflow{workflow: w}
 	ws.items[w.Name] = &sw
 	return w, nil
@@ -122,13 +123,16 @@ func (ws *WorkflowStore) DeleteCodesetAssignment(ctx context.Context, workflowNa
 }
 
 // GetAssignedCodeset returns a AssignedCodeset for the Workflow and Codeset
-func (ws *WorkflowStore) GetAssignedCodeset(ctx context.Context, workflowName string, codeset *domain.Codeset) *domain.AssignedCodeset {
+func (ws *WorkflowStore) GetAssignedCodeset(ctx context.Context, workflowName string, codeset *domain.Codeset) (*domain.AssignedCodeset, error) {
 	sw, exists := ws.items[workflowName]
 	if !exists {
-		return nil
+		return nil, domain.ErrWorkflowNotFound
 	}
 	ac, _ := getAssignedCodeset(sw.assignedCodesets, codeset)
-	return ac
+	if ac == nil {
+		return nil, domain.ErrWorkflowNotAssignedToCodeset
+	}
+	return ac, nil
 }
 
 func getAssignedCodeset(assignedCodesets []*domain.AssignedCodeset, codeset *domain.Codeset) (*domain.AssignedCodeset, int) {

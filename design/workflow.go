@@ -14,11 +14,8 @@ var _ = Service("workflow", func() {
 				Example("workflowA")
 			})
 		})
-		Result(ArrayOf(Workflow), "Return all workflows matching the query.")
 
-		Error("NotFound", func() {
-			Description("If the workflow is not found, should return 404 Not Found.")
-		})
+		Result(ArrayOf(Workflow), "Return all workflows matching the query.")
 
 		HTTP(func() {
 			GET("/workflows")
@@ -26,12 +23,10 @@ var _ = Service("workflow", func() {
 				Example("workflowA")
 			})
 			Response(StatusOK)
-			Response("NotFound", StatusNotFound)
 		})
 
 		GRPC(func() {
 			Response(CodeOK)
-			Response("NotFound", CodeNotFound)
 		})
 
 	})

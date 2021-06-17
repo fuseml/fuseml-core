@@ -25,10 +25,14 @@ import (
 )
 
 const (
-	errWorkflowExists      = WorkflowBackendErr("workflow already exists")
-	errDashboardURLMissing = WorkflowBackendErr("Value for Tekton Dashboard URL (TEKTON_DASHBOARD_URL) was not provided.")
+	errDashboardURLMissing = WorkflowBackendErr("value for Tekton Dashboard URL (TEKTON_DASHBOARD_URL) was not provided.")
 	errWaitListenerTimeout = WorkflowBackendErr("time out waiting for listener to become ready")
 )
+
+var globalEnvVars []EnvVar
+
+// WorkflowBackendErr are expected errors returned from the WorkflowBackend
+type WorkflowBackendErr string
 
 // EnvVar describes environment variable and its value that needs to be passed to tekton task
 type EnvVar struct {
@@ -36,23 +40,17 @@ type EnvVar struct {
 	value string
 }
 
-var (
-	globalEnvVars []EnvVar
-)
-
-// WorkflowBackendErr are expected errors returned from the WorkflowBackend
-type WorkflowBackendErr string
-
 // WorkflowBackend implements the FuseML WorkflowBackend interface for tekton
 type WorkflowBackend struct {
 	dashboardURL  string
 	namespace     string
+	logger        *log.Logger
 	tektonClients *clients
 }
 
 // NewWorkflowBackend initializes Tekton backend
-func NewWorkflowBackend(namespace string) (*WorkflowBackend, error) {
-	dashbboardURL, exists := os.LookupEnv("TEKTON_DASHBOARD_URL")
+func NewWorkflowBackend(logger *log.Logger, namespace string) (*WorkflowBackend, error) {
+	dashboardURL, exists := os.LookupEnv("TEKTON_DASHBOARD_URL")
 	if !exists {
 		return nil, errDashboardURLMissing
 	}
@@ -60,17 +58,17 @@ func NewWorkflowBackend(namespace string) (*WorkflowBackend, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error initializing tekton workflow backend: %w", err)
 	}
-	return &WorkflowBackend{strings.TrimSuffix(dashbboardURL, "/"), namespace, clients}, nil
+	return &WorkflowBackend{strings.TrimSuffix(dashboardURL, "/"), namespace, logger, clients}, nil
 }
 
 // CreateWorkflow receives a FuseML workflow and creates a Tekton pipeline from it
-func (w *WorkflowBackend) CreateWorkflow(ctx context.Context, logger *log.Logger, workflow *workflow.Workflow) error {
+func (w *WorkflowBackend) CreateWorkflow(ctx context.Context, workflow *workflow.Workflow) error {
 	pipeline := generatePipeline(*workflow, w.namespace)
-	logger.Printf("Creating tekton pipeline for workflow: %s...", workflow.Name)
+	w.logger.Printf("Creating tekton pipeline for workflow: %s...", workflow.Name)
 	_, err := w.tektonClients.PipelineClient.Create(ctx, pipeline, metav1.CreateOptions{})
 	if err != nil {
 		if k8serr.IsAlreadyExists(err) {
-			return errWorkflowExists
+			return domain.ErrWorkflowExists
 		}
 		return fmt.Errorf("error creating tekton pipeline for workflow %q: %w", workflow.Name, err)
 	}
@@ -79,20 +77,20 @@ func (w *WorkflowBackend) CreateWorkflow(ctx context.Context, logger *log.Logger
 }
 
 // DeleteWorkflow deletes a tekton pipeline with the specified name
-func (w *WorkflowBackend) DeleteWorkflow(ctx context.Context, logger *log.Logger, name string) error {
-	logger.Printf("Deleting tekton pipeline: %s...", name)
+func (w *WorkflowBackend) DeleteWorkflow(ctx context.Context, name string) error {
+	w.logger.Printf("Deleting tekton pipeline: %s...", name)
 	err := w.tektonClients.PipelineClient.Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil {
 		if !k8serr.IsNotFound(err) {
 			return fmt.Errorf("error deleting tekton pipeline %q: %w", name, err)
 		}
-		logger.Printf("Tekton pipeline %q not found, skipping delete...", name)
+		w.logger.Printf("Tekton pipeline %q not found, skipping delete...", name)
 	}
 	return nil
 }
 
 // CreateWorkflowRun creates a PipelineRun with its default values for the specified workflow and codeset
-func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, logger *log.Logger, workflowName string, codeset *domain.Codeset) error {
+func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, workflowName string, codeset *domain.Codeset) error {
 	pipeline, err := w.tektonClients.PipelineClient.Get(ctx, workflowName, metav1.GetOptions{})
 	if err != nil {
 		return fmt.Errorf("error getting tekton pipeline %q: %w", workflowName, err)
@@ -103,7 +101,7 @@ func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, logger *log.Log
 		return fmt.Errorf("error generating tekton pipeline run for workflow %q: %w", workflowName, err)
 	}
 
-	logger.Printf("Creating tekton pipeline run for workflow: %s...", workflowName)
+	w.logger.Printf("Creating tekton pipeline run for workflow: %s...", workflowName)
 	_, err = w.tektonClients.PipelineRunClient.Create(ctx, pipelineRun, metav1.CreateOptions{})
 	if err != nil {
 		return fmt.Errorf("error creating tekton pipeline run %q: %w", pipelineRun.Name, err)
@@ -112,10 +110,13 @@ func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, logger *log.Log
 }
 
 // ListWorkflowRuns returns a list of WorkflowRun for the given Workflow
-func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf workflow.Workflow, filters domain.WorkflowRunFilter) ([]*workflow.WorkflowRun, error) {
+func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf *workflow.Workflow, filter *domain.WorkflowRunFilter) ([]*workflow.WorkflowRun, error) {
 	labelSelector := fmt.Sprintf("%s=%s", LabelWorkflowRef, wf.Name)
-	if filters.ByLabel != nil && len(filters.ByLabel) > 0 {
-		labelSelector = fmt.Sprintf("%s,%s", labelSelector, strings.Join(filters.ByLabel, ","))
+	if filter.CodesetName != "" {
+		labelSelector = fmt.Sprintf("%s,%s=%s", labelSelector, LabelCodesetName, filter.CodesetName)
+	}
+	if filter.CodesetProject != "" {
+		labelSelector = fmt.Sprintf("%s,%s=%s", labelSelector, LabelCodesetProject, filter.CodesetProject)
 	}
 	runs, err := w.tektonClients.PipelineRunClient.List(ctx, metav1.ListOptions{LabelSelector: labelSelector})
 	if err != nil {
@@ -123,9 +124,9 @@ func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf workflow.Work
 	}
 	workflowRuns := []*workflow.WorkflowRun{}
 
-	if filters.ByStatus != nil && len(filters.ByStatus) > 0 {
+	if filter.Status != nil && len(filter.Status) > 0 {
 		for _, run := range runs.Items {
-			if len(run.Status.Conditions) > 0 && contains(filters.ByStatus,
+			if len(run.Status.Conditions) > 0 && contains(filter.Status,
 				pipelineReasonToWorkflowStatus(run.Status.Conditions[0].Reason)) {
 				workflowRuns = append(workflowRuns, w.toWorkflowRun(wf, run))
 			}
@@ -139,7 +140,7 @@ func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf workflow.Work
 }
 
 // CreateWorkflowListener creates tekton resources required to have a listener ready for triggering the pipeline
-func (w *WorkflowBackend) CreateWorkflowListener(ctx context.Context, logger *log.Logger, workflowName string, timeout time.Duration) (*domain.WorkflowListener, error) {
+func (w *WorkflowBackend) CreateWorkflowListener(ctx context.Context, workflowName string, timeout time.Duration) (*domain.WorkflowListener, error) {
 	pipeline, err := w.tektonClients.PipelineClient.Get(ctx, workflowName, metav1.GetOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("error getting tekton pipeline %q: %w", workflowName, err)
@@ -151,13 +152,13 @@ func (w *WorkflowBackend) CreateWorkflowListener(ctx context.Context, logger *lo
 		if !k8serr.IsNotFound(err) {
 			return nil, fmt.Errorf("error getting tekton trigger template %q: %w", workflowName, err)
 		}
-		logger.Printf("Creating tekton trigger template for workflow: %s...", workflowName)
+		w.logger.Printf("Creating tekton trigger template for workflow: %s...", workflowName)
 		var tt *v1alpha1.TriggerTemplate
 		tt, err = w.tektonClients.TriggerTemplateClient.Create(ctx, triggerTemplate, metav1.CreateOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("error creating tekton trigger template %q: %w", workflowName, err)
 		}
-		defer w.tektonDeleteIfError(ctx, logger, &err, tt)
+		defer w.tektonDeleteIfError(ctx, &err, tt)
 	}
 
 	triggerBinding := generateTriggerBinding(triggerTemplate)
@@ -166,13 +167,13 @@ func (w *WorkflowBackend) CreateWorkflowListener(ctx context.Context, logger *lo
 		if !k8serr.IsNotFound(err) {
 			return nil, fmt.Errorf("error getting tekton trigger binding %q: %w", workflowName, err)
 		}
-		logger.Printf("Creating tekton trigger binding for workflow: %s...", workflowName)
+		w.logger.Printf("Creating tekton trigger binding for workflow: %s...", workflowName)
 		var tb *v1alpha1.TriggerBinding
 		tb, err = w.tektonClients.TriggerBindingClient.Create(ctx, triggerBinding, metav1.CreateOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("error creating tekton trigger binding %q: %w", workflowName, err)
 		}
-		defer w.tektonDeleteIfError(ctx, logger, &err, tb)
+		defer w.tektonDeleteIfError(ctx, &err, tb)
 	}
 
 	eventListener := generateEventListener(triggerTemplate, triggerBinding)
@@ -182,12 +183,12 @@ func (w *WorkflowBackend) CreateWorkflowListener(ctx context.Context, logger *lo
 		if !k8serr.IsNotFound(err) {
 			return nil, fmt.Errorf("error getting tekton event listener %q: %w", workflowName, err)
 		}
-		logger.Printf("Creating tekton event listener for workflow: %s...", workflowName)
+		w.logger.Printf("Creating tekton event listener for workflow: %s...", workflowName)
 		el, err = w.tektonClients.EventListenerClient.Create(ctx, eventListener, metav1.CreateOptions{})
 		if err != nil {
 			return nil, fmt.Errorf("error creating tekton event listener %q: %w", workflowName, err)
 		}
-		defer w.tektonDeleteIfError(ctx, logger, &err, el)
+		defer w.tektonDeleteIfError(ctx, &err, el)
 	}
 
 	url := fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", workflowName, w.namespace)
@@ -209,32 +210,32 @@ func (w *WorkflowBackend) CreateWorkflowListener(ctx context.Context, logger *lo
 }
 
 // DeleteWorkflowListener deletes all tekton resources associated to the specified listener name
-func (w *WorkflowBackend) DeleteWorkflowListener(ctx context.Context, logger *log.Logger, name string) error {
-	logger.Printf("Deleting tekton event listener: %s...", name)
+func (w *WorkflowBackend) DeleteWorkflowListener(ctx context.Context, name string) error {
+	w.logger.Printf("Deleting tekton event listener: %s...", name)
 	err := w.tektonClients.EventListenerClient.Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil {
 		if !k8serr.IsNotFound(err) {
 			return fmt.Errorf("error deleting tekton event listener %q: %w", name, err)
 		}
-		logger.Printf("Tekton event listener %q not found, skipping delete...", name)
+		w.logger.Printf("Tekton event listener %q not found, skipping delete...", name)
 	}
 
-	logger.Printf("Deleting tekton trigger binding: %s...", name)
+	w.logger.Printf("Deleting tekton trigger binding: %s...", name)
 	err = w.tektonClients.TriggerBindingClient.Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil {
 		if !k8serr.IsNotFound(err) {
 			return fmt.Errorf("error deleting tekton trigger binding %q: %w", name, err)
 		}
-		logger.Printf("Tekton trigger binding %q not found, skipping delete...", name)
+		w.logger.Printf("Tekton trigger binding %q not found, skipping delete...", name)
 	}
 
-	logger.Printf("Deleting tekton trigger template: %s...", name)
+	w.logger.Printf("Deleting tekton trigger template: %s...", name)
 	err = w.tektonClients.TriggerTemplateClient.Delete(ctx, name, metav1.DeleteOptions{})
 	if err != nil {
 		if !k8serr.IsNotFound(err) {
 			return fmt.Errorf("error deleting tekton trigger template %q: %w", name, err)
 		}
-		logger.Printf("Tekton trigger template %q not found, skipping delete...", name)
+		w.logger.Printf("Tekton trigger template %q not found, skipping delete...", name)
 	}
 	return nil
 }
@@ -436,7 +437,7 @@ func generateTriggerTemplate(p *v1beta1.Pipeline) *v1alpha1.TriggerTemplate {
 		} else {
 			ttb.Param(param.Name, param.Description)
 		}
-		// if there is a codeset paramter we also need to add the codeset-url as paramter to
+		// if there is a codeset parameter we also need to add the codeset-url as parameter to
 		// the template
 		resolver.addReference(param.Name, fmt.Sprintf("$(tt.params.%s)", param.Name))
 		switch param.Name {
@@ -569,7 +570,7 @@ func getInputCodesetPath(inputs []*workflow.WorkflowStepInput) string {
 	return ""
 }
 
-func (w *WorkflowBackend) toWorkflowRun(wf workflow.Workflow, p v1beta1.PipelineRun) *workflow.WorkflowRun {
+func (w *WorkflowBackend) toWorkflowRun(wf *workflow.Workflow, p v1beta1.PipelineRun) *workflow.WorkflowRun {
 
 	wfr := workflow.WorkflowRun{
 		Name:        &p.ObjectMeta.Name,
@@ -659,17 +660,17 @@ func contains(slice []string, item string) bool {
 	return false
 }
 
-func (w *WorkflowBackend) tektonDeleteIfError(ctx context.Context, log *log.Logger, err *error, tektonWorkload interface{}) {
+func (w *WorkflowBackend) tektonDeleteIfError(ctx context.Context, err *error, tektonWorkload interface{}) {
 	if *err != nil {
 		switch tw := tektonWorkload.(type) {
 		case *v1alpha1.TriggerTemplate:
-			log.Printf("Deleting TriggerTemplate: %s... (creating listener failed)", tw.Name)
+			w.logger.Printf("Deleting TriggerTemplate: %s... (creating listener failed)", tw.Name)
 			w.tektonClients.TriggerTemplateClient.Delete(ctx, tw.Name, metav1.DeleteOptions{})
 		case *v1alpha1.TriggerBinding:
-			log.Printf("Deleting TriggerBinding: %s... (creating listener failed)", tw.Name)
+			w.logger.Printf("Deleting TriggerBinding: %s... (creating listener failed)", tw.Name)
 			w.tektonClients.TriggerBindingClient.Delete(ctx, tw.Name, metav1.DeleteOptions{})
 		case *v1alpha1.EventListener:
-			log.Printf("Deleting EventListener: %s... (creating listener failed)", tw.Name)
+			w.logger.Printf("Deleting EventListener: %s... (creating listener failed)", tw.Name)
 			w.tektonClients.EventListenerClient.Delete(ctx, tw.Name, metav1.DeleteOptions{})
 		}
 	}

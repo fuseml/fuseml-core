@@ -43,12 +43,12 @@ const (
 
 func TestCreateWorkflow(t *testing.T) {
 	t.Run("new workflow", func(t *testing.T) {
-		ctx, b, logs, logsOutput := initBackend(t)
+		ctx, b, logsOutput := initBackend(t)
 
 		w := workflow.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
-		err := b.CreateWorkflow(ctx, logs, &w)
+		err := b.CreateWorkflow(ctx, &w)
 
 		assertError(t, err, nil)
 		assertStrings(t, strings.TrimSuffix(logsOutput.String(), "\n"), "Creating tekton pipeline for workflow: mlflow-sklearn-e2e...")
@@ -68,36 +68,34 @@ func TestCreateWorkflow(t *testing.T) {
 	})
 
 	t.Run("existing workflow", func(t *testing.T) {
-		ctx, b, logs, _ := initBackend(t)
+		ctx, b, _ := initBackend(t)
 
 		w := workflow.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
-		err := b.CreateWorkflow(ctx, logs, &w)
+		err := b.CreateWorkflow(ctx, &w)
 		if err != nil {
 			t.Fatal(err)
 		}
-		got := b.CreateWorkflow(ctx, logs, &w)
-		assertError(t, got, errWorkflowExists)
+		got := b.CreateWorkflow(ctx, &w)
+		assertError(t, got, domain.ErrWorkflowExists)
 	})
 }
 
 func TestDeleteWorkflow(t *testing.T) {
 	t.Run("delete", func(t *testing.T) {
-		ctx, b, logs, logsOutput := initBackend(t)
-
-		discardOutput := bytes.Buffer{}
-		discardLogs := log.New(&discardOutput, "[tekton-test] ", log.Ltime)
+		ctx, b, logsOutput := initBackend(t)
 
 		w := workflow.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
-		err := b.CreateWorkflow(ctx, discardLogs, &w)
+		err := b.CreateWorkflow(ctx, &w)
 		if err != nil {
 			t.Fatal(err)
 		}
+		logsOutput.Reset()
 
-		err = b.DeleteWorkflow(ctx, logs, w.Name)
+		err = b.DeleteWorkflow(ctx, w.Name)
 
 		assertError(t, err, nil)
 
@@ -114,10 +112,10 @@ func TestDeleteWorkflow(t *testing.T) {
 	})
 
 	t.Run("skip not found", func(t *testing.T) {
-		ctx, b, logs, logsOutput := initBackend(t)
+		ctx, b, logsOutput := initBackend(t)
 
 		name := "TestWorkflow"
-		err := b.DeleteWorkflow(ctx, logs, name)
+		err := b.DeleteWorkflow(ctx, name)
 
 		assertError(t, err, nil)
 
@@ -129,24 +127,23 @@ Tekton pipeline %q not found, skipping delete...
 }
 
 func TestCreateWorkflowRun(t *testing.T) {
-	ctx, b, logs, logsOutput := initBackend(t)
+	ctx, b, logsOutput := initBackend(t)
 
-	discardOutput := bytes.Buffer{}
-	discardLogs := log.New(&discardOutput, "[tekton-test] ", log.Ltime)
 	w := workflow.Workflow{}
 	readYaml(t, fuseMLWorkflow, &w)
 
-	err := b.CreateWorkflow(ctx, discardLogs, &w)
+	err := b.CreateWorkflow(ctx, &w)
 	if err != nil {
 		t.Fatal(err)
 	}
+	logsOutput.Reset()
 
 	cs := &domain.Codeset{
 		Name:    "mlflow-app-01",
 		Project: "workspace",
 		URL:     "http://gitea.10.160.5.140.nip.io/workspace/mlflow-app-01.git",
 	}
-	err = b.CreateWorkflowRun(ctx, logs, w.Name, cs)
+	err = b.CreateWorkflowRun(ctx, w.Name, cs)
 	if err != nil {
 		t.Fatalf("Failed to create workflow run %q: %s", w.Name, err)
 	}
@@ -175,12 +172,12 @@ func TestCreateWorkflowRun(t *testing.T) {
 
 func TestListWorkflowRuns(t *testing.T) {
 	t.Run("all", func(t *testing.T) {
-		ctx, b, logs, _ := initBackend(t)
+		ctx, b, _ := initBackend(t)
 
 		w := workflow.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
-		err := b.CreateWorkflow(ctx, logs, &w)
+		err := b.CreateWorkflow(ctx, &w)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -193,7 +190,7 @@ func TestListWorkflowRuns(t *testing.T) {
 			runName := fmt.Sprintf("%s-%d", w.Name, i)
 			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
 			runStartTime := metav1.Now()
-			b.createTestWorkflowRun(ctx, t, logs, w.Name, cs, runName, runStatus, runStartTime)
+			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime)
 			runCsInputValue := fmt.Sprintf("%s:main", cs.URL)
 			startTime := runStartTime.Format(time.RFC3339)
 			completionTime := metav1.NewTime(runStartTime.Time.Add(time.Minute)).Format(time.RFC3339)
@@ -210,7 +207,7 @@ func TestListWorkflowRuns(t *testing.T) {
 		}
 
 		filter := domain.WorkflowRunFilter{}
-		got, err := b.ListWorkflowRuns(ctx, w, filter)
+		got, err := b.ListWorkflowRuns(ctx, &w, &filter)
 		if err != nil {
 			t.Fatalf("Failed to list PipelineRun: %s", err)
 		}
@@ -219,13 +216,13 @@ func TestListWorkflowRuns(t *testing.T) {
 		}
 	})
 
-	t.Run("filter by label", func(t *testing.T) {
-		ctx, b, logs, _ := initBackend(t)
+	t.Run("filter by codeset", func(t *testing.T) {
+		ctx, b, _ := initBackend(t)
 
 		w := workflow.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
-		err := b.CreateWorkflow(ctx, logs, &w)
+		err := b.CreateWorkflow(ctx, &w)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -238,7 +235,7 @@ func TestListWorkflowRuns(t *testing.T) {
 			runName := fmt.Sprintf("%s-%d", w.Name, i)
 			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
 			runStartTime := metav1.Now()
-			b.createTestWorkflowRun(ctx, t, logs, w.Name, cs, runName, runStatus, runStartTime)
+			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime)
 			runCsInputValue := fmt.Sprintf("%s:main", cs.URL)
 			startTime := runStartTime.Format(time.RFC3339)
 			completionTime := metav1.NewTime(runStartTime.Time.Add(time.Minute)).Format(time.RFC3339)
@@ -255,9 +252,9 @@ func TestListWorkflowRuns(t *testing.T) {
 			codesets = append(codesets, cs)
 		}
 
-		filterNil := domain.WorkflowRunFilter{ByLabel: nil}
+		filterNil := domain.WorkflowRunFilter{}
 		want := wants
-		got, err := b.ListWorkflowRuns(ctx, w, filterNil)
+		got, err := b.ListWorkflowRuns(ctx, &w, &filterNil)
 		if err != nil {
 			t.Fatalf("Failed to list WorkflowRun: %s", err)
 		}
@@ -265,9 +262,9 @@ func TestListWorkflowRuns(t *testing.T) {
 			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
 		}
 
-		filterEmpty := domain.WorkflowRunFilter{ByLabel: []string{}}
+		filterEmptyCsName := domain.WorkflowRunFilter{CodesetName: ""}
 		want = wants
-		got, err = b.ListWorkflowRuns(ctx, w, filterEmpty)
+		got, err = b.ListWorkflowRuns(ctx, &w, &filterEmptyCsName)
 		if err != nil {
 			t.Fatalf("Failed to list WorkflowRun: %s", err)
 		}
@@ -275,9 +272,19 @@ func TestListWorkflowRuns(t *testing.T) {
 			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
 		}
 
-		filterNoResult := domain.WorkflowRunFilter{ByLabel: []string{fmt.Sprintf("%s=%s", LabelCodesetName, "do-no-exist")}}
+		filterEmptyCsProject := domain.WorkflowRunFilter{CodesetName: ""}
+		want = wants
+		got, err = b.ListWorkflowRuns(ctx, &w, &filterEmptyCsProject)
+		if err != nil {
+			t.Fatalf("Failed to list WorkflowRun: %s", err)
+		}
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
+		}
+
+		filterNoResult := domain.WorkflowRunFilter{CodesetName: "do-no-exist"}
 		want = []*workflow.WorkflowRun{}
-		got, err = b.ListWorkflowRuns(ctx, w, filterNoResult)
+		got, err = b.ListWorkflowRuns(ctx, &w, &filterNoResult)
 		if err != nil {
 			t.Fatalf("Failed to list WorkflowRun: %s", err)
 		}
@@ -286,9 +293,9 @@ func TestListWorkflowRuns(t *testing.T) {
 		}
 
 		for i := 0; i < len(codesets); i++ {
-			filterCodesetName := domain.WorkflowRunFilter{ByLabel: []string{fmt.Sprintf("%s=%s", LabelCodesetName, codesets[i].Name)}}
+			filterCodesetName := domain.WorkflowRunFilter{CodesetName: codesets[i].Name}
 			want := []*workflow.WorkflowRun{wants[i]}
-			got, err := b.ListWorkflowRuns(ctx, w, filterCodesetName)
+			got, err := b.ListWorkflowRuns(ctx, &w, &filterCodesetName)
 			if err != nil {
 				t.Fatalf("Failed to list WorkflowRun: %s", err)
 			}
@@ -299,9 +306,9 @@ func TestListWorkflowRuns(t *testing.T) {
 		}
 
 		for i := 0; i < len(codesets); i++ {
-			filterCodesetProject := domain.WorkflowRunFilter{ByLabel: []string{fmt.Sprintf("%s=%s", LabelCodesetProject, codesets[i].Project)}}
+			filterCodesetProject := domain.WorkflowRunFilter{CodesetProject: codesets[i].Project}
 			want := []*workflow.WorkflowRun{wants[i]}
-			got, err := b.ListWorkflowRuns(ctx, w, filterCodesetProject)
+			got, err := b.ListWorkflowRuns(ctx, &w, &filterCodesetProject)
 			if err != nil {
 				t.Fatalf("Failed to list WorkflowRun: %s", err)
 			}
@@ -312,10 +319,9 @@ func TestListWorkflowRuns(t *testing.T) {
 		}
 
 		for i := 0; i < len(codesets); i++ {
-			filterCodesetNameProject := domain.WorkflowRunFilter{ByLabel: []string{fmt.Sprintf("%s=%s", LabelCodesetName, codesets[i].Name),
-				fmt.Sprintf("%s=%s", LabelCodesetProject, codesets[i].Project)}}
+			filterCodesetNameProject := domain.WorkflowRunFilter{CodesetName: codesets[i].Name, CodesetProject: codesets[i].Project}
 			want := []*workflow.WorkflowRun{wants[i]}
-			got, err := b.ListWorkflowRuns(ctx, w, filterCodesetNameProject)
+			got, err := b.ListWorkflowRuns(ctx, &w, &filterCodesetNameProject)
 			if err != nil {
 				t.Fatalf("Failed to list WorkflowRun: %s", err)
 			}
@@ -327,12 +333,12 @@ func TestListWorkflowRuns(t *testing.T) {
 	})
 
 	t.Run("filter by status", func(t *testing.T) {
-		ctx, b, logs, _ := initBackend(t)
+		ctx, b, _ := initBackend(t)
 
 		w := workflow.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
-		err := b.CreateWorkflow(ctx, logs, &w)
+		err := b.CreateWorkflow(ctx, &w)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -345,7 +351,7 @@ func TestListWorkflowRuns(t *testing.T) {
 			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
 			runStartTime := metav1.Now()
 			runStatus := runsStatus[i]
-			b.createTestWorkflowRun(ctx, t, logs, w.Name, cs, runName, runStatus, runStartTime)
+			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime)
 			startTime := runStartTime.Format(time.RFC3339)
 			var completionTime *string
 			if runStatus != "Running" {
@@ -366,9 +372,9 @@ func TestListWorkflowRuns(t *testing.T) {
 			})
 		}
 
-		filterNil := domain.WorkflowRunFilter{ByStatus: nil}
+		filterNil := domain.WorkflowRunFilter{Status: nil}
 		want := wants
-		got, err := b.ListWorkflowRuns(ctx, w, filterNil)
+		got, err := b.ListWorkflowRuns(ctx, &w, &filterNil)
 		if err != nil {
 			t.Fatalf("Failed to list WorkflowRun: %s", err)
 		}
@@ -376,9 +382,9 @@ func TestListWorkflowRuns(t *testing.T) {
 			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
 		}
 
-		filterEmpty := domain.WorkflowRunFilter{ByStatus: []string{}}
+		filterEmpty := domain.WorkflowRunFilter{Status: []string{}}
 		want = wants
-		got, err = b.ListWorkflowRuns(ctx, w, filterEmpty)
+		got, err = b.ListWorkflowRuns(ctx, &w, &filterEmpty)
 		if err != nil {
 			t.Fatalf("Failed to list WorkflowRun: %s", err)
 		}
@@ -386,9 +392,9 @@ func TestListWorkflowRuns(t *testing.T) {
 			t.Errorf("Unexpected WorkflowRun: %s", diff.PrintWantGot(d))
 		}
 
-		filterNoResult := domain.WorkflowRunFilter{ByStatus: []string{"Timeout"}}
+		filterNoResult := domain.WorkflowRunFilter{Status: []string{"Timeout"}}
 		want = []*workflow.WorkflowRun{}
-		got, err = b.ListWorkflowRuns(ctx, w, filterNoResult)
+		got, err = b.ListWorkflowRuns(ctx, &w, &filterNoResult)
 		if err != nil {
 			t.Fatalf("Failed to list WorkflowRun: %s", err)
 		}
@@ -397,9 +403,9 @@ func TestListWorkflowRuns(t *testing.T) {
 		}
 
 		for i := 0; i < len(runsStatus); i++ {
-			filterStatus := domain.WorkflowRunFilter{ByStatus: []string{pipelineReasonToWorkflowStatus(runsStatus[i])}}
+			filterStatus := domain.WorkflowRunFilter{Status: []string{pipelineReasonToWorkflowStatus(runsStatus[i])}}
 			want := []*workflow.WorkflowRun{wants[i]}
-			got, err := b.ListWorkflowRuns(ctx, w, filterStatus)
+			got, err := b.ListWorkflowRuns(ctx, &w, &filterStatus)
 			if err != nil {
 				t.Fatalf("Failed to list WorkflowRun: %s", err)
 			}
@@ -410,10 +416,10 @@ func TestListWorkflowRuns(t *testing.T) {
 
 		filterMultipleStatus := domain.WorkflowRunFilter{}
 		for i := 0; i < len(runsStatus); i++ {
-			filterMultipleStatus.ByStatus = append(filterMultipleStatus.ByStatus, pipelineReasonToWorkflowStatus(runsStatus[i]))
+			filterMultipleStatus.Status = append(filterMultipleStatus.Status, pipelineReasonToWorkflowStatus(runsStatus[i]))
 		}
 		want = wants
-		got, err = b.ListWorkflowRuns(ctx, w, filterMultipleStatus)
+		got, err = b.ListWorkflowRuns(ctx, &w, &filterMultipleStatus)
 		if err != nil {
 			t.Fatalf("Failed to list WorkflowRun: %s", err)
 		}
@@ -427,19 +433,18 @@ func TestListWorkflowRuns(t *testing.T) {
 
 func TestCreateWorkflowListener(t *testing.T) {
 	t.Run("new listener", func(t *testing.T) {
-		ctx, b, logs, logsOutput := initBackend(t)
+		ctx, b, logsOutput := initBackend(t)
 
-		discardOutput := bytes.Buffer{}
-		discardLogs := log.New(&discardOutput, "[tekton-test] ", log.Ltime)
 		w := workflow.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
-		err := b.CreateWorkflow(ctx, discardLogs, &w)
+		err := b.CreateWorkflow(ctx, &w)
 		if err != nil {
 			t.Fatal(err)
 		}
+		logsOutput.Reset()
 
-		wfListener, err := b.CreateWorkflowListener(ctx, logs, w.Name, 0)
+		wfListener, err := b.CreateWorkflowListener(ctx, w.Name, 0)
 		assertError(t, err, nil)
 
 		wantURL := fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", w.Name, b.namespace)
@@ -509,24 +514,23 @@ Creating tekton event listener for workflow: mlflow-sklearn-e2e...
 	})
 
 	t.Run("existing listener", func(t *testing.T) {
-		ctx, b, logs, logsOutput := initBackend(t)
+		ctx, b, logsOutput := initBackend(t)
 
-		discardOutput := bytes.Buffer{}
-		discardLogs := log.New(&discardOutput, "[tekton-test] ", log.Ltime)
 		w := workflow.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
-		err := b.CreateWorkflow(ctx, discardLogs, &w)
+		err := b.CreateWorkflow(ctx, &w)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		_, err = b.CreateWorkflowListener(ctx, discardLogs, w.Name, 0)
+		_, err = b.CreateWorkflowListener(ctx, w.Name, 0)
 		if err != nil {
 			t.Fatalf("Failed to create listener for workflow %q: %s", w.Name, err)
 		}
+		logsOutput.Reset()
 
-		wfListener, err := b.CreateWorkflowListener(ctx, logs, w.Name, 0)
+		wfListener, err := b.CreateWorkflowListener(ctx, w.Name, 0)
 		assertError(t, err, nil)
 
 		wantURL := fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", w.Name, b.namespace)
@@ -547,19 +551,18 @@ Creating tekton event listener for workflow: mlflow-sklearn-e2e...
 	})
 
 	t.Run("clean if fail", func(t *testing.T) {
-		ctx, b, logs, logsOutput := initBackend(t)
+		ctx, b, logsOutput := initBackend(t)
 
-		discardOutput := bytes.Buffer{}
-		discardLogs := log.New(&discardOutput, "[tekton-test] ", log.Ltime)
 		w := workflow.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
-		err := b.CreateWorkflow(ctx, discardLogs, &w)
+		err := b.CreateWorkflow(ctx, &w)
 		if err != nil {
 			t.Fatal(err)
 		}
+		logsOutput.Reset()
 
-		_, err = b.CreateWorkflowListener(ctx, logs, w.Name, 1*time.Nanosecond)
+		_, err = b.CreateWorkflowListener(ctx, w.Name, 1*time.Nanosecond)
 		assertError(t, err, errWaitListenerTimeout)
 
 		templates, err := b.tektonClients.TriggerTemplateClient.List(ctx, metav1.ListOptions{})
@@ -600,24 +603,23 @@ Deleting TriggerTemplate: mlflow-sklearn-e2e... (creating listener failed)
 
 func TestDeleteWorkflowListener(t *testing.T) {
 	t.Run("delete", func(t *testing.T) {
-		ctx, b, logs, logsOutput := initBackend(t)
+		ctx, b, logsOutput := initBackend(t)
 
-		discardOutput := bytes.Buffer{}
-		discardLogs := log.New(&discardOutput, "[tekton-test] ", log.Ltime)
 		w := workflow.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
-		err := b.CreateWorkflow(ctx, discardLogs, &w)
+		err := b.CreateWorkflow(ctx, &w)
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		wfListener, err := b.CreateWorkflowListener(ctx, discardLogs, w.Name, 0)
+		wfListener, err := b.CreateWorkflowListener(ctx, w.Name, 0)
 		if err != nil {
 			t.Fatalf("Failed to create listener for workflow %q: %s", w.Name, err)
 		}
+		logsOutput.Reset()
 
-		err = b.DeleteWorkflowListener(ctx, logs, wfListener.Name)
+		err = b.DeleteWorkflowListener(ctx, wfListener.Name)
 		assertError(t, err, nil)
 
 		els, err := b.tektonClients.EventListenerClient.List(ctx, metav1.ListOptions{})
@@ -652,10 +654,10 @@ Deleting tekton trigger template: %s...
 	})
 
 	t.Run("skip not found", func(t *testing.T) {
-		ctx, b, logs, logsOutput := initBackend(t)
+		ctx, b, logsOutput := initBackend(t)
 
 		name := "TestListener"
-		err := b.DeleteWorkflowListener(ctx, logs, name)
+		err := b.DeleteWorkflowListener(ctx, name)
 		assertError(t, err, nil)
 
 		expectedLog := fmt.Sprintf(`Deleting tekton event listener: %s...
@@ -670,10 +672,8 @@ Tekton trigger template %q not found, skipping delete...
 }
 
 func TestGetWorkflowListener(t *testing.T) {
-	ctx, b, _, _ := initBackend(t)
+	ctx, b, _ := initBackend(t)
 
-	discardOutput := bytes.Buffer{}
-	discardLogs := log.New(&discardOutput, "[tekton-test] ", log.Ltime)
 	w := workflow.Workflow{}
 	readYaml(t, fuseMLWorkflow, &w)
 
@@ -682,7 +682,7 @@ func TestGetWorkflowListener(t *testing.T) {
 	for i := 0; i < 2; i++ {
 		listenerName := fmt.Sprintf("%s-%d", wfName, i)
 		w.Name = listenerName
-		err := b.CreateWorkflow(ctx, discardLogs, &w)
+		err := b.CreateWorkflow(ctx, &w)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -694,7 +694,7 @@ func TestGetWorkflowListener(t *testing.T) {
 			url = fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", listenerName, b.namespace)
 		}
 
-		b.createTestListener(ctx, t, discardLogs, listenerName, available)
+		b.createTestListener(ctx, t, listenerName, available)
 		wants = append(wants, &domain.WorkflowListener{
 			Name:         listenerName,
 			URL:          url,
@@ -731,14 +731,13 @@ func assertStrings(t testing.TB, got, want string) {
 	}
 }
 
-func initBackend(t *testing.T) (context context.Context, backend *WorkflowBackend, logs *log.Logger, logsOutput *bytes.Buffer) {
+func initBackend(t *testing.T) (context context.Context, backend *WorkflowBackend, logsOutput *bytes.Buffer) {
 	t.Helper()
 
 	context, _ = rtesting.SetupFakeContext(t)
-	backend = fakeNewWorkflowBackend(context, t, testNamespace)
-
 	logsOutput = &bytes.Buffer{}
-	logs = log.New(logsOutput, "", 0)
+	logger := log.New(logsOutput, "", 0)
+	backend = fakeNewWorkflowBackend(context, t, logger, testNamespace)
 	return
 }
 
@@ -782,11 +781,11 @@ func newFakeClients(context context.Context, t *testing.T, namespace string) *cl
 	return fc
 }
 
-func fakeNewWorkflowBackend(context context.Context, t *testing.T, namespace string) *WorkflowBackend {
+func fakeNewWorkflowBackend(context context.Context, t *testing.T, logger *log.Logger, namespace string) *WorkflowBackend {
 	t.Helper()
 
 	clients := newFakeClients(context, t, namespace)
-	return &WorkflowBackend{"http://tekton.test", namespace, clients}
+	return &WorkflowBackend{"http://tekton.test", namespace, logger, clients}
 }
 
 func createCodeset(t *testing.T, nameID, projectID int) *domain.Codeset {
@@ -798,11 +797,11 @@ func createCodeset(t *testing.T, nameID, projectID int) *domain.Codeset {
 	return &domain.Codeset{Name: name, Project: project, URL: url}
 }
 
-func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T, log *log.Logger,
-	workflow string, cs *domain.Codeset, runName string, status string, startTime metav1.Time) {
+func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T, workflow string,
+	cs *domain.Codeset, runName string, status string, startTime metav1.Time) {
 	t.Helper()
 
-	err := b.CreateWorkflowRun(ctx, log, workflow, cs)
+	err := b.CreateWorkflowRun(ctx, workflow, cs)
 	if err != nil {
 		t.Fatalf("Failed to create workflow run %q: %s", workflow, err)
 	}
@@ -832,10 +831,10 @@ func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T
 	}
 }
 
-func (b WorkflowBackend) createTestListener(ctx context.Context, t *testing.T, logger *log.Logger, workflow string, available bool) {
+func (b WorkflowBackend) createTestListener(ctx context.Context, t *testing.T, workflow string, available bool) {
 	t.Helper()
 
-	_, err := b.CreateWorkflowListener(ctx, logger, workflow, 0)
+	_, err := b.CreateWorkflowListener(ctx, workflow, 0)
 	if err != nil {
 		t.Fatalf("Failed to create listener %q: %s", workflow, err)
 	}
