@@ -2,6 +2,7 @@ package codeset
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 
@@ -81,6 +82,15 @@ func (o *ListOptions) run() error {
 		return err
 	}
 
+	if o.Project == "" && o.Label == "" {
+		fmt.Println("Listing all Codesets:")
+	} else if o.Project != "" && o.Label == "" {
+		fmt.Printf("Listing Codesets for project %s:\n", o.Project)
+	} else if o.Project == "" && o.Label != "" {
+		fmt.Printf("Listing Codesets with label %s:\n", o.Label)
+	} else {
+		fmt.Printf("Listing Codesets for project %s and with label %s:\n", o.Project, o.Label)
+	}
 	o.format.FormatValue(os.Stdout, response)
 
 	return nil

@@ -102,11 +102,33 @@ func (o *RegisterOptions) run() error {
 	}
 
 	fmt.Printf("Codeset %s successfully registered\n", *codeset.URL)
+
 	if result.Username != nil {
-		fmt.Printf("Username for accessing the project %s\n", *result.Username)
+		if viper.GetString("Username") != *result.Username {
+			fmt.Println("Saving new username into config file as current username.")
+			viper.Set("Username", *result.Username)
+		}
 	}
 	if result.Password != nil {
-		fmt.Printf("Password for accessing the project %s\n", *result.Password)
+		if viper.GetString("Password") != *result.Password {
+			fmt.Println("Saving new password into config file as current password.")
+			viper.Set("Password", *result.Password)
+		}
 	}
+
+	if viper.GetString("CurrentCodeset") != o.Name {
+		fmt.Printf("Setting %s as current codeset.\n", o.Name)
+		viper.Set("CurrentCodeset", o.Name)
+	}
+
+	if viper.GetString("CurrentProject") != o.Project {
+		fmt.Printf("Setting %s as current project.\n", o.Project)
+		viper.Set("CurrentProject", o.Project)
+	}
+
+	if err := viper.WriteConfig(); err != nil {
+		return err
+	}
+
 	return nil
 }
