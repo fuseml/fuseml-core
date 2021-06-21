@@ -61,7 +61,7 @@ func (s *projectsrvc) Create(ctx context.Context, p *project.CreatePayload) (res
 	s.logger.Print("project.create")
 	c, err := s.store.Create(ctx, p.Name, p.Description)
 	if err != nil {
-		if err.Error() == "Project with that name already exists" {
+		if err == domain.ErrProjectExists {
 			return nil, project.MakeConflict(err)
 		}
 		return nil, err
