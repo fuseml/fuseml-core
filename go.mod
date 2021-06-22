@@ -10,6 +10,7 @@ require (
 	github.com/go-git/go-git/v5 v5.4.2
 	github.com/goccy/go-yaml v1.8.9
 	github.com/google/go-cmp v0.5.5
+	github.com/google/wire v0.5.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.2.2
 	github.com/jedib0t/go-pretty/v6 v6.2.2
 	github.com/jinzhu/copier v0.2.9

@@ -41,71 +41,71 @@ func testLogger() *log.Logger {
 	return logger
 }
 
-func newTestGiteaAdminClient(testStore *TestStore) *giteaAdminClient {
-	return &giteaAdminClient{
+func newTestGiteaAdminClient(testStore *TestStore) *AdminClient {
+	return &AdminClient{
 		giteaClient: &testGiteaClient{testStore, testLogger()},
 		logger:      testLogger(),
 		url:         testURL,
 	}
 }
 
-func (tc testGiteaClient) AddRepoTopic(string, string, string) (*gitea.Response, error) {
+func (tc *testGiteaClient) AddRepoTopic(string, string, string) (*gitea.Response, error) {
 	return nil, nil
 }
-func (tc testGiteaClient) GetOrg(orgname string) (*gitea.Organization, *gitea.Response, error) {
+func (tc *testGiteaClient) GetOrg(orgname string) (*gitea.Organization, *gitea.Response, error) {
 	if org, ok := tc.testStore.projects[orgname]; ok {
 		return &org, &gitea.Response{Response: &httpResp200}, nil
 	}
 	return nil, nil, nil
 }
-func (tc testGiteaClient) CreateOrg(opt gitea.CreateOrgOption) (*gitea.Organization, *gitea.Response, error) {
+func (tc *testGiteaClient) CreateOrg(opt gitea.CreateOrgOption) (*gitea.Organization, *gitea.Response, error) {
 	org := gitea.Organization{UserName: opt.Name}
 	tc.testStore.projects[opt.Name] = org
 	tc.testStore.projects2repos[opt.Name] = make(map[string]gitea.Repository)
 	return &org, nil, nil
 }
-func (tc testGiteaClient) GetUserInfo(string) (*gitea.User, *gitea.Response, error) {
+func (tc *testGiteaClient) GetUserInfo(string) (*gitea.User, *gitea.Response, error) {
 	return &gitea.User{ID: 0}, nil, nil
 }
-func (tc testGiteaClient) AdminCreateUser(gitea.CreateUserOption) (*gitea.User, *gitea.Response, error) {
+func (tc *testGiteaClient) AdminCreateUser(gitea.CreateUserOption) (*gitea.User, *gitea.Response, error) {
 	return nil, nil, nil
 }
-func (tc testGiteaClient) AdminDeleteUser(user string) (*gitea.Response, error) {
+func (tc *testGiteaClient) AdminDeleteUser(user string) (*gitea.Response, error) {
 	return nil, nil
 }
-func (tc testGiteaClient) ListOrgTeams(string, gitea.ListTeamsOptions) ([]*gitea.Team, *gitea.Response, error) {
+func (tc *testGiteaClient) ListOrgTeams(string, gitea.ListTeamsOptions) ([]*gitea.Team, *gitea.Response, error) {
 	// return default team for any org
 	teams := []*gitea.Team{{Name: "Owners", ID: 42}}
 	return teams, nil, nil
 }
-func (tc testGiteaClient) AddTeamMember(id int64, username string) (*gitea.Response, error) {
+func (tc *testGiteaClient) AddTeamMember(id int64, username string) (*gitea.Response, error) {
 	tc.testStore.teams[id] = append(tc.testStore.teams[id], username)
 	return nil, nil
 }
-func (tc testGiteaClient) DeleteOrgMembership(org, user string) (*gitea.Response, error) {
+func (tc *testGiteaClient) DeleteOrgMembership(org, user string) (*gitea.Response, error) {
 	return &gitea.Response{Response: &httpResp200}, nil
 }
 
-func (tc testGiteaClient) ListTeamMembers(id int64, opts gitea.ListTeamMembersOptions) ([]*gitea.User, *gitea.Response, error) {
+func (tc *testGiteaClient) ListTeamMembers(id int64, opts gitea.ListTeamMembersOptions) ([]*gitea.User, *gitea.Response, error) {
 	users := make([]*gitea.User, 0)
 	return users, &gitea.Response{Response: &httpResp200}, nil
 }
 
-func (tc testGiteaClient) GetRepo(owner, reponame string) (*gitea.Repository, *gitea.Response, error) {
+func (tc *testGiteaClient) GetRepo(owner, reponame string) (*gitea.Repository, *gitea.Response, error) {
 	if repo, ok := tc.testStore.projects2repos[owner][reponame]; ok {
 		return &repo, &gitea.Response{Response: &httpResp200}, nil
 	}
 	return nil, &gitea.Response{Response: &httpResp404}, nil
 }
-func (tc testGiteaClient) CreateOrgRepo(org string, repo gitea.CreateRepoOption) (*gitea.Repository, *gitea.Response, error) {
+func (tc *testGiteaClient) CreateOrgRepo(org string, repo gitea.CreateRepoOption) (*gitea.Repository, *gitea.Response, error) {
 	r := gitea.Repository{Name: repo.Name}
 	tc.testStore.projects2repos[org][repo.Name] = r
 	return &r, nil, nil
 }
-func (tc testGiteaClient) ListRepoHooks(string, string, gitea.ListHooksOptions) ([]*gitea.Hook, *gitea.Response, error) {
+func (tc *testGiteaClient) ListRepoHooks(string, string, gitea.ListHooksOptions) ([]*gitea.Hook, *gitea.Response, error) {
 	return nil, nil, nil
 }
-func (tc testGiteaClient) ListOrgRepos(org string, opt gitea.ListOrgReposOptions) ([]*gitea.Repository, *gitea.Response, error) {
+func (tc *testGiteaClient) ListOrgRepos(org string, opt gitea.ListOrgReposOptions) ([]*gitea.Repository, *gitea.Response, error) {
 	repos := make([]*gitea.Repository, 0)
 	for _, repo := range tc.testStore.projects2repos[org] {
 		r := repo
@@ -114,21 +114,21 @@ func (tc testGiteaClient) ListOrgRepos(org string, opt gitea.ListOrgReposOptions
 	return repos, nil, nil
 }
 
-func (tc testGiteaClient) ListUserOrgs(user string, opt gitea.ListOrgsOptions) ([]*gitea.Organization, *gitea.Response, error) {
+func (tc *testGiteaClient) ListUserOrgs(user string, opt gitea.ListOrgsOptions) ([]*gitea.Organization, *gitea.Response, error) {
 	userOrgs := make([]*gitea.Organization, 0)
 	return userOrgs, nil, nil
 }
 
-func (tc testGiteaClient) CreateRepoHook(string, string, gitea.CreateHookOption) (*gitea.Hook, *gitea.Response, error) {
+func (tc *testGiteaClient) CreateRepoHook(string, string, gitea.CreateHookOption) (*gitea.Hook, *gitea.Response, error) {
 	return &gitea.Hook{ID: int64(1)}, nil, nil
 }
-func (tc testGiteaClient) DeleteRepoHook(string, string, int64) (*gitea.Response, error) {
+func (tc *testGiteaClient) DeleteRepoHook(string, string, int64) (*gitea.Response, error) {
 	return &gitea.Response{Response: &httpResp200}, nil
 }
-func (tc testGiteaClient) ListRepoTopics(org, repo string, opt gitea.ListRepoTopicsOptions) ([]string, *gitea.Response, error) {
+func (tc *testGiteaClient) ListRepoTopics(org, repo string, opt gitea.ListRepoTopicsOptions) ([]string, *gitea.Response, error) {
 	return nil, nil, nil
 }
-func (tc testGiteaClient) ListMyOrgs(gitea.ListOrgsOptions) ([]*gitea.Organization, *gitea.Response, error) {
+func (tc *testGiteaClient) ListMyOrgs(gitea.ListOrgsOptions) ([]*gitea.Organization, *gitea.Response, error) {
 	allOrgs := make([]*gitea.Organization, 0)
 	for _, org := range tc.testStore.projects {
 		o := org
@@ -137,12 +137,12 @@ func (tc testGiteaClient) ListMyOrgs(gitea.ListOrgsOptions) ([]*gitea.Organizati
 	return allOrgs, nil, nil
 }
 
-func (tc testGiteaClient) DeleteRepo(owner, repo string) (*gitea.Response, error) {
+func (tc *testGiteaClient) DeleteRepo(owner, repo string) (*gitea.Response, error) {
 	delete(tc.testStore.projects2repos[owner], repo)
 	return nil, nil
 }
 
-func (tc testGiteaClient) DeleteOrg(orgname string) (*gitea.Response, error) {
+func (tc *testGiteaClient) DeleteOrg(orgname string) (*gitea.Response, error) {
 	delete(tc.testStore.projects, orgname)
 	return nil, nil
 }

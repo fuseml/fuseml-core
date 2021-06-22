@@ -107,6 +107,8 @@ runcli: generate lint
 generate:
 	go mod download
 	go run goa.design/goa/v3/cmd/goa gen github.com/fuseml/fuseml-core/design
+	go get github.com/google/wire/cmd/wire@v0.5.0
+	go generate cmd/fuseml_core/wire_gen.go
 
 # Lint code
 lint: fmt vet tidy
