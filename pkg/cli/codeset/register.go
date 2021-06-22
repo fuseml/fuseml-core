@@ -4,13 +4,15 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
 	"github.com/fuseml/fuseml-core/gen/codeset"
 	codesetc "github.com/fuseml/fuseml-core/gen/http/codeset/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	gitc "github.com/fuseml/fuseml-core/pkg/cli/git"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 // RegisterOptions holds the options for 'codeset register' sub command
@@ -126,8 +128,8 @@ func (o *RegisterOptions) run() error {
 		viper.Set("CurrentProject", o.Project)
 	}
 
-	if err := viper.WriteConfig(); err != nil {
-		return err
+	if err := common.WriteConfigFile(); err != nil {
+		return errors.Wrap(err, "Error writing config file")
 	}
 
 	return nil
