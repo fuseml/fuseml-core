@@ -7,8 +7,10 @@ const (
 	ConfigFileName = "config"
 	// ConfigFileType is the type of default config file
 	ConfigFileType = "yaml"
-	// ConfigHomeSubdir is the subdirectory where the FuseML configuration files is located
-	ConfigHomeSubdir = ".fuseml"
+	// ConfigHomeSubdir is the main subdirectory where the user configuration files are located
+	ConfigHomeSubdir = ".config"
+	// ConfigFuseMLSubdir is the subdirectory where the FuseML configuration file is located
+	ConfigFuseMLSubdir = "fuseml"
 	// DefaultHTTPTimeout is the default HTTP timeout value
 	DefaultHTTPTimeout = 30
 )

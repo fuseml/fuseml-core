@@ -83,11 +83,8 @@ func WriteConfigFile() error {
 
 	if cf == "" {
 		fullname := ConfigFileName + "." + ConfigFileType
-		if dirname, err := os.Getwd(); err == nil {
-			cf = filepath.Join(dirname, ConfigHomeSubdir, fullname)
-		}
 		if dirname, err := os.UserHomeDir(); err == nil {
-			cf = filepath.Join(dirname, ConfigHomeSubdir, fullname)
+			cf = filepath.Join(dirname, ConfigHomeSubdir, ConfigFuseMLSubdir, fullname)
 		}
 		if cf == "" {
 			return errors.New("Failed to acquire config directory name")
