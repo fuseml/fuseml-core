@@ -3,9 +3,11 @@ package project
 import (
 	"fmt"
 
-	"github.com/fuseml/fuseml-core/pkg/cli/common"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"github.com/fuseml/fuseml-core/pkg/cli/common"
 )
 
 // SetOptions holds the options for 'project set' sub command
@@ -57,8 +59,8 @@ func (o *SetOptions) run() error {
 
 	viper.Set("CurrentProject", o.Name)
 
-	if err := viper.WriteConfig(); err != nil {
-		return err
+	if err := common.WriteConfigFile(); err != nil {
+		return errors.Wrap(err, "Error writing config file")
 	}
 
 	fmt.Printf("Current project set to %s.\n", o.Name)

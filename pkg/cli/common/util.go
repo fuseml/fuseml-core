@@ -4,7 +4,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
+
+	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 )
 
 // CheckErr prints a user friendly error to STDERR and exits with a non-zero
@@ -68,5 +72,33 @@ func LoadFileIntoVar(filePath string, destContent *string) error {
 
 	*destContent = string(content)
 
+	return nil
+}
+
+// WriteConfigFile writes new content of the config file.
+// If the file does not exist, it is created at default location
+// TODO temporary solution until upstream https://github.com/spf13/viper/issues/433 is fixed
+func WriteConfigFile() error {
+	cf := viper.ConfigFileUsed()
+
+	if cf == "" {
+		fullname := ConfigFileName + "." + ConfigFileType
+		if dirname, err := os.UserHomeDir(); err == nil {
+			cf = filepath.Join(dirname, ConfigHomeSubdir, ConfigFuseMLSubdir, fullname)
+		}
+		if cf == "" {
+			return errors.New("Failed to acquire config directory name")
+		}
+		configDirPath := filepath.Dir(cf)
+		if err := os.MkdirAll(configDirPath, os.ModePerm); err != nil {
+			return err
+		}
+
+		fmt.Printf("FuseML configuration file created at %s\n", cf)
+	}
+
+	if err := viper.WriteConfigAs(cf); err != nil {
+		return err
+	}
 	return nil
 }

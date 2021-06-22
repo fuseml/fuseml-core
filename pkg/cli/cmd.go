@@ -60,14 +60,11 @@ func initializeConfig(cmd *cobra.Command) error {
 	viper.SetConfigName(common.ConfigFileName)
 
 	// Set the config format and extension
-	viper.SetConfigType("yaml")
+	viper.SetConfigType(common.ConfigFileType)
 
 	// Set paths where viper should look for the config file.
-	if dirname, err := os.Getwd(); err == nil {
-		viper.AddConfigPath(filepath.Join(dirname, common.ConfigHomeSubdir))
-	}
 	if dirname, err := os.UserHomeDir(); err == nil {
-		viper.AddConfigPath(filepath.Join(dirname, common.ConfigHomeSubdir))
+		viper.AddConfigPath(filepath.Join(dirname, common.ConfigHomeSubdir, common.ConfigFuseMLSubdir))
 	}
 
 	// Attempt to read the config file, gracefully ignoring errors
