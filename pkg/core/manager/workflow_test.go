@@ -31,7 +31,7 @@ var (
 	// 1. name: cs0, project: csproject0
 	// 2. name: cs1, project: csproject1
 	// 3. name: cs2, project: csproject1
-	codesetStore domain.CodesetStore
+	codesetStore *fakeCodesetStore
 
 	// workflowRunStatuses are the possible Status for a WorkflowRun. The status of a WorkflowRun is set
 	// accordingly to its order, cycling between the workflowRunStatuses. E.g. run0: Succeeded, run1: Failed,
@@ -200,11 +200,18 @@ func TestAssignToCodeset(t *testing.T) {
 		assertError(t, err, nil)
 
 		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
-		wantListener, webhookID, err := mgr.AssignToCodeset(context.Background(), wf.Name, codesets[0].Project, codesets[0].Name)
+		codeset := codesets[0]
+		wantListener, webhookID, err := mgr.AssignToCodeset(context.Background(), wf.Name, codeset.Project, codeset.Name)
 		assertError(t, err, nil)
 
+		ignoreUnexported := cmpopts.IgnoreUnexported(WorkflowManager{})
+		gotSubscribers := codesetStore.getSubscribers(context.TODO(), codeset)
+		if d := cmp.Diff([]domain.CodesetSubscriber{mgr}, gotSubscribers, ignoreUnexported); d != "" {
+			t.Errorf("Unexpected codeset subscriber: %s", diff.PrintWantGot(d))
+		}
+
 		got := workflowStore.GetAssignments(context.TODO(), &wf.Name)
-		want := map[string][]*domain.AssignedCodeset{wf.Name: {{Codeset: codesets[0], WebhookID: webhookID}}}
+		want := map[string][]*domain.AssignedCodeset{wf.Name: {{Codeset: codeset, WebhookID: webhookID}}}
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Assignment: %s", diff.PrintWantGot(d))
 		}
@@ -281,6 +288,10 @@ func TestUnassignFromCodeset(t *testing.T) {
 		// delete wf assignment to cs0
 		err = mgr.UnassignFromCodeset(context.Background(), wf.Name, codesets[0].Project, codesets[0].Name)
 		assertError(t, err, nil)
+		gotSubscribers := codesetStore.getSubscribers(context.TODO(), codesets[0])
+		if d := cmp.Diff([]domain.CodesetSubscriber{}, gotSubscribers); d != "" {
+			t.Errorf("Unexpected codeset subscriber: %s", diff.PrintWantGot(d))
+		}
 
 		// should have only one assignment to cs1
 		gotAss := workflowStore.GetAssignments(context.TODO(), &wf.Name)
@@ -363,6 +374,27 @@ func TestUnassignFromCodeset(t *testing.T) {
 		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
 		got := mgr.UnassignFromCodeset(context.Background(), wf.Name, codesets[0].Project, codesets[0].Name)
 		assertError(t, got, domain.ErrWorkflowNotAssignedToCodeset)
+	})
+
+	t.Run("on codeset deleting", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+
+		wf, err := mgr.Create(context.Background(), &workflow.Workflow{Name: "wf"})
+		assertError(t, err, nil)
+
+		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
+		codeset := codesets[0]
+		_, _, err = mgr.AssignToCodeset(context.Background(), wf.Name, codeset.Project, codeset.Name)
+		assertError(t, err, nil)
+
+		codesetStore.Delete(context.TODO(), codeset.Project, codeset.Name)
+
+		// should have no assignment
+		gotAss := workflowStore.GetAssignments(context.TODO(), nil)
+		wantAss := map[string][]*domain.AssignedCodeset{}
+		if d := cmp.Diff(wantAss, gotAss); d != "" {
+			t.Errorf("Unexpected Assignment: %s", diff.PrintWantGot(d))
+		}
 	})
 }
 
@@ -716,7 +748,7 @@ func assertStrings(t testing.TB, got, want string) {
 	}
 }
 
-func newFakeWorkflowManager(t *testing.T) domain.WorkflowManager {
+func newFakeWorkflowManager(t *testing.T) *WorkflowManager {
 	t.Helper()
 
 	workflowStore = core.NewWorkflowStore()
@@ -890,8 +922,9 @@ type codesetID struct {
 }
 
 type fakeStorableCodeset struct {
-	codeset  *domain.Codeset
-	webhooks map[int64]string
+	codeset     *domain.Codeset
+	webhooks    map[int64]string
+	subscribers []domain.CodesetSubscriber
 }
 
 type fakeCodesetStore struct {
@@ -922,6 +955,17 @@ func (fcs *fakeCodesetStore) DeleteWebhook(ctx context.Context, c *domain.Codese
 }
 
 func (fcs *fakeCodesetStore) Delete(ctx context.Context, project, name string) error {
+	fcs.t.Helper()
+
+	sc, ok := fcs.store[codesetID{name, project}]
+	if !ok {
+		return nil
+	}
+	for _, subscriber := range sc.subscribers {
+		subscriber.OnDeletingCodeset(ctx, sc.codeset)
+	}
+
+	delete(fcs.store, codesetID{name, project})
 	return nil
 }
 
@@ -943,6 +987,31 @@ func (fcs *fakeCodesetStore) GetAll(ctx context.Context, project, label *string)
 	return res, nil
 }
 
+func (fcs *fakeCodesetStore) Subscribe(ctx context.Context, subscriber domain.CodesetSubscriber, codeset *domain.Codeset) error {
+	fcs.t.Helper()
+
+	sc, ok := fcs.store[codesetID{codeset.Name, codeset.Project}]
+	if !ok {
+		return fmt.Errorf("codeset not found")
+	}
+	sc.subscribers = append(sc.subscribers, subscriber)
+	fcs.store[codesetID{codeset.Name, codeset.Project}] = sc
+	return nil
+}
+
+func (fcs *fakeCodesetStore) Unsubscribe(ctx context.Context, subscriber domain.CodesetSubscriber, codeset *domain.Codeset) error {
+	fcs.t.Helper()
+
+	sc := fcs.store[codesetID{codeset.Name, codeset.Project}]
+	sc.subscribers = removesubscriber(sc.subscribers, subscriber)
+	fcs.store[codesetID{codeset.Name, codeset.Project}] = sc
+	return nil
+}
+
+func (fcs *fakeCodesetStore) getSubscribers(ctx context.Context, c *domain.Codeset) []domain.CodesetSubscriber {
+	return fcs.store[codesetID{c.Name, c.Project}].subscribers
+}
+
 func contains(slice []string, item string) bool {
 	for _, s := range slice {
 		if s == item {
@@ -950,4 +1019,14 @@ func contains(slice []string, item string) bool {
 		}
 	}
 	return false
+}
+
+func removesubscriber(subscribers []domain.CodesetSubscriber, subscriber domain.CodesetSubscriber) []domain.CodesetSubscriber {
+	for i, s := range subscribers {
+		if s == subscriber {
+			subscribers[len(subscribers)-1], subscribers[i] = subscribers[i], subscribers[len(subscribers)-1]
+			return subscribers[:len(subscribers)-1]
+		}
+	}
+	return subscribers
 }

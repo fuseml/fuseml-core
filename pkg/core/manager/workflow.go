@@ -94,6 +94,7 @@ func (mgr *WorkflowManager) AssignToCodeset(ctx context.Context, name, codesetPr
 	}
 
 	mgr.workflowStore.AddCodesetAssignment(ctx, name, &domain.AssignedCodeset{Codeset: codeset, WebhookID: webhookID})
+	mgr.codesetStore.Subscribe(ctx, mgr, codeset)
 	mgr.workflowBackend.CreateWorkflowRun(ctx, name, codeset)
 	return
 }
@@ -125,6 +126,7 @@ func (mgr *WorkflowManager) UnassignFromCodeset(ctx context.Context, name, codes
 	}
 
 	mgr.workflowStore.DeleteCodesetAssignment(ctx, name, codeset)
+	mgr.codesetStore.Unsubscribe(ctx, mgr, codeset)
 	return
 }
 
@@ -162,6 +164,13 @@ func (mgr *WorkflowManager) ListRuns(ctx context.Context, filter *domain.Workflo
 	}
 
 	return workflowRuns, nil
+}
+
+// OnDeletingCodeset perform operations on workflows when a codeset is deleted
+func (mgr *WorkflowManager) OnDeletingCodeset(ctx context.Context, codeset *domain.Codeset) {
+	for _, wf := range mgr.List(ctx, nil) {
+		mgr.UnassignFromCodeset(ctx, wf.Name, codeset.Project, codeset.Name)
+	}
 }
 
 func newWorkflowAssignment(workflowName string, codesets []*domain.AssignedCodeset, listener *domain.WorkflowListener) *workflow.WorkflowAssignment {

@@ -18,6 +18,12 @@ type Codeset struct {
 	URL string
 }
 
+// CodesetSubscriber is an interface for objects interested in operations performed on
+// a specific codeset
+type CodesetSubscriber interface {
+	OnDeletingCodeset(ctx context.Context, c *Codeset)
+}
+
 // CodesetStore is an interface to codeset stores
 type CodesetStore interface {
 	Find(ctx context.Context, project, name string) (*Codeset, error)
@@ -26,6 +32,8 @@ type CodesetStore interface {
 	CreateWebhook(context.Context, *Codeset, string) (*int64, error)
 	DeleteWebhook(context.Context, *Codeset, *int64) error
 	Delete(ctx context.Context, project, name string) error
+	Subscribe(ctx context.Context, watcher CodesetSubscriber, codeset *Codeset) error
+	Unsubscribe(ctx context.Context, watcher CodesetSubscriber, codeset *Codeset) error
 }
 
 // GitAdminClient describes the interface of a Git admin client

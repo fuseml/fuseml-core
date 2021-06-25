@@ -8,16 +8,21 @@ import (
 	"github.com/fuseml/fuseml-core/pkg/domain"
 )
 
+type codesetID struct {
+	name    string
+	project string
+}
+
 // GitCodesetStore describes a structure that accesses codeset store implemented in git
 type GitCodesetStore struct {
-	gitAdmin domain.GitAdminClient
+	gitAdmin    domain.GitAdminClient
+	subscribers map[codesetID][]domain.CodesetSubscriber
 }
 
 // NewGitCodesetStore returns codeset store instance
 func NewGitCodesetStore(gitAdmin domain.GitAdminClient) *GitCodesetStore {
-	return &GitCodesetStore{
-		gitAdmin: gitAdmin,
-	}
+	subscribers := make(map[codesetID][]domain.CodesetSubscriber)
+	return &GitCodesetStore{gitAdmin, subscribers}
 }
 
 // Find returns a codeset identified by project and name
@@ -31,11 +36,21 @@ func (cs *GitCodesetStore) Find(ctx context.Context, project, name string) (*dom
 
 // Delete removes a codeset identified by project and name
 func (cs *GitCodesetStore) Delete(ctx context.Context, project, name string) error {
-	err := cs.gitAdmin.DeleteRepository(project, name)
+	codeset, err := cs.Find(ctx, project, name)
+	if err != nil {
+		return nil
+	}
+	// notify codeset subscribers about a codeset being deleted
+	for _, subscriber := range cs.subscribers[codesetID{name, project}] {
+		subscriber.OnDeletingCodeset(ctx, codeset)
+	}
+	err = cs.gitAdmin.DeleteRepository(project, name)
 	// TODO should we delete the project+user too? If it does not contain any repos?
 	if err != nil {
 		return errors.Wrap(err, "Deleting Codeset failed")
 	}
+	// upon a codeset deletion all subscribers associated to that codeset also needs to be removed
+	cs.deleteSubscribers(codeset)
 	return nil
 }
 
@@ -74,4 +89,33 @@ func (cs *GitCodesetStore) Add(ctx context.Context, c *domain.Codeset) (*domain.
 	}
 	// Code itself needs to be pushed from client, here we could do some additional registration
 	return c, username, password, nil
+}
+
+// Subscribe adds a subscriber interested on operations performed on a specific codeset
+func (cs *GitCodesetStore) Subscribe(ctx context.Context, subscriber domain.CodesetSubscriber, codeset *domain.Codeset) error {
+	if _, err := cs.Find(ctx, codeset.Project, codeset.Name); err != nil {
+		return err
+	}
+	cs.subscribers[codesetID{codeset.Name, codeset.Project}] = append(cs.subscribers[codesetID{codeset.Name, codeset.Project}], subscriber)
+	return nil
+}
+
+// Unsubscribe deletes a specific codeset subscriber
+func (cs *GitCodesetStore) Unsubscribe(ctx context.Context, subscriber domain.CodesetSubscriber, codeset *domain.Codeset) error {
+	cs.subscribers[codesetID{codeset.Name, codeset.Project}] = removeSubscriber(cs.subscribers[codesetID{codeset.Name, codeset.Project}], subscriber)
+	return nil
+}
+
+func (cs *GitCodesetStore) deleteSubscribers(codeset *domain.Codeset) {
+	delete(cs.subscribers, codesetID{codeset.Name, codeset.Project})
+}
+
+func removeSubscriber(subscribers []domain.CodesetSubscriber, subscriber domain.CodesetSubscriber) []domain.CodesetSubscriber {
+	for i, s := range subscribers {
+		if s == subscriber {
+			subscribers[len(subscribers)-1], subscribers[i] = subscribers[i], subscribers[len(subscribers)-1]
+			return subscribers[:len(subscribers)-1]
+		}
+	}
+	return subscribers
 }
