@@ -498,7 +498,7 @@ func generateTriggerBinding(template *v1alpha1.TriggerTemplate) *v1alpha1.Trigge
 
 func generateEventListener(template *v1alpha1.TriggerTemplate, binding *v1alpha1.TriggerBinding) *v1alpha1.EventListener {
 	elb := builder.NewEventListenerBuilder(template.Name, template.Namespace)
-	elb.ServiceAccount(pipelineRunServiceAccount)
+	elb.ServiceAccount(triggersServiceAccount)
 	elb.TriggerBinding(template.Name, binding.Name)
 	return &elb.EventListener
 }

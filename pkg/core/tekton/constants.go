@@ -2,7 +2,8 @@ package tekton
 
 const (
 	pipelineRunPrefix         = "fuseml-"
-	pipelineRunServiceAccount = "staging-triggers-admin"
+	pipelineRunServiceAccount = "fuseml-workloads"
+	triggersServiceAccount    = "tekton-triggers"
 	workspaceAccessMode       = "ReadWriteOnce"
 	workspaceSize             = "2Gi"
 	inputTypeCodeset          = "codeset"
