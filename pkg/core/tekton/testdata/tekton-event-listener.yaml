@@ -4,7 +4,7 @@ metadata:
   name: mlflow-sklearn-e2e
   namespace: test-namespace
 spec:
-  serviceAccountName: staging-triggers-admin
+  serviceAccountName: tekton-triggers
   triggers:
     - bindings:
         - ref: mlflow-sklearn-e2e

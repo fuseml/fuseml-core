@@ -47,7 +47,7 @@ spec:
                 - name: revision
                   value: $(tt.params.codeset-version)
               type: git
-        serviceAccountName: staging-triggers-admin
+        serviceAccountName: fuseml-workloads
         workspaces:
           - name: source
             volumeClaimTemplate:
