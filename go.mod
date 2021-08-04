@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	code.gitea.io/sdk/gitea v0.14.0
+	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/dimfeld/httptreemux/v5 v5.3.0 // indirect
 	github.com/fatih/color v1.10.0
 	github.com/ghodss/yaml v1.0.0
@@ -15,6 +16,7 @@ require (
 	github.com/jedib0t/go-pretty/v6 v6.2.2
 	github.com/jinzhu/copier v0.2.9
 	github.com/jonboulle/clockwork v0.1.1-0.20190114141812-62fb9bc030d1
+	github.com/masterminds/semver v1.5.0
 	github.com/otiai10/copy v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/sergi/go-diff v1.2.0 // indirect
@@ -24,6 +26,7 @@ require (
 	github.com/tektoncd/cli v0.18.0
 	github.com/tektoncd/pipeline v0.23.0
 	github.com/tektoncd/triggers v0.13.0
+	github.com/thanhpk/randstr v1.0.4
 	github.com/thediveo/enumflag v0.10.1
 	goa.design/goa/v3 v3.3.1
 	google.golang.org/grpc v1.37.0

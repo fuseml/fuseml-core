@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"fmt"
 )
 
 // ExtensionEndpointType is the type used for the ExtensionEndpoint EndpointType field
@@ -9,8 +10,10 @@ type ExtensionEndpointType string
 
 // Valid values that can be used with ExtensionEndpointType
 const (
+	// EETInternal is an internal endpoint that can only be accessed from the same zone
 	EETInternal ExtensionEndpointType = "internal"
-	EETExternal                       = "external"
+	// EETExternal is an external endpoint that can be accessed from any zone
+	EETExternal = "external"
 )
 
 // ExtensionCredentialScope is the type used for the ExtensionCredentials Scope field
@@ -18,22 +21,21 @@ type ExtensionCredentialScope string
 
 // Valid values that can be used with ExtensionCredentialScope
 const (
-	ECSGlobal  ExtensionCredentialScope = "global"
-	ECSProject                          = "project"
-	ECSUser                             = "user"
+	// ECSGlobal is a global scope indicating that credentials may be used for any project and user
+	ECSGlobal ExtensionCredentialScope = "global"
+	// ECSProject is a project scope indicating that credentials may only be used in the context of
+	// a controlled list of projects
+	ECSProject = "project"
+	// ECSUser is a user scope indicating that credentials may only be used in the context of
+	// a controlled list of users and projects
+	ECSUser = "user"
 )
-
-// ExtensionID is a unique extension identifier
-type ExtensionID struct {
-	// Extension ID - used to uniquely identify an extension in the registry
-	ExtensionID string
-}
 
 // Extension is an entry in the extension registry that describes a particular installation of a
 // framework/platform/service/product developed and released or hosted under a unique product name
 type Extension struct {
 	// Extension ID - used to uniquely identify an extension in the registry
-	ExtensionID
+	ExtensionID string
 	// Universal product identifier that can be used to group and identify extensions according to the product
 	// they belong to. Product values can be used to identify installations of the same product registered
 	// with the same or different FuseML servers.
@@ -156,18 +158,18 @@ type ExtensionCredentials struct {
 // endpoints and credentials that can be used to access them
 type ExtensionRecord struct {
 	Extension
-	// Map of services associated with the extension, indexed by service ID
-	Services map[string]*ExtensionServiceRecord
+	// List of services associated with the extension
+	Services []*ExtensionServiceRecord
 }
 
 // ExtensionServiceRecord is used to associate an extension service with a list of endpoints that can be used
 // to access the service and a set of credentials configured for it
 type ExtensionServiceRecord struct {
 	ExtensionService
-	// Map of endpoints associated with the service, indexed by endpoint URL
-	Endpoints map[string]*ExtensionEndpoint
-	// Map of credentials associated with the service, indexed by credentials ID
-	Credentials map[string]*ExtensionCredentials
+	// List of endpoints associated with the service
+	Endpoints []*ExtensionEndpoint
+	// List of credentials associated with the service
+	Credentials []*ExtensionCredentials
 }
 
 // ExtensionAccessDescriptor is a structure that contains all the information needed to access an extension:
@@ -180,26 +182,31 @@ type ExtensionAccessDescriptor struct {
 	*ExtensionCredentials
 }
 
-// ExtensionAccessQuery is a query that can be run against the extension registry to retrieve
+// ExtensionQuery is a query that can be run against the extension registry to retrieve
 // a list of extension endpoints and credentials that meet all supplied criteria
-type ExtensionAccessQuery struct {
+type ExtensionQuery struct {
 	// Search by explicit extension ID
 	ExtensionID string
 	// Search by product name. Leave empty to include all products
 	Product string
+	// Search by version or by semantic version constraints. Leave empty to include all available versions
+	VersionConstraints string
+	// Match extensions installed in a given zone.
+	Zone string
+	// Use strict filtering when a zone query field is supplied. When set, only extensions
+	// installed in the supplied zone are returned.
+	StrictZoneMatch bool
 	// Search by explicit service ID
 	ServiceID string
 	// Search by service resource type. Leave empty to include all resource types
 	ServiceResource string
 	// Search by service category. Leave empty to include all services
 	ServiceCategory string
-	// Match extensions installed in a given zone.
-	Zone string
-	// Use strict filtering when a zone query field is supplied. When set, only extensions
-	// installed in the supplied zone are returned.
-	StrictZoneMatch bool
 	// Search by explicit endpoint URL
 	EndpointURL string
+	// Search by endpoint type. If not explicitly specified, the endpoint type will be
+	// determined automatically by StrictZoneMatch and the Zone value, if a Zone is supplied
+	EndpointType *ExtensionEndpointType
 	// Search by explicit credentials ID
 	CredentialsID string
 	// Match credentials by scope
@@ -212,6 +219,161 @@ type ExtensionAccessQuery struct {
 	Project string
 }
 
+// Errors returned by the methods in the ExtensionRegistry and ExtensionStore interfaces
+// ---------------------------
+
+// ErrExtensionExists is the error returned during registration, when an extension with the same ID
+// already exists in the registry
+type ErrExtensionExists string
+
+// NewErrExtensionExists creates a new ErrExtensionExists error
+func NewErrExtensionExists(extensionID string) *ErrExtensionExists {
+	err := ErrExtensionExists(extensionID)
+	return &err
+}
+
+func (e *ErrExtensionExists) Error() string {
+	return fmt.Sprintf("an extension with the same ID already exists: %s", string(*e))
+}
+
+// ErrExtensionNotFound is the error returned by various registry methods when an extension with
+// a given ID is not found in the registry
+type ErrExtensionNotFound string
+
+// NewErrExtensionNotFound creates a new ErrExtensionNotFound error
+func NewErrExtensionNotFound(extensionID string) *ErrExtensionNotFound {
+	err := ErrExtensionNotFound(extensionID)
+	return &err
+}
+
+func (e *ErrExtensionNotFound) Error() string {
+	return fmt.Sprintf("an extension with the given ID cound not be found: %s", string(*e))
+}
+
+// ErrMissingField is the error returned by various registry methods if a required field has not been
+// filled in the supplied object
+type ErrMissingField struct {
+	Element string
+	Field   string
+}
+
+// NewErrMissingField creates a new ErrMissingField error
+func NewErrMissingField(element, field string) *ErrMissingField {
+	return &ErrMissingField{element, field}
+}
+
+func (e *ErrMissingField) Error() string {
+	return fmt.Sprintf("required field is missing from '%s' structure: %s", e.Element, e.Field)
+}
+
+// ErrExtensionServiceExists is the error returned during registration or service addition, when an
+// extension service with the same ID already exists under the parent extension
+type ErrExtensionServiceExists struct {
+	ExtensionID string
+	ServiceID   string
+}
+
+// NewErrExtensionServiceExists creates a new ErrExtensionServiceExists error
+func NewErrExtensionServiceExists(extensionID, serviceID string) *ErrExtensionServiceExists {
+	return &ErrExtensionServiceExists{extensionID, serviceID}
+}
+
+func (e *ErrExtensionServiceExists) Error() string {
+	return fmt.Sprintf("a service with the same ID already exists under the '%s' extension: %s", e.ExtensionID, e.ServiceID)
+}
+
+// ErrExtensionServiceNotFound is the error returned by various registry methods when an extension service
+// with a given ID is not found under an extension
+type ErrExtensionServiceNotFound struct {
+	ExtensionID string
+	ServiceID   string
+}
+
+// NewErrExtensionServiceNotFound creates a new ErrExtensionServiceNotFound error
+func NewErrExtensionServiceNotFound(extensionID, serviceID string) *ErrExtensionServiceNotFound {
+	return &ErrExtensionServiceNotFound{extensionID, serviceID}
+}
+
+func (e *ErrExtensionServiceNotFound) Error() string {
+	return fmt.Sprintf("a service with the given ID could not be found under the '%s' extension: %s", e.ExtensionID, e.ServiceID)
+}
+
+// ErrExtensionEndpointExists is the error returned during registration or endpoint addition, when an
+// extension endpoint with the same URL already exists under the parent extension service
+type ErrExtensionEndpointExists struct {
+	ExtensionID string
+	ServiceID   string
+	URL         string
+}
+
+// NewErrExtensionEndpointExists creates a new ErrExtensionEndpointExists error
+func NewErrExtensionEndpointExists(extensionID, serviceID, URL string) *ErrExtensionEndpointExists {
+	return &ErrExtensionEndpointExists{extensionID, serviceID, URL}
+}
+
+func (e *ErrExtensionEndpointExists) Error() string {
+	return fmt.Sprintf(
+		"an endpoint with the same URL already exists under the '%s/%s' extension service: %s",
+		e.ExtensionID, e.ServiceID, e.URL)
+}
+
+// ErrExtensionEndpointNotFound is the error returned by various registry methods when an extension endpoint
+// with a given URL is not found under an extension service
+type ErrExtensionEndpointNotFound struct {
+	ExtensionID string
+	ServiceID   string
+	URL         string
+}
+
+// NewErrExtensionEndpointNotFound creates a new ErrExtensionEndpointNotFound error
+func NewErrExtensionEndpointNotFound(extensionID, serviceID, URL string) *ErrExtensionEndpointNotFound {
+	return &ErrExtensionEndpointNotFound{extensionID, serviceID, URL}
+}
+
+func (e *ErrExtensionEndpointNotFound) Error() string {
+	return fmt.Sprintf(
+		"an endpoint with the given URL could not be found under the '%s/%s' extension service: %s",
+		e.ExtensionID, e.ServiceID, e.URL)
+}
+
+// ErrExtensionCredentialsExists is the error returned during registration or credential addition, when a
+// set of extension credentials with the same ID already exists under the parent extension service
+type ErrExtensionCredentialsExists struct {
+	ExtensionID   string
+	ServiceID     string
+	CredentialsID string
+}
+
+// NewErrExtensionCredentialsExists creates a new ErrExtensionCredentialsExists error
+func NewErrExtensionCredentialsExists(extensionID, serviceID, credentialsID string) *ErrExtensionCredentialsExists {
+	return &ErrExtensionCredentialsExists{extensionID, serviceID, credentialsID}
+}
+
+func (e *ErrExtensionCredentialsExists) Error() string {
+	return fmt.Sprintf(
+		"a set of credentials with the same ID already exists under the '%s/%s' extension service: %s",
+		e.ExtensionID, e.ServiceID, e.CredentialsID)
+}
+
+// ErrExtensionCredentialsNotFound is the error returned by various registry methods when a set of extension
+// credentials with a given ID is not found under an extension service
+type ErrExtensionCredentialsNotFound struct {
+	ExtensionID   string
+	ServiceID     string
+	CredentialsID string
+}
+
+// NewErrExtensionCredentialsNotFound creates a new ErrExtensionCredentialsNotFound error
+func NewErrExtensionCredentialsNotFound(extensionID, serviceID, credentialsID string) *ErrExtensionCredentialsNotFound {
+	return &ErrExtensionCredentialsNotFound{extensionID, serviceID, credentialsID}
+}
+
+func (e *ErrExtensionCredentialsNotFound) Error() string {
+	return fmt.Sprintf(
+		"a set of credentials with the given ID could not be found under the '%s/%s' extension service: %s",
+		e.ExtensionID, e.ServiceID, e.CredentialsID)
+}
+
 // ExtensionRegistry defines the public interface implemented by the extension registry
 type ExtensionRegistry interface {
 	// Register a new extension, with all participating services, endpoints and credentials
@@ -222,59 +384,60 @@ type ExtensionRegistry interface {
 	AddEndpoint(ctx context.Context, endpoint *ExtensionEndpoint) (result *ExtensionEndpoint, err error)
 	// Add a set of credentials to an existing extension service
 	AddCredentials(ctx context.Context, credentials *ExtensionCredentials) (result *ExtensionCredentials, err error)
-	// Retrieve an extension by ID
-	GetExtension(ctx context.Context, ID ExtensionID) (result *ExtensionRecord, err error)
-	// Retrieve an extension service by ID
-	GetService(ctx context.Context, ID ExtensionServiceID) (result *ExtensionServiceRecord, err error)
+	// Retrieve an extension by ID and, optionally, its entire service/endpoint/credentials subtree
+	GetExtension(ctx context.Context, extensionID string, fullTree bool) (result *ExtensionRecord, err error)
+	// Retrieve an extension service by ID and, optionally, its entire endpoint/credentials subtree
+	GetService(ctx context.Context, serviceID ExtensionServiceID) (result *ExtensionServiceRecord, err error)
 	// Retrieve an extension endpoint by ID
-	GetEndpoint(ctx context.Context, ID ExtensionEndpointID) (result *ExtensionEndpoint, err error)
+	GetEndpoint(ctx context.Context, endpointID ExtensionEndpointID) (result *ExtensionEndpoint, err error)
 	// Retrieve a set of extension credentials by ID
-	GetCredentials(ctx context.Context, ID ExtensionCredentialsID) (result *ExtensionCredentials, err error)
-	// Remove an extension from the registry
-	RemoveExtension(ctx context.Context, ID ExtensionID) error
-	// Remove an extension service from the registry
-	RemoveService(ctx context.Context, ID ExtensionServiceID) error
+	GetCredentials(ctx context.Context, credentialsID ExtensionCredentialsID) (result *ExtensionCredentials, err error)
+	// Remove an extension from the registry, along with all its services, endpoints and credentials
+	RemoveExtension(ctx context.Context, extensionID string) error
+	// Remove an extension service from the registry, along with all its endpoints and credentials
+	RemoveService(ctx context.Context, serviceID ExtensionServiceID) error
 	// Remove an extension endpoint from the registry
-	RemoveEndpoint(ctx context.Context, ID ExtensionEndpointID) error
+	RemoveEndpoint(ctx context.Context, endpointID ExtensionEndpointID) error
 	// Remove a set of extension credentials from the registry
-	RemoveCredentials(ctx context.Context, ID ExtensionCredentialsID) error
+	RemoveCredentials(ctx context.Context, credentialsID ExtensionCredentialsID) error
 	// Run a query on the extension registry to find one or more ways to access extensions matching given search parameters
-	RunAccessQuery(ctx context.Context, query *ExtensionAccessQuery) (result []*ExtensionAccessDescriptor, err error)
+	RunQuery(ctx context.Context, query *ExtensionQuery) (result []*ExtensionAccessDescriptor, err error)
 }
 
-// ExtensionRegistryPersistentStorage defines the interface implemented by the extension registry persistent storage backend
-type ExtensionRegistryPersistentStorage interface {
-	// Add an extension
-	CreateExtension(ctx context.Context, extension *Extension) (result *Extension, err error)
-	// Add an extension service
-	CreateService(ctx context.Context, service *ExtensionService) (result *ExtensionService, err error)
-	// Add an extension endpoint
-	CreateEndpoint(ctx context.Context, endpoint *ExtensionEndpoint) (result *ExtensionEndpoint, err error)
-	// Add a set of extension credentials
-	CreateCredentials(ctx context.Context, credentials *ExtensionCredentials) (result *ExtensionCredentials, err error)
+// ExtensionStore defines the interface implemented by the extension registry persistent storage backend
+type ExtensionStore interface {
+	// Store an extension
+	StoreExtension(ctx context.Context, extension *Extension) (result *Extension, err error)
+	// Store an extension service
+	StoreService(ctx context.Context, service *ExtensionService) (result *ExtensionService, err error)
+	// Store an extension endpoint
+	StoreEndpoint(ctx context.Context, endpoint *ExtensionEndpoint) (result *ExtensionEndpoint, err error)
+	// Store a set of extension credentials
+	StoreCredentials(ctx context.Context, credentials *ExtensionCredentials) (result *ExtensionCredentials, err error)
 	// Retrieve an extension by ID
-	GetExtension(ctx context.Context, ID ExtensionID) (result *Extension, err error)
+	GetExtension(ctx context.Context, extensionID string) (result *Extension, err error)
+	// Retrieve the list of services belonging to an extension
+	GetExtensionServices(ctx context.Context, extensionID string) (result []*ExtensionService, err error)
 	// Retrieve an extension service by ID
-	GetService(ctx context.Context, ID ExtensionServiceID) (result *ExtensionService, err error)
+	GetService(ctx context.Context, serviceID ExtensionServiceID) (result *ExtensionService, err error)
+	// Retrieve the list of endpoints belonging to an extension service
+	GetServiceEndpoints(ctx context.Context, serviceID ExtensionServiceID) (result []*ExtensionEndpoint, err error)
+	// Retrieve the list of credentials belonging to an extension service
+	GetServiceCredentials(ctx context.Context, serviceID ExtensionServiceID) (result []*ExtensionCredentials, err error)
 	// Retrieve an extension endpoint by ID
-	GetEndpoint(ctx context.Context, ID ExtensionEndpointID) (result *ExtensionEndpoint, err error)
+	GetEndpoint(ctx context.Context, endpointID ExtensionEndpointID) (result *ExtensionEndpoint, err error)
 	// Retrieve a set of extension credentials by ID
-	GetCredentials(ctx context.Context, ID ExtensionCredentialsID) (result *ExtensionCredentials, err error)
-	// Remove an extension
-	DeleteExtension(ctx context.Context, ID ExtensionID) error
-	// Remove an extension service
-	DeleteService(ctx context.Context, ID ExtensionServiceID) error
+	GetCredentials(ctx context.Context, credentialsID ExtensionCredentialsID) (result *ExtensionCredentials, err error)
+	// Remove an extension and all its services, endpoints and credentials
+	DeleteExtension(ctx context.Context, extensionID string) error
+	// Remove an extension service and all its endpoints and credentials
+	DeleteService(ctx context.Context, serviceID ExtensionServiceID) error
 	// Remove an extension endpoint
-	DeleteEndpoint(ctx context.Context, ID ExtensionEndpointID) error
+	DeleteEndpoint(ctx context.Context, endpointID ExtensionEndpointID) error
 	// Remove a set of extension credentials
-	DeleteCredentials(ctx context.Context, ID ExtensionCredentialsID) error
+	DeleteCredentials(ctx context.Context, credentialsID ExtensionCredentialsID) error
 
-	// Find extensions matching an ID or product
-	FindExtensions(ctx context.Context, ID ExtensionID, product string) (result []*Extension, err error)
-	// Find services matching an ID, zone, service name or category
-	FindServices(ctx context.Context, ID ExtensionServiceID, zone, service, serviceCategory string) (result []*ExtensionService, err error)
-	// Find endpoints matching an ID or type
-	FindEndpoints(ctx context.Context, ID ExtensionEndpointID, internal *bool) (result *ExtensionEndpoint, err error)
-	// Find endpoints matching an ID or scope
-	FindCredentials(ctx context.Context, ID ExtensionCredentialsID, CredentialsScope ExtensionCredentialScope, user, project string) (result *ExtensionCredentials, err error)
+	// Run a query on the extension store to find one or more extensions, services, endpoints and credentials matching
+	// the supplied criteria
+	RunExtensionQuery(ctx context.Context, query *ExtensionQuery) (result []*ExtensionRecord, err error)
 }
