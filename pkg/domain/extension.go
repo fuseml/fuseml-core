@@ -247,7 +247,7 @@ func NewErrExtensionNotFound(extensionID string) *ErrExtensionNotFound {
 }
 
 func (e *ErrExtensionNotFound) Error() string {
-	return fmt.Sprintf("an extension with the given ID cound not be found: %s", string(*e))
+	return fmt.Sprintf("an extension with the given ID could not be found: %s", string(*e))
 }
 
 // ErrMissingField is the error returned by various registry methods if a required field has not been
@@ -406,20 +406,20 @@ type ExtensionRegistry interface {
 
 // ExtensionStore defines the interface implemented by the extension registry persistent storage backend
 type ExtensionStore interface {
-	// Store an extension
-	StoreExtension(ctx context.Context, extension *Extension) (result *Extension, err error)
-	// Store an extension service
-	StoreService(ctx context.Context, service *ExtensionService) (result *ExtensionService, err error)
+	// Store an extension, with all participating services, endpoints and credentials
+	StoreExtension(ctx context.Context, extension *ExtensionRecord) (result *ExtensionRecord, err error)
+	// Store an extension service, with all participating endpoints and credentials
+	StoreService(ctx context.Context, service *ExtensionServiceRecord) (result *ExtensionServiceRecord, err error)
 	// Store an extension endpoint
 	StoreEndpoint(ctx context.Context, endpoint *ExtensionEndpoint) (result *ExtensionEndpoint, err error)
 	// Store a set of extension credentials
 	StoreCredentials(ctx context.Context, credentials *ExtensionCredentials) (result *ExtensionCredentials, err error)
-	// Retrieve an extension by ID
-	GetExtension(ctx context.Context, extensionID string) (result *Extension, err error)
+	// Retrieve an extension by ID and, optionally, its entire service/endpoint/credentials subtree
+	GetExtension(ctx context.Context, extensionID string, fullTree bool) (result *ExtensionRecord, err error)
 	// Retrieve the list of services belonging to an extension
 	GetExtensionServices(ctx context.Context, extensionID string) (result []*ExtensionService, err error)
-	// Retrieve an extension service by ID
-	GetService(ctx context.Context, serviceID ExtensionServiceID) (result *ExtensionService, err error)
+	// Retrieve an extension service by ID and, optionally, its entire endpoint/credentials subtree
+	GetService(ctx context.Context, serviceID ExtensionServiceID, fullTree bool) (result *ExtensionServiceRecord, err error)
 	// Retrieve the list of endpoints belonging to an extension service
 	GetServiceEndpoints(ctx context.Context, serviceID ExtensionServiceID) (result []*ExtensionEndpoint, err error)
 	// Retrieve the list of credentials belonging to an extension service

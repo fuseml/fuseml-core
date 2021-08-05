@@ -98,10 +98,10 @@ func (store *ExtensionStore) generateExtensionCredentialsID(service *extensionSe
 	}
 }
 
-// StoreExtension - store an extension
-func (store *ExtensionStore) StoreExtension(ctx context.Context, extension *domain.Extension) (result *domain.Extension, err error) {
+// store an extension record
+func (store *ExtensionStore) storeExtensionRecord(ctx context.Context, extension *domain.ExtensionRecord) (result *extensionRecord, err error) {
 	if extension.ID == "" {
-		extension.ID = store.generateExtensionID(extension)
+		extension.ID = store.generateExtensionID(&extension.Extension)
 	}
 
 	if store.items[extension.ID] != nil {
@@ -109,19 +109,41 @@ func (store *ExtensionStore) StoreExtension(ctx context.Context, extension *doma
 	}
 
 	// store a copy of the input extension
-	store.items[extension.ID] = &extensionRecord{*extension, make(map[string]*extensionServiceRecord)}
+	extRecord := &extensionRecord{
+		extension.Extension,
+		make(map[string]*extensionServiceRecord),
+	}
+	store.items[extension.ID] = extRecord
+
+	// next, store services
+	for _, service := range extension.Services {
+		service.ExtensionID = extension.ID
+		_, err := store.storeServiceRecord(ctx, service, extRecord)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return extRecord, nil
+}
+
+// StoreExtension - store an extension, with all participating services, endpoints and credentials
+func (store *ExtensionStore) StoreExtension(ctx context.Context, extension *domain.ExtensionRecord) (result *domain.ExtensionRecord, err error) {
+	extRecord, err := store.storeExtensionRecord(ctx, extension)
+	if err != nil {
+		// rollback everything in case of error
+		_ = store.deleteExtensionRecord(ctx, extRecord)
+		return nil, err
+	}
 	return extension, nil
 }
 
-// StoreService - store an extension service
-func (store *ExtensionStore) StoreService(ctx context.Context, service *domain.ExtensionService) (result *domain.ExtensionService, err error) {
-	extRecord := store.items[service.ExtensionID]
-	if extRecord == nil {
-		return nil, domain.NewErrExtensionNotFound(service.ExtensionID)
-	}
+// store an extension service record
+func (store *ExtensionStore) storeServiceRecord(
+	ctx context.Context, service *domain.ExtensionServiceRecord, extRecord *extensionRecord) (result *extensionServiceRecord, err error) {
 
 	if service.ID == "" {
-		service.ID = store.generateExtensionServiceID(extRecord, service)
+		service.ID = store.generateExtensionServiceID(extRecord, &service.ExtensionService)
 	}
 
 	if extRecord.services[service.ID] != nil {
@@ -129,13 +151,71 @@ func (store *ExtensionStore) StoreService(ctx context.Context, service *domain.E
 	}
 
 	// store a copy of the input extension service
-	extRecord.services[service.ID] = &extensionServiceRecord{
-		*service,
+	svcRecord := &extensionServiceRecord{
+		service.ExtensionService,
 		extRecord,
 		make(map[string]*extensionEndpointRecord),
 		make(map[string]*extensionCredentialsRecord),
 	}
+	extRecord.services[service.ID] = svcRecord
+
+	// next, store endpoints
+	for _, endpoint := range service.Endpoints {
+		endpoint.ExtensionID = extRecord.ID
+		endpoint.ServiceID = service.ID
+		_, err = store.storeEndpointRecord(ctx, endpoint, svcRecord)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// next, store credentials
+	for _, credentials := range service.Credentials {
+		credentials.ExtensionID = extRecord.ID
+		credentials.ServiceID = service.ID
+		_, err = store.storeCredentialsRecord(ctx, credentials, svcRecord)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return svcRecord, nil
+}
+
+// StoreService - store an extension service, with all participating endpoints and credentials
+func (store *ExtensionStore) StoreService(
+	ctx context.Context, service *domain.ExtensionServiceRecord) (result *domain.ExtensionServiceRecord, err error) {
+
+	extRecord := store.items[service.ExtensionID]
+	if extRecord == nil {
+		return nil, domain.NewErrExtensionNotFound(service.ExtensionID)
+	}
+
+	svcRecord, err := store.storeServiceRecord(ctx, service, extRecord)
+	if err != nil {
+		// rollback everything in case of error
+		_ = store.deleteServiceRecord(ctx, svcRecord)
+		return nil, err
+	}
 	return service, nil
+
+}
+
+// store an extension endpoint record
+func (store *ExtensionStore) storeEndpointRecord(
+	ctx context.Context, endpoint *domain.ExtensionEndpoint, svcRecord *extensionServiceRecord) (result *extensionEndpointRecord, err error) {
+
+	if svcRecord.endpoints[endpoint.URL] != nil {
+		return nil, domain.NewErrExtensionEndpointExists(endpoint.ExtensionID, endpoint.ServiceID, endpoint.URL)
+	}
+
+	// store a copy of the input extension endpoint
+	endpointRecord := &extensionEndpointRecord{
+		*endpoint,
+		svcRecord,
+	}
+	svcRecord.endpoints[endpoint.URL] = endpointRecord
+	return endpointRecord, nil
 }
 
 // StoreEndpoint - store an extension endpoint
@@ -149,16 +229,30 @@ func (store *ExtensionStore) StoreEndpoint(ctx context.Context, endpoint *domain
 		return nil, domain.NewErrExtensionServiceNotFound(endpoint.ExtensionID, endpoint.ServiceID)
 	}
 
-	if svcRecord.endpoints[endpoint.URL] != nil {
-		return nil, domain.NewErrExtensionEndpointExists(endpoint.ExtensionID, endpoint.ServiceID, endpoint.URL)
+	_, err = store.storeEndpointRecord(ctx, endpoint, svcRecord)
+	return endpoint, err
+}
+
+// store an extension credentials record
+func (store *ExtensionStore) storeCredentialsRecord(
+	ctx context.Context, credentials *domain.ExtensionCredentials, svcRecord *extensionServiceRecord) (result *extensionCredentialsRecord, err error) {
+
+	if credentials.ID == "" {
+		credentials.ID = store.generateExtensionCredentialsID(svcRecord, credentials)
 	}
 
-	// store a copy of the input extension endpoint
-	svcRecord.endpoints[endpoint.URL] = &extensionEndpointRecord{
-		*endpoint,
+	if svcRecord.credentials[credentials.ID] != nil {
+		return nil, domain.NewErrExtensionCredentialsExists(credentials.ExtensionID, credentials.ServiceID, credentials.ID)
+	}
+
+	// store a copy of the input extension credentials
+	credsRecord := &extensionCredentialsRecord{
+		*credentials,
 		svcRecord,
 	}
-	return endpoint, nil
+	svcRecord.credentials[credentials.ID] = credsRecord
+
+	return credsRecord, nil
 }
 
 // StoreCredentials - store a set of extension credentials
@@ -172,21 +266,8 @@ func (store *ExtensionStore) StoreCredentials(ctx context.Context, credentials *
 		return nil, domain.NewErrExtensionServiceNotFound(credentials.ExtensionID, credentials.ServiceID)
 	}
 
-	if credentials.ID == "" {
-		credentials.ID = store.generateExtensionCredentialsID(svcRecord, credentials)
-	}
-
-	if svcRecord.credentials[credentials.ID] != nil {
-		return nil, domain.NewErrExtensionCredentialsExists(credentials.ExtensionID, credentials.ServiceID, credentials.ID)
-	}
-
-	// store a copy of the input extension credentials
-	svcRecord.credentials[credentials.ID] = &extensionCredentialsRecord{
-		*credentials,
-		svcRecord,
-	}
-
-	return credentials, nil
+	_, err = store.storeCredentialsRecord(ctx, credentials, svcRecord)
+	return credentials, err
 }
 
 // Retrieve an extension record by ID
@@ -199,12 +280,35 @@ func (store *ExtensionStore) getExtensionRecord(ctx context.Context, extensionID
 }
 
 // GetExtension - retrieve an extension by ID
-func (store *ExtensionStore) GetExtension(ctx context.Context, extensionID string) (result *domain.Extension, err error) {
+func (store *ExtensionStore) GetExtension(ctx context.Context, extensionID string, fullTree bool) (result *domain.ExtensionRecord, err error) {
 	extRecord, err := store.getExtensionRecord(ctx, extensionID)
 	if err != nil {
 		return nil, err
 	}
-	return &extRecord.Extension, nil
+
+	result = &domain.ExtensionRecord{
+		Extension: extRecord.Extension,
+		Services:  make([]*domain.ExtensionServiceRecord, 0),
+	}
+	if !fullTree {
+		return result, nil
+	}
+	for _, svcRecord := range extRecord.services {
+		service := domain.ExtensionServiceRecord{
+			ExtensionService: svcRecord.ExtensionService,
+			Endpoints:        make([]*domain.ExtensionEndpoint, 0),
+			Credentials:      make([]*domain.ExtensionCredentials, 0),
+		}
+		result.Services = append(result.Services, &service)
+
+		for _, endpointRecord := range svcRecord.endpoints {
+			service.Endpoints = append(service.Endpoints, &endpointRecord.ExtensionEndpoint)
+		}
+		for _, credsRecord := range svcRecord.credentials {
+			service.Credentials = append(service.Credentials, &credsRecord.ExtensionCredentials)
+		}
+	}
+	return result, nil
 }
 
 // GetExtensionServices - retrieve the list of services belonging to an extension
@@ -234,12 +338,30 @@ func (store *ExtensionStore) getServiceRecord(ctx context.Context, serviceID dom
 }
 
 // GetService - retrieve an extension service by ID
-func (store *ExtensionStore) GetService(ctx context.Context, serviceID domain.ExtensionServiceID) (result *domain.ExtensionService, err error) {
+func (store *ExtensionStore) GetService(ctx context.Context, serviceID domain.ExtensionServiceID, fullTree bool) (result *domain.ExtensionServiceRecord, err error) {
 	svcRecord, err := store.getServiceRecord(ctx, serviceID)
 	if err != nil {
 		return nil, err
 	}
-	return &svcRecord.ExtensionService, nil
+
+	result = &domain.ExtensionServiceRecord{
+		ExtensionService: svcRecord.ExtensionService,
+		Endpoints:        make([]*domain.ExtensionEndpoint, 0),
+		Credentials:      make([]*domain.ExtensionCredentials, 0),
+	}
+
+	if !fullTree {
+		return result, nil
+	}
+
+	for _, endpointRecord := range svcRecord.endpoints {
+		result.Endpoints = append(result.Endpoints, &endpointRecord.ExtensionEndpoint)
+	}
+	for _, credsRecord := range svcRecord.credentials {
+		result.Credentials = append(result.Credentials, &credsRecord.ExtensionCredentials)
+	}
+
+	return result, nil
 }
 
 // GetServiceEndpoints - retrieve the list of endpoints belonging to an extension service
@@ -346,6 +468,12 @@ func (store *ExtensionStore) DeleteExtension(ctx context.Context, extensionID st
 func (store *ExtensionStore) deleteServiceRecord(ctx context.Context, svcRecord *extensionServiceRecord) error {
 	for _, endpointRecord := range svcRecord.endpoints {
 		err := store.deleteEndpointRecord(ctx, endpointRecord)
+		if err != nil {
+			return err
+		}
+	}
+	for _, credsRecord := range svcRecord.credentials {
+		err := store.deleteCredentialsRecord(ctx, credsRecord)
 		if err != nil {
 			return err
 		}

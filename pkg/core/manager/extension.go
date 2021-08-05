@@ -18,43 +18,11 @@ func NewExtensionRegistry(extensionStore domain.ExtensionStore) *ExtensionRegist
 
 // RegisterExtension - register a new extension, with all participating services, endpoints and credentials
 func (registry *ExtensionRegistry) RegisterExtension(ctx context.Context, extension *domain.ExtensionRecord) (result *domain.ExtensionRecord, err error) {
-	_, err = registry.extensionStore.StoreExtension(ctx, &extension.Extension)
-	if err != nil {
-		return nil, err
-	}
-	defer func() {
-		if err != nil {
-			_ = registry.extensionStore.DeleteExtension(ctx, extension.ID)
-		}
-	}()
-	for _, service := range extension.Services {
-		service.ExtensionID = extension.ID
-		_, err = registry.extensionStore.StoreService(ctx, &service.ExtensionService)
-		if err != nil {
-			return nil, err
-		}
-		for _, endpoint := range service.Endpoints {
-			endpoint.ExtensionID = extension.ID
-			endpoint.ServiceID = service.ID
-			_, err = registry.extensionStore.StoreEndpoint(ctx, endpoint)
-			if err != nil {
-				return nil, err
-			}
-		}
-		for _, credentials := range service.Credentials {
-			credentials.ExtensionID = extension.ID
-			credentials.ServiceID = service.ID
-			_, err = registry.extensionStore.StoreCredentials(ctx, credentials)
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-	return extension, nil
+	return registry.extensionStore.StoreExtension(ctx, extension)
 }
 
 // AddService - add a service to an existing extension
-func (registry *ExtensionRegistry) AddService(ctx context.Context, service *domain.ExtensionService) (result *domain.ExtensionService, err error) {
+func (registry *ExtensionRegistry) AddService(ctx context.Context, service *domain.ExtensionServiceRecord) (result *domain.ExtensionServiceRecord, err error) {
 	if service.ExtensionID == "" {
 		return nil, domain.NewErrMissingField("service", "extension ID")
 	}
@@ -93,72 +61,12 @@ func (registry *ExtensionRegistry) AddCredentials(
 
 // GetExtension - retrieve an extension by ID and, optionally, its entire service/endpoint/credentials subtree
 func (registry *ExtensionRegistry) GetExtension(ctx context.Context, extensionID string, fullTree bool) (result *domain.ExtensionRecord, err error) {
-	extension, err := registry.extensionStore.GetExtension(ctx, extensionID)
-	if err != nil {
-		return nil, err
-	}
-	extRecord := domain.ExtensionRecord{
-		Extension: *extension,
-		Services:  make([]*domain.ExtensionServiceRecord, 0),
-	}
-	if !fullTree {
-		return &extRecord, nil
-	}
-	services, err := registry.extensionStore.GetExtensionServices(ctx, extensionID)
-	if err != nil {
-		return nil, err
-	}
-	for _, service := range services {
-		svcRecord := domain.ExtensionServiceRecord{
-			ExtensionService: *service,
-		}
-		extRecord.Services = append(extRecord.Services, &svcRecord)
-
-		svcRecord.Endpoints, err = registry.extensionStore.GetServiceEndpoints(ctx,
-			domain.ExtensionServiceID{
-				ExtensionID: extensionID,
-				ID:          service.ID,
-			})
-		if err != nil {
-			return nil, err
-		}
-
-		svcRecord.Credentials, err = registry.extensionStore.GetServiceCredentials(ctx,
-			domain.ExtensionServiceID{
-				ExtensionID: extensionID,
-				ID:          service.ID,
-			})
-		if err != nil {
-			return nil, err
-		}
-	}
-	return &extRecord, nil
+	return registry.extensionStore.GetExtension(ctx, extensionID, fullTree)
 }
 
 // GetService - retrieve an extension service by ID and, optionally, its entire endpoint/credentials subtree
 func (registry *ExtensionRegistry) GetService(ctx context.Context, serviceID domain.ExtensionServiceID, fullTree bool) (result *domain.ExtensionServiceRecord, err error) {
-	service, err := registry.extensionStore.GetService(ctx, serviceID)
-	if err != nil {
-		return nil, err
-	}
-	svcRecord := domain.ExtensionServiceRecord{
-		ExtensionService: *service,
-		Endpoints:        make([]*domain.ExtensionEndpoint, 0),
-		Credentials:      make([]*domain.ExtensionCredentials, 0),
-	}
-	if !fullTree {
-		return &svcRecord, nil
-	}
-	svcRecord.Endpoints, err = registry.extensionStore.GetServiceEndpoints(ctx, serviceID)
-	if err != nil {
-		return nil, err
-	}
-
-	svcRecord.Credentials, err = registry.extensionStore.GetServiceCredentials(ctx, serviceID)
-	if err != nil {
-		return nil, err
-	}
-	return &svcRecord, nil
+	return registry.extensionStore.GetService(ctx, serviceID, fullTree)
 }
 
 // GetEndpoint - retrieve an extension endpoint by ID
