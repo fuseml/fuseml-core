@@ -3,9 +3,9 @@ package core
 import (
 	"context"
 
+	"github.com/Masterminds/semver"
 	"github.com/fuseml/fuseml-core/pkg/domain"
-	"github.com/masterminds/semver"
-	"github.com/thanhpk/randstr"
+	"k8s.io/apimachinery/pkg/util/rand"
 )
 
 // extensionRecord is the structure used to represent an extension in the extension store
@@ -51,13 +51,13 @@ func NewExtensionStore() *ExtensionStore {
 }
 
 // simple unique extension ID generator
-func (store *ExtensionStore) allocateExtensionID(extension *domain.Extension) string {
+func (store *ExtensionStore) generateExtensionID(extension *domain.Extension) string {
 	prefix := extension.Product
 	if prefix != "" {
 		prefix = prefix + "-"
 	}
 	for {
-		ID := prefix + randstr.String(8)
+		ID := prefix + rand.String(8)
 		if store.items[ID] == nil {
 			return ID
 		}
@@ -65,7 +65,7 @@ func (store *ExtensionStore) allocateExtensionID(extension *domain.Extension) st
 }
 
 // simple unique extension service ID generator
-func (store *ExtensionStore) allocateExtensionServiceID(extension *extensionRecord, service *domain.ExtensionService) string {
+func (store *ExtensionStore) generateExtensionServiceID(extension *extensionRecord, service *domain.ExtensionService) string {
 	prefix := service.Resource
 	if prefix == "" && extension.Product != "" {
 		prefix = extension.Product + "-service"
@@ -74,7 +74,7 @@ func (store *ExtensionStore) allocateExtensionServiceID(extension *extensionReco
 		prefix = prefix + "-"
 	}
 	for {
-		ID := prefix + randstr.String(8)
+		ID := prefix + rand.String(8)
 		if extension.services[ID] == nil {
 			return ID
 		}
@@ -82,7 +82,7 @@ func (store *ExtensionStore) allocateExtensionServiceID(extension *extensionReco
 }
 
 // simple unique extension credentials ID generator
-func (store *ExtensionStore) allocateExtensionCredentialsID(service *extensionServiceRecord, credentials *domain.ExtensionCredentials) string {
+func (store *ExtensionStore) generateExtensionCredentialsID(service *extensionServiceRecord, credentials *domain.ExtensionCredentials) string {
 	prefix := service.Resource
 	if prefix == "" {
 		prefix = "creds"
@@ -91,7 +91,7 @@ func (store *ExtensionStore) allocateExtensionCredentialsID(service *extensionSe
 		prefix = prefix + "-"
 	}
 	for {
-		ID := prefix + randstr.String(8)
+		ID := prefix + rand.String(8)
 		if service.credentials[ID] == nil {
 			return ID
 		}
@@ -100,16 +100,16 @@ func (store *ExtensionStore) allocateExtensionCredentialsID(service *extensionSe
 
 // StoreExtension - store an extension
 func (store *ExtensionStore) StoreExtension(ctx context.Context, extension *domain.Extension) (result *domain.Extension, err error) {
-	if extension.ExtensionID == "" {
-		extension.ExtensionID = store.allocateExtensionID(extension)
+	if extension.ID == "" {
+		extension.ID = store.generateExtensionID(extension)
 	}
 
-	if store.items[extension.ExtensionID] != nil {
-		return nil, domain.NewErrExtensionExists(extension.ExtensionID)
+	if store.items[extension.ID] != nil {
+		return nil, domain.NewErrExtensionExists(extension.ID)
 	}
 
 	// store a copy of the input extension
-	store.items[extension.ExtensionID] = &extensionRecord{*extension, make(map[string]*extensionServiceRecord)}
+	store.items[extension.ID] = &extensionRecord{*extension, make(map[string]*extensionServiceRecord)}
 	return extension, nil
 }
 
@@ -120,16 +120,16 @@ func (store *ExtensionStore) StoreService(ctx context.Context, service *domain.E
 		return nil, domain.NewErrExtensionNotFound(service.ExtensionID)
 	}
 
-	if service.ServiceID == "" {
-		service.ServiceID = store.allocateExtensionServiceID(extRecord, service)
+	if service.ID == "" {
+		service.ID = store.generateExtensionServiceID(extRecord, service)
 	}
 
-	if extRecord.services[service.ServiceID] != nil {
-		return nil, domain.NewErrExtensionServiceExists(extRecord.ExtensionID, service.ServiceID)
+	if extRecord.services[service.ID] != nil {
+		return nil, domain.NewErrExtensionServiceExists(extRecord.ID, service.ID)
 	}
 
 	// store a copy of the input extension service
-	extRecord.services[service.ServiceID] = &extensionServiceRecord{
+	extRecord.services[service.ID] = &extensionServiceRecord{
 		*service,
 		extRecord,
 		make(map[string]*extensionEndpointRecord),
@@ -172,16 +172,16 @@ func (store *ExtensionStore) StoreCredentials(ctx context.Context, credentials *
 		return nil, domain.NewErrExtensionServiceNotFound(credentials.ExtensionID, credentials.ServiceID)
 	}
 
-	if credentials.CredentialsID == "" {
-		credentials.CredentialsID = store.allocateExtensionCredentialsID(svcRecord, credentials)
+	if credentials.ID == "" {
+		credentials.ID = store.generateExtensionCredentialsID(svcRecord, credentials)
 	}
 
-	if svcRecord.credentials[credentials.CredentialsID] != nil {
-		return nil, domain.NewErrExtensionCredentialsExists(credentials.ExtensionID, credentials.ServiceID, credentials.CredentialsID)
+	if svcRecord.credentials[credentials.ID] != nil {
+		return nil, domain.NewErrExtensionCredentialsExists(credentials.ExtensionID, credentials.ServiceID, credentials.ID)
 	}
 
 	// store a copy of the input extension credentials
-	svcRecord.credentials[credentials.CredentialsID] = &extensionCredentialsRecord{
+	svcRecord.credentials[credentials.ID] = &extensionCredentialsRecord{
 		*credentials,
 		svcRecord,
 	}
@@ -226,9 +226,9 @@ func (store *ExtensionStore) getServiceRecord(ctx context.Context, serviceID dom
 	if err != nil {
 		return nil, err
 	}
-	svcRecord := extRecord.services[serviceID.ServiceID]
+	svcRecord := extRecord.services[serviceID.ID]
 	if svcRecord == nil {
-		return nil, domain.NewErrExtensionServiceNotFound(serviceID.ExtensionID, serviceID.ServiceID)
+		return nil, domain.NewErrExtensionServiceNotFound(serviceID.ExtensionID, serviceID.ID)
 	}
 	return svcRecord, nil
 }
@@ -273,7 +273,7 @@ func (store *ExtensionStore) getEndpointRecord(ctx context.Context, endpointID d
 	svcRecord, err := store.getServiceRecord(ctx,
 		domain.ExtensionServiceID{
 			ExtensionID: endpointID.ExtensionID,
-			ServiceID:   endpointID.ServiceID,
+			ID:          endpointID.ServiceID,
 		})
 	if err != nil {
 		return nil, err
@@ -300,14 +300,14 @@ func (store *ExtensionStore) getCredentialsRecord(
 	svcRecord, err := store.getServiceRecord(ctx,
 		domain.ExtensionServiceID{
 			ExtensionID: credentialsID.ExtensionID,
-			ServiceID:   credentialsID.ServiceID,
+			ID:          credentialsID.ServiceID,
 		})
 	if err != nil {
 		return nil, err
 	}
-	credentialsRecord := svcRecord.credentials[credentialsID.CredentialsID]
+	credentialsRecord := svcRecord.credentials[credentialsID.ID]
 	if credentialsRecord == nil {
-		return nil, domain.NewErrExtensionCredentialsNotFound(credentialsID.ExtensionID, credentialsID.ServiceID, credentialsID.CredentialsID)
+		return nil, domain.NewErrExtensionCredentialsNotFound(credentialsID.ExtensionID, credentialsID.ServiceID, credentialsID.ID)
 	}
 	return credentialsRecord, nil
 }
@@ -329,7 +329,7 @@ func (store *ExtensionStore) deleteExtensionRecord(ctx context.Context, extRecor
 			return err
 		}
 	}
-	delete(store.items, extRecord.ExtensionID)
+	delete(store.items, extRecord.ID)
 	return nil
 }
 
@@ -350,7 +350,7 @@ func (store *ExtensionStore) deleteServiceRecord(ctx context.Context, svcRecord 
 			return err
 		}
 	}
-	delete(svcRecord.extension.services, svcRecord.ServiceID)
+	delete(svcRecord.extension.services, svcRecord.ID)
 	return nil
 }
 
@@ -380,7 +380,7 @@ func (store *ExtensionStore) DeleteEndpoint(ctx context.Context, endpointID doma
 
 // Delete an extension credentials record
 func (store *ExtensionStore) deleteCredentialsRecord(ctx context.Context, credentialsRecord *extensionCredentialsRecord) error {
-	delete(credentialsRecord.service.credentials, credentialsRecord.CredentialsID)
+	delete(credentialsRecord.service.credentials, credentialsRecord.ID)
 	return nil
 }
 
@@ -454,7 +454,7 @@ func (store *ExtensionStore) findServiceRecords(
 	result = make([]*domain.ExtensionServiceRecord, 0)
 
 	addIfMatch := func(svcRecord *extensionServiceRecord) {
-		if query.ServiceID != "" && query.ServiceID != svcRecord.ServiceID {
+		if query.ServiceID != "" && query.ServiceID != svcRecord.ID {
 			return
 		}
 		if query.ServiceResource != "" && query.ServiceResource != svcRecord.Resource {
@@ -533,7 +533,7 @@ func (store *ExtensionStore) findCredentials(
 	result = make([]*domain.ExtensionCredentials, 0)
 
 	addIfMatch := func(credentials *domain.ExtensionCredentials) {
-		if query.CredentialsID != "" && query.CredentialsID != credentials.CredentialsID {
+		if query.CredentialsID != "" && query.CredentialsID != credentials.ID {
 			return
 		}
 		// if the query is for global scoped credentials, only credentials with a global scope match

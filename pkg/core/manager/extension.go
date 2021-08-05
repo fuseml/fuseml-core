@@ -24,26 +24,26 @@ func (registry *ExtensionRegistry) RegisterExtension(ctx context.Context, extens
 	}
 	defer func() {
 		if err != nil {
-			_ = registry.extensionStore.DeleteExtension(ctx, extension.ExtensionID)
+			_ = registry.extensionStore.DeleteExtension(ctx, extension.ID)
 		}
 	}()
 	for _, service := range extension.Services {
-		service.ExtensionID = extension.ExtensionID
+		service.ExtensionID = extension.ID
 		_, err = registry.extensionStore.StoreService(ctx, &service.ExtensionService)
 		if err != nil {
 			return nil, err
 		}
 		for _, endpoint := range service.Endpoints {
-			endpoint.ExtensionID = extension.ExtensionID
-			endpoint.ServiceID = service.ServiceID
+			endpoint.ExtensionID = extension.ID
+			endpoint.ServiceID = service.ID
 			_, err = registry.extensionStore.StoreEndpoint(ctx, endpoint)
 			if err != nil {
 				return nil, err
 			}
 		}
 		for _, credentials := range service.Credentials {
-			credentials.ExtensionID = extension.ExtensionID
-			credentials.ServiceID = service.ServiceID
+			credentials.ExtensionID = extension.ID
+			credentials.ServiceID = service.ID
 			_, err = registry.extensionStore.StoreCredentials(ctx, credentials)
 			if err != nil {
 				return nil, err
@@ -117,7 +117,7 @@ func (registry *ExtensionRegistry) GetExtension(ctx context.Context, extensionID
 		svcRecord.Endpoints, err = registry.extensionStore.GetServiceEndpoints(ctx,
 			domain.ExtensionServiceID{
 				ExtensionID: extensionID,
-				ServiceID:   service.ServiceID,
+				ID:          service.ID,
 			})
 		if err != nil {
 			return nil, err
@@ -126,7 +126,7 @@ func (registry *ExtensionRegistry) GetExtension(ctx context.Context, extensionID
 		svcRecord.Credentials, err = registry.extensionStore.GetServiceCredentials(ctx,
 			domain.ExtensionServiceID{
 				ExtensionID: extensionID,
-				ServiceID:   service.ServiceID,
+				ID:          service.ID,
 			})
 		if err != nil {
 			return nil, err
@@ -191,8 +191,8 @@ func (registry *ExtensionRegistry) RemoveCredentials(ctx context.Context, creden
 	return registry.extensionStore.DeleteCredentials(ctx, credentialsID)
 }
 
-// RunQuery - run a query on the extension registry to find one or more ways to access extensions matching given search parameters
-func (registry *ExtensionRegistry) RunQuery(ctx context.Context, query *domain.ExtensionQuery) (result []*domain.ExtensionAccessDescriptor, err error) {
+// RunExtensionAccessQuery - run a query on the extension registry to find one or more ways to access extensions matching given search parameters
+func (registry *ExtensionRegistry) RunExtensionAccessQuery(ctx context.Context, query *domain.ExtensionQuery) (result []*domain.ExtensionAccessDescriptor, err error) {
 
 	result = make([]*domain.ExtensionAccessDescriptor, 0)
 

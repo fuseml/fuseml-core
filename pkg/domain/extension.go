@@ -35,7 +35,7 @@ const (
 // framework/platform/service/product developed and released or hosted under a unique product name
 type Extension struct {
 	// Extension ID - used to uniquely identify an extension in the registry
-	ExtensionID string
+	ID string
 	// Universal product identifier that can be used to group and identify extensions according to the product
 	// they belong to. Product values can be used to identify installations of the same product registered
 	// with the same or different FuseML servers.
@@ -60,7 +60,7 @@ type ExtensionServiceID struct {
 	// Extension ID - references the extension this service belongs to
 	ExtensionID string
 	// Extension service ID - used to uniquely identify a service within the scope of an extension
-	ServiceID string
+	ID string
 }
 
 // ExtensionService is a service provided by an extension. A service is represented by a
@@ -125,7 +125,7 @@ type ExtensionCredentialsID struct {
 	ServiceID string
 	// Extension credentials ID - used to uniquely identify a set of credentials within the scope
 	// of an extension service
-	CredentialsID string
+	ID string
 }
 
 // ExtensionCredentials is a group of configuration values that can be generally used to embed information
@@ -401,7 +401,7 @@ type ExtensionRegistry interface {
 	// Remove a set of extension credentials from the registry
 	RemoveCredentials(ctx context.Context, credentialsID ExtensionCredentialsID) error
 	// Run a query on the extension registry to find one or more ways to access extensions matching given search parameters
-	RunQuery(ctx context.Context, query *ExtensionQuery) (result []*ExtensionAccessDescriptor, err error)
+	RunExtensionAccessQuery(ctx context.Context, query *ExtensionQuery) (result []*ExtensionAccessDescriptor, err error)
 }
 
 // ExtensionStore defines the interface implemented by the extension registry persistent storage backend
