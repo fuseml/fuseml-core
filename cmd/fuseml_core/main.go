@@ -20,9 +20,15 @@ import (
 	"github.com/fuseml/fuseml-core/gen/version"
 	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/core/config"
+	"github.com/fuseml/fuseml-core/pkg/domain"
 	ver "github.com/fuseml/fuseml-core/pkg/version"
+	"github.com/timshannon/badgerhold/v3"
 )
 
+type coreInit struct {
+	endpoints *endpoints
+	stores    *stores
+}
 type endpoints struct {
 	application *application.Endpoints
 	codeset     *codeset.Endpoints
@@ -31,6 +37,15 @@ type endpoints struct {
 	version     *version.Endpoints
 	workflow    *workflow.Endpoints
 	extension   *extension.Endpoints
+}
+
+type stores struct {
+	application domain.ApplicationStore
+	codeset     domain.CodesetStore
+	project     domain.ProjectStore
+	runnable    domain.RunnableStore
+	workflow    domain.WorkflowStore
+	extension   domain.ExtensionStore
 }
 
 func main() {
@@ -56,7 +71,11 @@ func main() {
 
 	logger.Printf("version: %s", ver.GetInfoStr())
 
-	endpoints, err := InitializeEndpoints(logger, config.FuseMLNamespace)
+	storeOptions := badgerhold.DefaultOptions
+	storeOptions.Dir = "./data"
+	storeOptions.ValueDir = storeOptions.Dir
+
+	coreInit, err := InitializeCore(logger, storeOptions, config.FuseMLNamespace)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "Failed to initialize fuseml-core: ", err.Error())
 		os.Exit(1)
@@ -103,7 +122,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "80")
 			}
-			handleHTTPServer(ctx, u, endpoints, &wg, errc, logger, *dbgF)
+			handleHTTPServer(ctx, u, coreInit.endpoints, &wg, errc, logger, *dbgF)
 		}
 
 		{
@@ -129,7 +148,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "8080")
 			}
-			handleGRPCServer(ctx, u, endpoints, &wg, errc, logger, *dbgF)
+			handleGRPCServer(ctx, u, coreInit.endpoints, &wg, errc, logger, *dbgF)
 		}
 
 	case "prod":
@@ -156,7 +175,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "80")
 			}
-			handleHTTPServer(ctx, u, endpoints, &wg, errc, logger, *dbgF)
+			handleHTTPServer(ctx, u, coreInit.endpoints, &wg, errc, logger, *dbgF)
 		}
 
 		{
@@ -182,7 +201,7 @@ func main() {
 			} else if u.Port() == "" {
 				u.Host = net.JoinHostPort(u.Host, "8080")
 			}
-			handleGRPCServer(ctx, u, endpoints, &wg, errc, logger, *dbgF)
+			handleGRPCServer(ctx, u, coreInit.endpoints, &wg, errc, logger, *dbgF)
 		}
 
 	default:
@@ -194,6 +213,9 @@ func main() {
 
 	// Send cancellation signal to the goroutines.
 	cancel()
+
+	// Close the stores.
+	coreInit.stores.workflow.Close()
 
 	wg.Wait()
 	logger.Println("exited")

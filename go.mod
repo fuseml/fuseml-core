@@ -24,6 +24,7 @@ require (
 	github.com/tektoncd/pipeline v0.26.0
 	github.com/tektoncd/triggers v0.15.0
 	github.com/thediveo/enumflag v0.10.1
+	github.com/timshannon/badgerhold/v3 v3.0.0-20210721184908-cd6e5d399c76
 	goa.design/goa/v3 v3.3.1
 	google.golang.org/grpc v1.37.0
 	google.golang.org/protobuf v1.26.0
