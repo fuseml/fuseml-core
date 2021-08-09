@@ -443,6 +443,46 @@ func (store *ExtensionStore) GetCredentials(ctx context.Context, credentialsID d
 	return &credentialsRecord.ExtensionCredentials, nil
 }
 
+// UpdateExtension - update an extension
+func (store *ExtensionStore) UpdateExtension(ctx context.Context, extension *domain.Extension) (err error) {
+	extRecord, err := store.getExtensionRecord(ctx, extension.ID)
+	if err == nil {
+		return err
+	}
+	extRecord.Extension = *extension
+	return nil
+}
+
+// UpdateService - update a service belonging to an extension
+func (store *ExtensionStore) UpdateService(ctx context.Context, service *domain.ExtensionService) (err error) {
+	svcRecord, err := store.getServiceRecord(ctx, service.ExtensionServiceID)
+	if err == nil {
+		return err
+	}
+	svcRecord.ExtensionService = *service
+	return nil
+}
+
+// UpdateEndpoint - update an endpoint belonging to a service
+func (store *ExtensionStore) UpdateEndpoint(ctx context.Context, endpoint *domain.ExtensionEndpoint) (err error) {
+	endpointRecord, err := store.getEndpointRecord(ctx, endpoint.ExtensionEndpointID)
+	if err == nil {
+		return err
+	}
+	endpointRecord.ExtensionEndpoint = *endpoint
+	return nil
+}
+
+// UpdateCredentials - update a set of credentials belonging to a service
+func (store *ExtensionStore) UpdateCredentials(ctx context.Context, credentials *domain.ExtensionCredentials) (err error) {
+	credRecord, err := store.getCredentialsRecord(ctx, credentials.ExtensionCredentialsID)
+	if err == nil {
+		return err
+	}
+	credRecord.ExtensionCredentials = *credentials
+	return nil
+}
+
 // Delete an extension record
 func (store *ExtensionStore) deleteExtensionRecord(ctx context.Context, extRecord *extensionRecord) error {
 	for _, svcRecord := range extRecord.services {

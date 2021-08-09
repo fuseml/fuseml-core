@@ -392,6 +392,14 @@ type ExtensionRegistry interface {
 	GetEndpoint(ctx context.Context, endpointID ExtensionEndpointID) (result *ExtensionEndpoint, err error)
 	// Retrieve a set of extension credentials by ID
 	GetCredentials(ctx context.Context, credentialsID ExtensionCredentialsID) (result *ExtensionCredentials, err error)
+	// Update an extension
+	UpdateExtension(ctx context.Context, extension *Extension) (err error)
+	// Update a service belonging to an extension
+	UpdateService(ctx context.Context, service *ExtensionService) (err error)
+	// Update an endpoint belonging to a service
+	UpdateEndpoint(ctx context.Context, endpoint *ExtensionEndpoint) (err error)
+	// Update a set of credentials belonging to a service
+	UpdateCredentials(ctx context.Context, credentials *ExtensionCredentials) (err error)
 	// Remove an extension from the registry, along with all its services, endpoints and credentials
 	RemoveExtension(ctx context.Context, extensionID string) error
 	// Remove an extension service from the registry, along with all its endpoints and credentials
@@ -428,6 +436,14 @@ type ExtensionStore interface {
 	GetEndpoint(ctx context.Context, endpointID ExtensionEndpointID) (result *ExtensionEndpoint, err error)
 	// Retrieve a set of extension credentials by ID
 	GetCredentials(ctx context.Context, credentialsID ExtensionCredentialsID) (result *ExtensionCredentials, err error)
+	// Update an extension
+	UpdateExtension(ctx context.Context, extension *Extension) (err error)
+	// Update a service belonging to an extension
+	UpdateService(ctx context.Context, service *ExtensionService) (err error)
+	// Update an endpoint belonging to a service
+	UpdateEndpoint(ctx context.Context, endpoint *ExtensionEndpoint) (err error)
+	// Update a set of credentials belonging to a service
+	UpdateCredentials(ctx context.Context, credentials *ExtensionCredentials) (err error)
 	// Remove an extension and all its services, endpoints and credentials
 	DeleteExtension(ctx context.Context, extensionID string) error
 	// Remove an extension service and all its endpoints and credentials

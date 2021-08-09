@@ -79,6 +79,53 @@ func (registry *ExtensionRegistry) GetCredentials(ctx context.Context, credentia
 	return registry.extensionStore.GetCredentials(ctx, credentialsID)
 }
 
+// UpdateExtension - update an extension
+func (registry *ExtensionRegistry) UpdateExtension(ctx context.Context, extension *domain.Extension) (err error) {
+	if extension.ID == "" {
+		return domain.NewErrMissingField("extension", "extension ID")
+	}
+	return registry.extensionStore.UpdateExtension(ctx, extension)
+}
+
+// UpdateService - update a service belonging to an extension
+func (registry *ExtensionRegistry) UpdateService(ctx context.Context, service *domain.ExtensionService) (err error) {
+	if service.ExtensionID == "" {
+		return domain.NewErrMissingField("service", "extension ID")
+	}
+	if service.ID == "" {
+		return domain.NewErrMissingField("service", "service ID")
+	}
+	return registry.extensionStore.UpdateService(ctx, service)
+}
+
+// UpdateEndpoint - update an endpoint belonging to a service
+func (registry *ExtensionRegistry) UpdateEndpoint(ctx context.Context, endpoint *domain.ExtensionEndpoint) (err error) {
+	if endpoint.ExtensionID == "" {
+		return domain.NewErrMissingField("endpoint", "extension ID")
+	}
+	if endpoint.ServiceID == "" {
+		return domain.NewErrMissingField("endpoint", "service ID")
+	}
+	if endpoint.URL == "" {
+		return domain.NewErrMissingField("endpoint", "URL")
+	}
+	return registry.extensionStore.UpdateEndpoint(ctx, endpoint)
+}
+
+// UpdateCredentials - update a set of credentials belonging to a service
+func (registry *ExtensionRegistry) UpdateCredentials(ctx context.Context, credentials *domain.ExtensionCredentials) (err error) {
+	if credentials.ExtensionID == "" {
+		return domain.NewErrMissingField("credentials", "extension ID")
+	}
+	if credentials.ServiceID == "" {
+		return domain.NewErrMissingField("credentials", "service ID")
+	}
+	if credentials.ID == "" {
+		return domain.NewErrMissingField("credentials", "credentials ID")
+	}
+	return registry.extensionStore.UpdateCredentials(ctx, credentials)
+}
+
 // RemoveExtension - remove an extension from the registry
 func (registry *ExtensionRegistry) RemoveExtension(ctx context.Context, extensionID string) error {
 	return registry.extensionStore.DeleteExtension(ctx, extensionID)
