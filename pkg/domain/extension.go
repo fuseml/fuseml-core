@@ -84,8 +84,6 @@ type ExtensionService struct {
 	// to access the service; if none of the provided credentials match the scope of the consumer,
 	// this service will be excluded from queries
 	AuthRequired bool
-	// List of endpoints
-	Endpoints []*ExtensionEndpoint
 	// Configuration entries (e.g. configuration values required to configure the client to access this
 	// service), expressed as set of key-value entries
 	Configuration map[string]string

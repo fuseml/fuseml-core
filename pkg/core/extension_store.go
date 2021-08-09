@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"sort"
 
 	"github.com/Masterminds/semver"
 	"github.com/fuseml/fuseml-core/pkg/domain"
@@ -293,7 +294,16 @@ func (store *ExtensionStore) GetExtension(ctx context.Context, extensionID strin
 	if !fullTree {
 		return result, nil
 	}
-	for _, svcRecord := range extRecord.services {
+
+	// sort services by ID
+	svcIDs := make([]string, 0, len(extRecord.services))
+	for svcID := range extRecord.services {
+		svcIDs = append(svcIDs, svcID)
+	}
+	sort.Strings(svcIDs)
+
+	for _, svcID := range svcIDs {
+		svcRecord := extRecord.services[svcID]
 		service := domain.ExtensionServiceRecord{
 			ExtensionService: svcRecord.ExtensionService,
 			Endpoints:        make([]*domain.ExtensionEndpoint, 0),
@@ -301,10 +311,27 @@ func (store *ExtensionStore) GetExtension(ctx context.Context, extensionID strin
 		}
 		result.Services = append(result.Services, &service)
 
-		for _, endpointRecord := range svcRecord.endpoints {
+		// sort endpoints by URL
+		URLs := make([]string, 0, len(svcRecord.endpoints))
+		for URL := range svcRecord.endpoints {
+			URLs = append(URLs, URL)
+		}
+		sort.Strings(URLs)
+
+		for _, URL := range URLs {
+			endpointRecord := svcRecord.endpoints[URL]
 			service.Endpoints = append(service.Endpoints, &endpointRecord.ExtensionEndpoint)
 		}
-		for _, credsRecord := range svcRecord.credentials {
+
+		// sort credentials by ID
+		credIDs := make([]string, 0, len(svcRecord.credentials))
+		for credID := range svcRecord.credentials {
+			credIDs = append(credIDs, credID)
+		}
+		sort.Strings(credIDs)
+
+		for _, credID := range credIDs {
+			credsRecord := svcRecord.credentials[credID]
 			service.Credentials = append(service.Credentials, &credsRecord.ExtensionCredentials)
 		}
 	}
@@ -354,10 +381,27 @@ func (store *ExtensionStore) GetService(ctx context.Context, serviceID domain.Ex
 		return result, nil
 	}
 
-	for _, endpointRecord := range svcRecord.endpoints {
+	// sort endpoints by URL
+	URLs := make([]string, 0, len(svcRecord.endpoints))
+	for URL := range svcRecord.endpoints {
+		URLs = append(URLs, URL)
+	}
+	sort.Strings(URLs)
+
+	for _, URL := range URLs {
+		endpointRecord := svcRecord.endpoints[URL]
 		result.Endpoints = append(result.Endpoints, &endpointRecord.ExtensionEndpoint)
 	}
-	for _, credsRecord := range svcRecord.credentials {
+
+	// sort credentials by ID
+	credIDs := make([]string, 0, len(svcRecord.credentials))
+	for credID := range svcRecord.credentials {
+		credIDs = append(credIDs, credID)
+	}
+	sort.Strings(credIDs)
+
+	for _, credID := range credIDs {
+		credsRecord := svcRecord.credentials[credID]
 		result.Credentials = append(result.Credentials, &credsRecord.ExtensionCredentials)
 	}
 
@@ -446,7 +490,7 @@ func (store *ExtensionStore) GetCredentials(ctx context.Context, credentialsID d
 // UpdateExtension - update an extension
 func (store *ExtensionStore) UpdateExtension(ctx context.Context, extension *domain.Extension) (err error) {
 	extRecord, err := store.getExtensionRecord(ctx, extension.ID)
-	if err == nil {
+	if err != nil {
 		return err
 	}
 	extRecord.Extension = *extension
@@ -456,7 +500,7 @@ func (store *ExtensionStore) UpdateExtension(ctx context.Context, extension *dom
 // UpdateService - update a service belonging to an extension
 func (store *ExtensionStore) UpdateService(ctx context.Context, service *domain.ExtensionService) (err error) {
 	svcRecord, err := store.getServiceRecord(ctx, service.ExtensionServiceID)
-	if err == nil {
+	if err != nil {
 		return err
 	}
 	svcRecord.ExtensionService = *service
@@ -466,7 +510,7 @@ func (store *ExtensionStore) UpdateService(ctx context.Context, service *domain.
 // UpdateEndpoint - update an endpoint belonging to a service
 func (store *ExtensionStore) UpdateEndpoint(ctx context.Context, endpoint *domain.ExtensionEndpoint) (err error) {
 	endpointRecord, err := store.getEndpointRecord(ctx, endpoint.ExtensionEndpointID)
-	if err == nil {
+	if err != nil {
 		return err
 	}
 	endpointRecord.ExtensionEndpoint = *endpoint
@@ -476,7 +520,7 @@ func (store *ExtensionStore) UpdateEndpoint(ctx context.Context, endpoint *domai
 // UpdateCredentials - update a set of credentials belonging to a service
 func (store *ExtensionStore) UpdateCredentials(ctx context.Context, credentials *domain.ExtensionCredentials) (err error) {
 	credRecord, err := store.getCredentialsRecord(ctx, credentials.ExtensionCredentialsID)
-	if err == nil {
+	if err != nil {
 		return err
 	}
 	credRecord.ExtensionCredentials = *credentials
