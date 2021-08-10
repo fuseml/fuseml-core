@@ -854,3 +854,293 @@ func TestExtensionUpdate(t *testing.T) {
 
 	})
 }
+
+// Test running queries on the extension registry
+func TestExtensionQuery(t *testing.T) {
+	t.Run("extension query", func(t *testing.T) {
+		registry := newExtensionRegistry()
+		e1 := &domain.Extension{
+			ID:          "testextension-one",
+			Product:     "testproduct",
+			Version:     "v1.0",
+			Description: "Test extension v1.0",
+			Zone:        "twilight",
+			Configuration: map[string]string{
+				"ext-config-one": "ext-value-one",
+				"ext-config-two": "ext-value-two",
+			},
+		}
+		er1 := newExtension(e1)
+		s1 := &domain.ExtensionService{
+			ExtensionServiceID: domain.ExtensionServiceID{
+				ID: "testservice-001",
+			},
+			Resource:     "testresource-one",
+			Category:     "testcategory-one",
+			Description:  "Test service 001",
+			AuthRequired: false,
+			Configuration: map[string]string{
+				"svc-001-config-one": "svc-001-value-one",
+				"svc-001-config-two": "svc-001-value-two",
+			},
+		}
+		sr1 := addService(er1, s1)
+		s2 := &domain.ExtensionService{
+			ExtensionServiceID: domain.ExtensionServiceID{
+				ID: "testservice-002",
+			},
+			Resource:     "testresource-two",
+			Category:     "testcategory-two",
+			Description:  "Test service 002",
+			AuthRequired: true,
+			Configuration: map[string]string{
+				"svc-002-config-one": "svc-002-value-one",
+				"svc-002-config-two": "svc-002-value-two",
+			},
+		}
+		sr2 := addService(er1, s2)
+		ep1 := &domain.ExtensionEndpoint{
+			ExtensionEndpointID: domain.ExtensionEndpointID{
+				URL: "https://testendpoint-001.com",
+			},
+			EndpointType: domain.EETExternal,
+			Configuration: map[string]string{
+				"ep-001-config-one": "svc-001-value-one",
+				"ep-001-config-two": "svc-001-value-two",
+			},
+		}
+		addEndpoint(sr1, ep1)
+		ep2 := &domain.ExtensionEndpoint{
+			ExtensionEndpointID: domain.ExtensionEndpointID{
+				URL: "https://testendpoint-002.com",
+			},
+			EndpointType: domain.EETInternal,
+			Configuration: map[string]string{
+				"ep-002-config-one": "svc-002-value-one",
+				"ep-002-config-two": "svc-002-value-two",
+			},
+		}
+		addEndpoint(sr2, ep2)
+		c1 := &domain.ExtensionCredentials{
+			ExtensionCredentialsID: domain.ExtensionCredentialsID{
+				ID: "testcredentials-001",
+			},
+			Scope:    domain.ECSGlobal,
+			Default:  true,
+			Projects: []string{},
+			Users:    []string{},
+			Configuration: map[string]string{
+				"cred-001-config-one": "cred-001-value-one",
+				"cred-001-config-two": "cred-001-value-two",
+			},
+		}
+		addCredentials(sr1, c1)
+		c2 := &domain.ExtensionCredentials{
+			ExtensionCredentialsID: domain.ExtensionCredentialsID{
+				ID: "testcredentials-002",
+			},
+			Scope:    domain.ECSUser,
+			Default:  false,
+			Projects: []string{"project-one", "project-two"},
+			Users:    []string{"user-one", "user-two"},
+			Configuration: map[string]string{
+				"cred-002-config-one": "cred-002-value-one",
+				"cred-002-config-two": "cred-002-value-two",
+			},
+		}
+		addCredentials(sr2, c2)
+
+		er1In, err := registry.RegisterExtension(context.Background(), er1)
+		assertError(t, err, nil)
+		if d := cmp.Diff(er1, er1In); d != "" {
+			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
+		}
+		er1Out, err := registry.GetExtension(context.Background(), "testextension-one", true)
+		assertError(t, err, nil)
+		if d := cmp.Diff(er1In, er1Out); d != "" {
+			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
+		}
+
+		e2 := &domain.Extension{
+			ID:          "testextension-two",
+			Product:     "testproduct",
+			Version:     "v1.2.0",
+			Description: "Test extension v1.2",
+			Zone:        "twilight",
+			Configuration: map[string]string{
+				"ext-config-one": "ext-value-one",
+				"ext-config-two": "ext-value-two",
+			},
+		}
+		er2 := newExtension(e2)
+		s3 := &domain.ExtensionService{
+			ExtensionServiceID: domain.ExtensionServiceID{
+				ID: "testservice-003",
+			},
+			Resource:     "testresource-one",
+			Category:     "testcategory-one",
+			Description:  "Test service 003",
+			AuthRequired: false,
+			Configuration: map[string]string{
+				"svc-003-config-one": "svc-003-value-one",
+				"svc-003-config-two": "svc-003-value-two",
+			},
+		}
+		sr3 := addService(er2, s3)
+		s4 := &domain.ExtensionService{
+			ExtensionServiceID: domain.ExtensionServiceID{
+				ID: "testservice-004",
+			},
+			Resource:     "testresource-two",
+			Category:     "testcategory-two",
+			Description:  "Test service 004",
+			AuthRequired: true,
+			Configuration: map[string]string{
+				"svc-004-config-one": "svc-004-value-one",
+				"svc-004-config-two": "svc-004-value-two",
+			},
+		}
+		sr4 := addService(er2, s4)
+		ep3 := &domain.ExtensionEndpoint{
+			ExtensionEndpointID: domain.ExtensionEndpointID{
+				URL: "https://testendpoint-003.com",
+			},
+			EndpointType: domain.EETExternal,
+			Configuration: map[string]string{
+				"ep-003-config-one": "svc-003-value-one",
+				"ep-003-config-two": "svc-003-value-two",
+			},
+		}
+		addEndpoint(sr3, ep3)
+		ep4 := &domain.ExtensionEndpoint{
+			ExtensionEndpointID: domain.ExtensionEndpointID{
+				URL: "https://testendpoint-004.com",
+			},
+			EndpointType: domain.EETInternal,
+			Configuration: map[string]string{
+				"ep-004-config-one": "svc-004-value-one",
+				"ep-004-config-two": "svc-004-value-two",
+			},
+		}
+		addEndpoint(sr4, ep4)
+		c3 := &domain.ExtensionCredentials{
+			ExtensionCredentialsID: domain.ExtensionCredentialsID{
+				ID: "testcredentials-003",
+			},
+			Scope:    domain.ECSGlobal,
+			Default:  true,
+			Projects: []string{},
+			Users:    []string{},
+			Configuration: map[string]string{
+				"cred-003-config-one": "cred-003-value-one",
+				"cred-003-config-two": "cred-003-value-two",
+			},
+		}
+		addCredentials(sr3, c3)
+		c4 := &domain.ExtensionCredentials{
+			ExtensionCredentialsID: domain.ExtensionCredentialsID{
+				ID: "testcredentials-004",
+			},
+			Scope:    domain.ECSUser,
+			Default:  false,
+			Projects: []string{"project-one", "project-two"},
+			Users:    []string{"user-two", "user-three"},
+			Configuration: map[string]string{
+				"cred-004-config-one": "cred-004-value-one",
+				"cred-004-config-two": "cred-004-value-two",
+			},
+		}
+		addCredentials(sr4, c4)
+
+		er2In, err := registry.RegisterExtension(context.Background(), er2)
+		assertError(t, err, nil)
+		if d := cmp.Diff(er2, er2In); d != "" {
+			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
+		}
+		er2Out, err := registry.GetExtension(context.Background(), "testextension-two", true)
+		assertError(t, err, nil)
+		if d := cmp.Diff(er2In, er2Out); d != "" {
+			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
+		}
+
+		var epType domain.ExtensionEndpointType = domain.EETExternal
+		q := &domain.ExtensionQuery{
+			ExtensionID:        "testextension-one",
+			Product:            "testproduct",
+			VersionConstraints: "1.0",
+			Zone:               "twilight",
+			StrictZoneMatch:    true,
+			ServiceID:          "testservice-001",
+			ServiceResource:    "testresource-one",
+			ServiceCategory:    "testcategory-one",
+			EndpointURL:        "https://testendpoint-001.com",
+			EndpointType:       &epType,
+			CredentialsID:      "testcredentials-001",
+			CredentialsScope:   domain.ECSGlobal,
+			User:               "",
+			Project:            "",
+		}
+
+		qRes := []*domain.ExtensionAccessDescriptor{{
+			Extension:            er1.Extension,
+			ExtensionService:     sr1.ExtensionService,
+			ExtensionEndpoint:    *ep1,
+			ExtensionCredentials: c1,
+		}}
+		qOut, err := registry.RunExtensionAccessQuery(context.Background(), q)
+		assertError(t, err, nil)
+		if d := cmp.Diff(qRes, qOut); d != "" {
+			t.Errorf("Unexpected Query Results: %s", diff.PrintWantGot(d))
+		}
+
+		q = &domain.ExtensionQuery{
+			Product:            "testproduct",
+			VersionConstraints: ">=1.0,<1.1",
+			Zone:               "twilight",
+			StrictZoneMatch:    true,
+			ServiceResource:    "testresource-two",
+			CredentialsScope:   domain.ECSUser,
+			User:               "user-one",
+		}
+
+		qRes = []*domain.ExtensionAccessDescriptor{{
+			Extension:            er1.Extension,
+			ExtensionService:     sr2.ExtensionService,
+			ExtensionEndpoint:    *ep2,
+			ExtensionCredentials: c2,
+		}}
+		qOut, err = registry.RunExtensionAccessQuery(context.Background(), q)
+		assertError(t, err, nil)
+		if d := cmp.Diff(qRes, qOut); d != "" {
+			t.Errorf("Unexpected Query Results: %s", diff.PrintWantGot(d))
+		}
+
+		q = &domain.ExtensionQuery{
+			Product:         "testproduct",
+			Zone:            "twilight",
+			StrictZoneMatch: true,
+			ServiceResource: "testresource-two",
+		}
+
+		qRes = []*domain.ExtensionAccessDescriptor{
+			{
+				Extension:            er1.Extension,
+				ExtensionService:     sr2.ExtensionService,
+				ExtensionEndpoint:    *ep2,
+				ExtensionCredentials: c2,
+			},
+			{
+				Extension:            er2.Extension,
+				ExtensionService:     sr4.ExtensionService,
+				ExtensionEndpoint:    *ep4,
+				ExtensionCredentials: c4,
+			},
+		}
+		qOut, err = registry.RunExtensionAccessQuery(context.Background(), q)
+		assertError(t, err, nil)
+		if d := cmp.Diff(qRes, qOut); d != "" {
+			t.Errorf("Unexpected Query Results: %s", diff.PrintWantGot(d))
+		}
+
+	})
+}

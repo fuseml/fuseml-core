@@ -203,7 +203,9 @@ type ExtensionQuery struct {
 	// Search by explicit endpoint URL
 	EndpointURL string
 	// Search by endpoint type. If not explicitly specified, the endpoint type will be
-	// determined automatically by StrictZoneMatch and the Zone value, if a Zone is supplied
+	// determined automatically by StrictZoneMatch and the Zone value, if a Zone is supplied:
+	//  - if the extension is in the same zone as the query, both internal and external endpoints will match
+	//  - otherwise, only external endpoints will match
 	EndpointType *ExtensionEndpointType
 	// Search by explicit credentials ID
 	CredentialsID string

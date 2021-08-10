@@ -638,7 +638,7 @@ func (store *ExtensionStore) findExtensionRecords(ctx context.Context, query *do
 
 		services, err := store.findServiceRecords(ctx, extRecord, query)
 
-		if err != nil && len(services) > 0 {
+		if err == nil && len(services) > 0 {
 			result = append(result,
 				&domain.ExtensionRecord{
 					Extension: extRecord.Extension,
@@ -677,9 +677,9 @@ func (store *ExtensionStore) findServiceRecords(
 		}
 
 		endpoints, err := store.findEndpoints(ctx, svcRecord, query)
-		if err != nil && len(endpoints) > 0 {
+		if err == nil && len(endpoints) > 0 {
 			credentials, err := store.findCredentials(ctx, svcRecord, query)
-			if err != nil && (len(credentials) > 0 || !svcRecord.AuthRequired) {
+			if err == nil && (len(credentials) > 0 || !svcRecord.AuthRequired) {
 				result = append(result,
 					&domain.ExtensionServiceRecord{
 						ExtensionService: svcRecord.ExtensionService,
@@ -702,6 +702,7 @@ func (store *ExtensionStore) findEndpoints(
 	result = make([]*domain.ExtensionEndpoint, 0)
 
 	addIfMatch := func(endpoint *domain.ExtensionEndpoint) {
+
 		if query.EndpointURL != "" && query.EndpointURL != endpoint.URL {
 			return
 		}
@@ -713,9 +714,8 @@ func (store *ExtensionStore) findEndpoints(
 		} else if query.Zone != "" {
 			// if endpoint type is not supplied with the query, determine the endpoint type
 			// by comparing the query zone (if supplied) with the extension record zone
-			if query.Zone == svcRecord.extension.Zone && endpoint.EndpointType == domain.EETExternal {
-				return
-			}
+			//  - if the extension is in the same zone as the query, both internal and external endpoints will match
+			//  - otherwise, only external endpoints will match
 			if query.Zone != svcRecord.extension.Zone && endpoint.EndpointType == domain.EETInternal {
 				return
 			}
@@ -766,7 +766,7 @@ func (store *ExtensionStore) findCredentials(
 		// those project scoped to the supplied project, and those user scoped to the supplied user and project
 		// are a match
 		if query.CredentialsScope == domain.ECSUser {
-			if credentials.Scope != domain.ECSGlobal && !stringInSlice(query.Project, credentials.Projects) {
+			if credentials.Scope != domain.ECSGlobal && query.Project != "" && !stringInSlice(query.Project, credentials.Projects) {
 				return
 			}
 			if credentials.Scope == domain.ECSUser && !stringInSlice(query.User, credentials.Users) {
