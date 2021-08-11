@@ -51,7 +51,7 @@ func addCredentials(svcRecord *domain.ExtensionServiceRecord, credentials *domai
 
 // Test registering an extension
 func TestExtensionRegister(t *testing.T) {
-	t.Run("extension register - explicit IDs", func(t *testing.T) {
+	t.Run("explicit IDs", func(t *testing.T) {
 		registry := newExtensionRegistry()
 		e := &domain.Extension{
 			ID: "testextension",
@@ -162,7 +162,7 @@ func TestExtensionRegister(t *testing.T) {
 		}
 	})
 
-	t.Run("extension register - generated ID", func(t *testing.T) {
+	t.Run("generated ID", func(t *testing.T) {
 		registry := newExtensionRegistry()
 		e := &domain.Extension{
 			Product: "testproduct",
@@ -256,7 +256,7 @@ func TestExtensionRegister(t *testing.T) {
 
 // Test adding services, endpoints and credentials to an existing extension
 func TestExtensionAdd(t *testing.T) {
-	t.Run("extension add - explicit IDs", func(t *testing.T) {
+	t.Run("explicit IDs", func(t *testing.T) {
 		registry := newExtensionRegistry()
 		e := &domain.Extension{
 			ID: "testextension",
@@ -435,9 +435,9 @@ func TestExtensionAdd(t *testing.T) {
 	})
 }
 
-// Test removing services, endpoints and credentials from an existing extension
+// Test removing services, endpoints and credentials incrementally from an existing extension
 func TestExtensionRemove(t *testing.T) {
-	t.Run("extension remove", func(t *testing.T) {
+	t.Run("incremental", func(t *testing.T) {
 		registry := newExtensionRegistry()
 		e := &domain.Extension{
 			ID: "testextension",
@@ -621,7 +621,7 @@ func TestExtensionRemove(t *testing.T) {
 
 // Test updating an existing extension, services, endpoints and set of credentials
 func TestExtensionUpdate(t *testing.T) {
-	t.Run("extension update", func(t *testing.T) {
+	t.Run("existing", func(t *testing.T) {
 		registry := newExtensionRegistry()
 		e := &domain.Extension{
 			ID:          "testextension",
@@ -857,7 +857,7 @@ func TestExtensionUpdate(t *testing.T) {
 
 // Test running queries on the extension registry
 func TestExtensionQuery(t *testing.T) {
-	t.Run("extension query", func(t *testing.T) {
+	t.Run("positive", func(t *testing.T) {
 		registry := newExtensionRegistry()
 		e1 := &domain.Extension{
 			ID:          "testextension-one",
