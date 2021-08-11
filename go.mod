@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	code.gitea.io/sdk/gitea v0.14.0
+	github.com/Masterminds/semver v1.5.0
 	github.com/dimfeld/httptreemux/v5 v5.3.0 // indirect
 	github.com/fatih/color v1.10.0
 	github.com/ghodss/yaml v1.0.0
