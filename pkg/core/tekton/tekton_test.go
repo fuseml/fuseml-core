@@ -27,7 +27,6 @@ import (
 	knbeta1 "knative.dev/pkg/apis/duck/v1beta1"
 	rtesting "knative.dev/pkg/reconciler/testing"
 
-	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/domain"
 )
 
@@ -45,7 +44,7 @@ func TestCreateWorkflow(t *testing.T) {
 	t.Run("new workflow", func(t *testing.T) {
 		ctx, b, logsOutput := initBackend(t)
 
-		w := workflow.Workflow{}
+		w := domain.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
 		err := b.CreateWorkflow(ctx, &w)
@@ -70,7 +69,7 @@ func TestCreateWorkflow(t *testing.T) {
 	t.Run("existing workflow", func(t *testing.T) {
 		ctx, b, _ := initBackend(t)
 
-		w := workflow.Workflow{}
+		w := domain.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
 		err := b.CreateWorkflow(ctx, &w)
@@ -86,7 +85,7 @@ func TestDeleteWorkflow(t *testing.T) {
 	t.Run("delete", func(t *testing.T) {
 		ctx, b, logsOutput := initBackend(t)
 
-		w := workflow.Workflow{}
+		w := domain.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
 		err := b.CreateWorkflow(ctx, &w)
@@ -129,7 +128,7 @@ Tekton pipeline %q not found, skipping delete...
 func TestCreateWorkflowRun(t *testing.T) {
 	ctx, b, logsOutput := initBackend(t)
 
-	w := workflow.Workflow{}
+	w := domain.Workflow{}
 	readYaml(t, fuseMLWorkflow, &w)
 
 	err := b.CreateWorkflow(ctx, &w)
@@ -174,7 +173,7 @@ func TestListWorkflowRuns(t *testing.T) {
 	t.Run("all", func(t *testing.T) {
 		ctx, b, _ := initBackend(t)
 
-		w := workflow.Workflow{}
+		w := domain.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
 		err := b.CreateWorkflow(ctx, &w)
@@ -183,26 +182,23 @@ func TestListWorkflowRuns(t *testing.T) {
 		}
 
 		runStatus := "Unknown"
-		want := []*workflow.WorkflowRun{}
+		want := []*domain.WorkflowRun{}
 
 		for i := 1; i < 3; i++ {
 			cs := createCodeset(t, i, i)
 			runName := fmt.Sprintf("%s-%d", w.Name, i)
-			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
-			runStartTime := metav1.Now()
-			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime)
-			runCsInputValue := fmt.Sprintf("%s:main", cs.URL)
-			startTime := runStartTime.Format(time.RFC3339)
-			completionTime := metav1.NewTime(runStartTime.Time.Add(time.Minute)).Format(time.RFC3339)
-			want = append(want, &workflow.WorkflowRun{
-				Name:           &runName,
-				WorkflowRef:    &w.Name,
-				Inputs:         []*workflow.WorkflowRunInput{{Input: w.Inputs[0], Value: &runCsInputValue}, {Input: w.Inputs[1], Value: w.Inputs[1].Default}},
-				Outputs:        []*workflow.WorkflowRunOutput{{Output: w.Outputs[0]}},
-				StartTime:      &startTime,
-				CompletionTime: &completionTime,
-				Status:         &runStatus,
-				URL:            &runURL,
+			runStartTime := time.Now()
+			completionTime := time.Now().Add(time.Minute)
+			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime, completionTime)
+			want = append(want, &domain.WorkflowRun{
+				Name:           runName,
+				WorkflowRef:    w.Name,
+				Inputs:         []*domain.WorkflowRunInput{{Input: w.Inputs[0], Value: fmt.Sprintf("%s:main", cs.URL)}, {Input: w.Inputs[1], Value: w.Inputs[1].Default}},
+				Outputs:        []*domain.WorkflowRunOutput{{Output: w.Outputs[0]}},
+				StartTime:      runStartTime,
+				CompletionTime: completionTime,
+				Status:         runStatus,
+				URL:            "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName,
 			})
 		}
 
@@ -219,7 +215,7 @@ func TestListWorkflowRuns(t *testing.T) {
 	t.Run("filter by codeset", func(t *testing.T) {
 		ctx, b, _ := initBackend(t)
 
-		w := workflow.Workflow{}
+		w := domain.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
 		err := b.CreateWorkflow(ctx, &w)
@@ -229,25 +225,22 @@ func TestListWorkflowRuns(t *testing.T) {
 
 		runStatus := "Unknown"
 		codesets := []*domain.Codeset{}
-		wants := []*workflow.WorkflowRun{}
+		wants := []*domain.WorkflowRun{}
 		for i := 0; i < 2; i++ {
 			cs := createCodeset(t, i, i)
 			runName := fmt.Sprintf("%s-%d", w.Name, i)
-			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
-			runStartTime := metav1.Now()
-			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime)
-			runCsInputValue := fmt.Sprintf("%s:main", cs.URL)
-			startTime := runStartTime.Format(time.RFC3339)
-			completionTime := metav1.NewTime(runStartTime.Time.Add(time.Minute)).Format(time.RFC3339)
-			wants = append(wants, &workflow.WorkflowRun{
-				Name:           &runName,
-				WorkflowRef:    &w.Name,
-				Inputs:         []*workflow.WorkflowRunInput{{Input: w.Inputs[0], Value: &runCsInputValue}, {Input: w.Inputs[1], Value: w.Inputs[1].Default}},
-				Outputs:        []*workflow.WorkflowRunOutput{{Output: w.Outputs[0]}},
-				StartTime:      &startTime,
-				CompletionTime: &completionTime,
-				Status:         &runStatus,
-				URL:            &runURL,
+			runStartTime := time.Now()
+			completionTime := runStartTime.Add(time.Minute)
+			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime, completionTime)
+			wants = append(wants, &domain.WorkflowRun{
+				Name:           runName,
+				WorkflowRef:    w.Name,
+				Inputs:         []*domain.WorkflowRunInput{{Input: w.Inputs[0], Value: fmt.Sprintf("%s:main", cs.URL)}, {Input: w.Inputs[1], Value: w.Inputs[1].Default}},
+				Outputs:        []*domain.WorkflowRunOutput{{Output: w.Outputs[0]}},
+				StartTime:      runStartTime,
+				CompletionTime: completionTime,
+				Status:         runStatus,
+				URL:            "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName,
 			})
 			codesets = append(codesets, cs)
 		}
@@ -283,7 +276,7 @@ func TestListWorkflowRuns(t *testing.T) {
 		}
 
 		filterNoResult := domain.WorkflowRunFilter{CodesetName: "do-no-exist"}
-		want = []*workflow.WorkflowRun{}
+		want = []*domain.WorkflowRun{}
 		got, err = b.ListWorkflowRuns(ctx, &w, &filterNoResult)
 		if err != nil {
 			t.Fatalf("Failed to list WorkflowRun: %s", err)
@@ -294,7 +287,7 @@ func TestListWorkflowRuns(t *testing.T) {
 
 		for i := 0; i < len(codesets); i++ {
 			filterCodesetName := domain.WorkflowRunFilter{CodesetName: codesets[i].Name}
-			want := []*workflow.WorkflowRun{wants[i]}
+			want := []*domain.WorkflowRun{wants[i]}
 			got, err := b.ListWorkflowRuns(ctx, &w, &filterCodesetName)
 			if err != nil {
 				t.Fatalf("Failed to list WorkflowRun: %s", err)
@@ -307,7 +300,7 @@ func TestListWorkflowRuns(t *testing.T) {
 
 		for i := 0; i < len(codesets); i++ {
 			filterCodesetProject := domain.WorkflowRunFilter{CodesetProject: codesets[i].Project}
-			want := []*workflow.WorkflowRun{wants[i]}
+			want := []*domain.WorkflowRun{wants[i]}
 			got, err := b.ListWorkflowRuns(ctx, &w, &filterCodesetProject)
 			if err != nil {
 				t.Fatalf("Failed to list WorkflowRun: %s", err)
@@ -320,7 +313,7 @@ func TestListWorkflowRuns(t *testing.T) {
 
 		for i := 0; i < len(codesets); i++ {
 			filterCodesetNameProject := domain.WorkflowRunFilter{CodesetName: codesets[i].Name, CodesetProject: codesets[i].Project}
-			want := []*workflow.WorkflowRun{wants[i]}
+			want := []*domain.WorkflowRun{wants[i]}
 			got, err := b.ListWorkflowRuns(ctx, &w, &filterCodesetNameProject)
 			if err != nil {
 				t.Fatalf("Failed to list WorkflowRun: %s", err)
@@ -335,7 +328,7 @@ func TestListWorkflowRuns(t *testing.T) {
 	t.Run("filter by status", func(t *testing.T) {
 		ctx, b, _ := initBackend(t)
 
-		w := workflow.Workflow{}
+		w := domain.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
 		err := b.CreateWorkflow(ctx, &w)
@@ -344,31 +337,27 @@ func TestListWorkflowRuns(t *testing.T) {
 		}
 
 		runsStatus := []string{"Unknown", "PipelineRunCancelled", "Succeeded", "Running"}
-		wants := []*workflow.WorkflowRun{}
+		wants := []*domain.WorkflowRun{}
 		for i := 0; i < len(runsStatus); i++ {
 			cs := createCodeset(t, i, i)
 			runName := fmt.Sprintf("%s-%d", w.Name, i)
-			runURL := "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName
-			runStartTime := metav1.Now()
+			runStartTime := time.Now()
 			runStatus := runsStatus[i]
-			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime)
-			startTime := runStartTime.Format(time.RFC3339)
-			var completionTime *string
+			var completionTime time.Time
 			if runStatus != "Running" {
-				time := metav1.NewTime(runStartTime.Time.Add(time.Minute)).Format(time.RFC3339)
-				completionTime = &time
+				completionTime = runStartTime.Add(time.Minute)
 			}
-			runCsInputValue := fmt.Sprintf("%s:main", cs.URL)
+			b.createTestWorkflowRun(ctx, t, w.Name, cs, runName, runStatus, runStartTime, completionTime)
 			status := pipelineReasonToWorkflowStatus(runStatus)
-			wants = append(wants, &workflow.WorkflowRun{
-				Name:           &runName,
-				WorkflowRef:    &w.Name,
-				Inputs:         []*workflow.WorkflowRunInput{{Input: w.Inputs[0], Value: &runCsInputValue}, {Input: w.Inputs[1], Value: w.Inputs[1].Default}},
-				Outputs:        []*workflow.WorkflowRunOutput{{Output: w.Outputs[0]}},
-				StartTime:      &startTime,
+			wants = append(wants, &domain.WorkflowRun{
+				Name:           runName,
+				WorkflowRef:    w.Name,
+				Inputs:         []*domain.WorkflowRunInput{{Input: w.Inputs[0], Value: fmt.Sprintf("%s:main", cs.URL)}, {Input: w.Inputs[1], Value: w.Inputs[1].Default}},
+				Outputs:        []*domain.WorkflowRunOutput{{Output: w.Outputs[0]}},
+				StartTime:      runStartTime,
 				CompletionTime: completionTime,
-				Status:         &status,
-				URL:            &runURL,
+				Status:         status,
+				URL:            "http://tekton.test/#/namespaces/test-namespace/pipelineruns/" + runName,
 			})
 		}
 
@@ -393,7 +382,7 @@ func TestListWorkflowRuns(t *testing.T) {
 		}
 
 		filterNoResult := domain.WorkflowRunFilter{Status: []string{"Timeout"}}
-		want = []*workflow.WorkflowRun{}
+		want = []*domain.WorkflowRun{}
 		got, err = b.ListWorkflowRuns(ctx, &w, &filterNoResult)
 		if err != nil {
 			t.Fatalf("Failed to list WorkflowRun: %s", err)
@@ -404,7 +393,7 @@ func TestListWorkflowRuns(t *testing.T) {
 
 		for i := 0; i < len(runsStatus); i++ {
 			filterStatus := domain.WorkflowRunFilter{Status: []string{pipelineReasonToWorkflowStatus(runsStatus[i])}}
-			want := []*workflow.WorkflowRun{wants[i]}
+			want := []*domain.WorkflowRun{wants[i]}
 			got, err := b.ListWorkflowRuns(ctx, &w, &filterStatus)
 			if err != nil {
 				t.Fatalf("Failed to list WorkflowRun: %s", err)
@@ -435,7 +424,7 @@ func TestCreateWorkflowListener(t *testing.T) {
 	t.Run("new listener", func(t *testing.T) {
 		ctx, b, logsOutput := initBackend(t)
 
-		w := workflow.Workflow{}
+		w := domain.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
 		err := b.CreateWorkflow(ctx, &w)
@@ -447,11 +436,10 @@ func TestCreateWorkflowListener(t *testing.T) {
 		wfListener, err := b.CreateWorkflowListener(ctx, w.Name, 0)
 		assertError(t, err, nil)
 
-		wantURL := fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", w.Name, b.namespace)
 		wantAvailable := false
 		wantListener := domain.WorkflowListener{
 			Name:         w.Name,
-			URL:          wantURL,
+			URL:          fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", w.Name, b.namespace),
 			Available:    wantAvailable,
 			DashboardURL: fmt.Sprintf("%s/#/namespaces/%s/eventlisteners/%s", b.dashboardURL, b.namespace, w.Name),
 		}
@@ -516,7 +504,7 @@ Creating tekton event listener for workflow: mlflow-sklearn-e2e...
 	t.Run("existing listener", func(t *testing.T) {
 		ctx, b, logsOutput := initBackend(t)
 
-		w := workflow.Workflow{}
+		w := domain.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
 		err := b.CreateWorkflow(ctx, &w)
@@ -533,11 +521,10 @@ Creating tekton event listener for workflow: mlflow-sklearn-e2e...
 		wfListener, err := b.CreateWorkflowListener(ctx, w.Name, 0)
 		assertError(t, err, nil)
 
-		wantURL := fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", w.Name, b.namespace)
 		wantAvailable := false
 		wantListener := domain.WorkflowListener{
 			Name:         w.Name,
-			URL:          wantURL,
+			URL:          fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", w.Name, b.namespace),
 			Available:    wantAvailable,
 			DashboardURL: fmt.Sprintf("%s/#/namespaces/%s/eventlisteners/%s", b.dashboardURL, b.namespace, w.Name),
 		}
@@ -553,7 +540,7 @@ Creating tekton event listener for workflow: mlflow-sklearn-e2e...
 	t.Run("clean if fail", func(t *testing.T) {
 		ctx, b, logsOutput := initBackend(t)
 
-		w := workflow.Workflow{}
+		w := domain.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
 		err := b.CreateWorkflow(ctx, &w)
@@ -605,7 +592,7 @@ func TestDeleteWorkflowListener(t *testing.T) {
 	t.Run("delete", func(t *testing.T) {
 		ctx, b, logsOutput := initBackend(t)
 
-		w := workflow.Workflow{}
+		w := domain.Workflow{}
 		readYaml(t, fuseMLWorkflow, &w)
 
 		err := b.CreateWorkflow(ctx, &w)
@@ -674,7 +661,7 @@ Tekton trigger template %q not found, skipping delete...
 func TestGetWorkflowListener(t *testing.T) {
 	ctx, b, _ := initBackend(t)
 
-	w := workflow.Workflow{}
+	w := domain.Workflow{}
 	readYaml(t, fuseMLWorkflow, &w)
 
 	wfName := w.Name
@@ -798,7 +785,7 @@ func createCodeset(t *testing.T, nameID, projectID int) *domain.Codeset {
 }
 
 func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T, workflow string,
-	cs *domain.Codeset, runName string, status string, startTime metav1.Time) {
+	cs *domain.Codeset, runName string, status string, startTime time.Time, completionTime time.Time) {
 	t.Helper()
 
 	err := b.CreateWorkflowRun(ctx, workflow, cs)
@@ -816,10 +803,11 @@ func (b WorkflowBackend) createTestWorkflowRun(ctx context.Context, t *testing.T
 	}
 	prun.ObjectMeta.Name = runName
 	prun.Status.Conditions = knbeta1.Conditions{apis.Condition{Reason: status}}
-	completionTime := metav1.NewTime(startTime.Time.Add(time.Minute))
-	prun.Status.StartTime = &startTime
+	st := metav1.NewTime(startTime)
+	ct := metav1.NewTime(completionTime)
+	prun.Status.StartTime = &st
 	if status != "Running" {
-		prun.Status.CompletionTime = &completionTime
+		prun.Status.CompletionTime = &ct
 	}
 	err = b.tektonClients.PipelineRunClient.Delete(ctx, "", metav1.DeleteOptions{})
 	if err != nil {

@@ -6,7 +6,6 @@ const (
 	triggersServiceAccount    = "tekton-triggers"
 	workspaceAccessMode       = "ReadWriteOnce"
 	workspaceSize             = "2Gi"
-	inputTypeCodeset          = "codeset"
 	codesetWorkspaceName      = "source"
 	builderTaskName           = "kaniko"
 	builderPrepTaskName       = "builder-prep"

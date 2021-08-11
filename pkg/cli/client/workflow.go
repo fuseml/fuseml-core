@@ -144,14 +144,14 @@ type workflowRunsByStartTime []*workflow.WorkflowRun
 func (wrs workflowRunsByStartTime) Len() int      { return len(wrs) }
 func (wrs workflowRunsByStartTime) Swap(i, j int) { wrs[i], wrs[j] = wrs[j], wrs[i] }
 func (wrs workflowRunsByStartTime) Less(i, j int) bool {
-	if wrs[j].StartTime == nil {
+	if wrs[j].StartTime == "" {
 		return false
 	}
-	if wrs[i].StartTime == nil {
+	if wrs[i].StartTime == "" {
 		return true
 	}
 	layout := time.RFC3339
-	stj, _ := time.Parse(layout, *wrs[j].StartTime)
-	sti, _ := time.Parse(layout, *wrs[i].StartTime)
+	stj, _ := time.Parse(layout, wrs[j].StartTime)
+	sti, _ := time.Parse(layout, wrs[i].StartTime)
 	return stj.Before(sti)
 }

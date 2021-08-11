@@ -19,7 +19,6 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"knative.dev/pkg/apis"
 
-	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/core/tekton/builder"
 	"github.com/fuseml/fuseml-core/pkg/domain"
 )
@@ -62,7 +61,7 @@ func NewWorkflowBackend(logger *log.Logger, namespace string) (*WorkflowBackend,
 }
 
 // CreateWorkflow receives a FuseML workflow and creates a Tekton pipeline from it
-func (w *WorkflowBackend) CreateWorkflow(ctx context.Context, workflow *workflow.Workflow) error {
+func (w *WorkflowBackend) CreateWorkflow(ctx context.Context, workflow *domain.Workflow) error {
 	pipeline := generatePipeline(*workflow, w.namespace)
 	w.logger.Printf("Creating tekton pipeline for workflow: %s...", workflow.Name)
 	_, err := w.tektonClients.PipelineClient.Create(ctx, pipeline, metav1.CreateOptions{})
@@ -110,7 +109,7 @@ func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, workflowName st
 }
 
 // ListWorkflowRuns returns a list of WorkflowRun for the given Workflow
-func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf *workflow.Workflow, filter *domain.WorkflowRunFilter) ([]*workflow.WorkflowRun, error) {
+func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf *domain.Workflow, filter *domain.WorkflowRunFilter) ([]*domain.WorkflowRun, error) {
 	labelSelector := fmt.Sprintf("%s=%s", LabelWorkflowRef, wf.Name)
 	if filter.CodesetName != "" {
 		labelSelector = fmt.Sprintf("%s,%s=%s", labelSelector, LabelCodesetName, filter.CodesetName)
@@ -122,7 +121,7 @@ func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf *workflow.Wor
 	if err != nil {
 		return nil, fmt.Errorf("error getting tekton pipeline run %q: %w", wf.Name, err)
 	}
-	workflowRuns := []*workflow.WorkflowRun{}
+	workflowRuns := []*domain.WorkflowRun{}
 
 	if filter.Status != nil && len(filter.Status) > 0 {
 		for _, run := range runs.Items {
@@ -191,7 +190,7 @@ func (w *WorkflowBackend) CreateWorkflowListener(ctx context.Context, workflowNa
 		defer w.tektonDeleteIfError(ctx, &err, el)
 	}
 
-	url := fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", workflowName, w.namespace)
+	listenerURL := fmt.Sprintf("http://el-%s.%s.svc.cluster.local:8080", workflowName, w.namespace)
 	if timeout > 0 {
 		interval := 1 * time.Second
 		if err = waitFor(w.eventListenerReady(ctx, el.Name), interval, timeout); err != nil {
@@ -202,11 +201,12 @@ func (w *WorkflowBackend) CreateWorkflowListener(ctx context.Context, workflowNa
 		if err != nil {
 			return nil, fmt.Errorf("error getting tekton event listener state %q: %w", workflowName, err)
 		}
-		url = el.Status.Address.URL.String()
+		listenerURL = el.Status.Address.URL.String()
 	}
 	available := listenerIsAvailable(el.Status)
-	return &domain.WorkflowListener{Name: el.Name, URL: url, Available: available,
-		DashboardURL: fmt.Sprintf("%s/#/namespaces/%s/eventlisteners/%s", w.dashboardURL, w.namespace, el.Name)}, nil
+	dashboardURL := fmt.Sprintf("%s/#/namespaces/%s/eventlisteners/%s", w.dashboardURL, w.namespace, el.Name)
+	return &domain.WorkflowListener{Name: el.Name, URL: listenerURL, Available: available,
+		DashboardURL: dashboardURL}, nil
 }
 
 // DeleteWorkflowListener deletes all tekton resources associated to the specified listener name
@@ -247,8 +247,9 @@ func (w *WorkflowBackend) GetWorkflowListener(ctx context.Context, workflowName 
 		return nil, fmt.Errorf("error getting tekton event listener %q: %w", workflowName, err)
 	}
 	available := listenerIsAvailable(el.Status)
+	dashboardURL := fmt.Sprintf("%s/#/namespaces/%s/eventlisteners/%s", w.dashboardURL, w.namespace, el.Name)
 	wl = &domain.WorkflowListener{Name: el.Name, Available: available,
-		DashboardURL: fmt.Sprintf("%s/#/namespaces/%s/eventlisteners/%s", w.dashboardURL, w.namespace, el.Name)}
+		DashboardURL: dashboardURL}
 	if available {
 		url := el.Status.Address.URL.String()
 		wl.URL = url
@@ -290,11 +291,11 @@ func listenerIsAvailable(status v1alpha1.EventListenerStatus) bool {
 	return status.Address.URL != nil
 }
 
-func generatePipeline(w workflow.Workflow, namespace string) *v1beta1.Pipeline {
+func generatePipeline(w domain.Workflow, namespace string) *v1beta1.Pipeline {
 	resolver := newVariablesResolver()
 	pb := builder.NewPipelineBuilder(w.Name, namespace)
 	pb.Meta(builder.Label(LabelWorkflowRef, w.Name))
-	pb.Description(*w.Description)
+	pb.Description(w.Description)
 	globalEnvVars = []EnvVar{{"WORKFLOW_NAMESPACE", namespace}, {"WORKFLOW_NAME", w.Name}}
 
 	// process the FuseML workflow inputs
@@ -304,20 +305,20 @@ func generatePipeline(w workflow.Workflow, namespace string) *v1beta1.Pipeline {
 		// also add 'codeset-name' and 'codeset-version' parameters to the tekton
 		// pipeline which represents codeset.name and codeset.version in a FuseML
 		// workflow.
-		if *input.Type == inputTypeCodeset {
+		if input.Type == domain.WorkflowIOTypeCodeset {
 			pb.Workspace(codesetWorkspaceName, false)
 			pb.Resource("source-repo", "git", false)
 			pb.Task("clone", cloneTaskName, nil, map[string]string{codesetWorkspaceName: codesetWorkspaceName},
 				map[string]string{"source-repo": "source-repo"})
 			pb.Param(codesetNameParam, "Reference to the codeset (git project)")
-			resolver.addReference(fmt.Sprintf("inputs.%s.name", *input.Name), fmt.Sprintf("$(params.%s)", codesetNameParam))
+			resolver.addReference(fmt.Sprintf("inputs.%s.name", input.Name), fmt.Sprintf("$(params.%s)", codesetNameParam))
 			pb.ParamWithDefaultValue(codesetVersionParam, "Codeset version (git revision)", "main")
-			resolver.addReference(fmt.Sprintf("inputs.%s.version", *input.Name), fmt.Sprintf("$(params.%s)", codesetVersionParam))
+			resolver.addReference(fmt.Sprintf("inputs.%s.version", input.Name), fmt.Sprintf("$(params.%s)", codesetVersionParam))
 			pb.Param(codesetProjectParam, "Reference to the codeset project (git organization)")
-			resolver.addReference(fmt.Sprintf("inputs.%s.project", *input.Name), fmt.Sprintf("$(params.%s)", codesetProjectParam))
+			resolver.addReference(fmt.Sprintf("inputs.%s.project", input.Name), fmt.Sprintf("$(params.%s)", codesetProjectParam))
 		} else {
-			pb.ParamWithDefaultValue(*input.Name, *input.Description, *input.Default)
-			resolver.addReference(fmt.Sprintf("inputs.%s", *input.Name), fmt.Sprintf("$(params.%s)", *input.Name))
+			pb.ParamWithDefaultValue(input.Name, input.Description, input.Default)
+			resolver.addReference(fmt.Sprintf("inputs.%s", input.Name), fmt.Sprintf("$(params.%s)", input.Name))
 		}
 	}
 
@@ -331,8 +332,8 @@ STEPS:
 			// expected by the step output.
 			if output.Image != nil {
 				var dockerfile string
-				if output.Image.Dockerfile != nil {
-					dockerfile = resolver.resolve(*output.Image.Dockerfile)
+				if output.Image.Dockerfile != "" {
+					dockerfile = resolver.resolve(output.Image.Dockerfile)
 					codesetPath := getInputCodesetPath(step.Inputs)
 					// in FuseML workflow the dockerfile path is a full path including the codeset.path, however
 					// the kaniko task mounts the codeset at workingDir and expects the dockerfile path to be referenced
@@ -341,25 +342,25 @@ STEPS:
 						dockerfile = strings.Replace(dockerfile, fmt.Sprintf("%s/", codesetPath), "", 1)
 					}
 				}
-				prepTaskName := fmt.Sprintf("%s-prep", *step.Name)
-				pb.Task(prepTaskName, builderPrepTaskName, map[string]string{"IMAGE": resolver.resolve(*step.Image),
+				prepTaskName := fmt.Sprintf("%s-prep", step.Name)
+				pb.Task(prepTaskName, builderPrepTaskName, map[string]string{"IMAGE": resolver.resolve(step.Image),
 					"DOCKERFILE": dockerfile}, map[string]string{codesetWorkspaceName: codesetWorkspaceName}, nil)
-				pb.Task(*step.Name, builderTaskName, map[string]string{"IMAGE": resolver.resolve(*output.Image.Name),
+				pb.Task(step.Name, builderTaskName, map[string]string{"IMAGE": resolver.resolve(output.Image.Name),
 					"DOCKERFILE": fmt.Sprintf("$(tasks.%s.results.DOCKERFILE-PATH)", prepTaskName)},
 					map[string]string{codesetWorkspaceName: codesetWorkspaceName}, nil)
-				resolver.addReference(fmt.Sprintf("steps.%s.outputs.%s", *step.Name, *output.Name), *output.Image.Name)
+				resolver.addReference(fmt.Sprintf("steps.%s.outputs.%s", step.Name, output.Name), output.Image.Name)
 				continue STEPS
 			}
 			// if the step output is the workflow output, map it to a PipelineResult in tekton
 			if wo := stepOutputIsWorkflowOutput(output, w.Outputs); wo != nil {
-				pb.Result(*wo.Name, *wo.Description, fmt.Sprintf("$(tasks.%s.results.%s)", *step.Name, *output.Name))
+				pb.Result(wo.Name, wo.Description, fmt.Sprintf("$(tasks.%s.results.%s)", step.Name, output.Name))
 			}
 		}
 
 		// if the workflow step is not a pipeline task that references an existing TektonTask,
 		// build the task spec from the FuseML workflow step.
 		// generates a v1beta1.TaskSpec from a workflow.WorkflowStep
-		taskSpec := toTektonTaskSpec(*step)
+		taskSpec := toTektonTaskSpec(step)
 		taskWs := make(map[string]string)
 		taskParams := make(map[string]string)
 		for _, input := range step.Inputs {
@@ -368,22 +369,22 @@ STEPS:
 			if input.Codeset != nil {
 				taskWs[taskSpec.Workspaces[0].Name] = codesetWorkspaceName
 			} else {
-				taskParams[*input.Name] = resolver.resolve(*input.Value)
+				taskParams[input.Name] = resolver.resolve(input.Value)
 			}
 		}
 		// if image is parametrized add 'IMAGE' param, resolving it
-		if strings.Contains(*step.Image, "{{") {
+		if strings.Contains(step.Image, "{{") {
 			// The kubernetes nodes are unable to resolve the local FuseML registry
 			// (registry.fuseml-registry), in that way, when the step uses an image
 			// from the local FuseML registry, replace registry.fuseml-registry with
 			// 127.0.0.1:30500
-			image := resolver.resolve(*step.Image)
+			image := resolver.resolve(step.Image)
 			if strings.HasPrefix(image, fuseMLRegistry) {
 				image = strings.Replace(image, fuseMLRegistry, fuseMLRegistryLocal, 1)
 			}
 			taskParams[imageParamName] = image
 		}
-		pb.Task(*step.Name, taskSpec, taskParams, taskWs, nil)
+		pb.Task(step.Name, taskSpec, taskParams, taskWs, nil)
 	}
 	return &pb.Pipeline
 }
@@ -503,28 +504,28 @@ func generateEventListener(template *v1alpha1.TriggerTemplate, binding *v1alpha1
 	return &elb.EventListener
 }
 
-func toTektonTaskSpec(step workflow.WorkflowStep) v1beta1.TaskSpec {
-	tb := builder.NewTaskSpecBuilder(*step.Name, *step.Image, stepDefaultCmd)
+func toTektonTaskSpec(step *domain.WorkflowStep) v1beta1.TaskSpec {
+	tb := builder.NewTaskSpecBuilder(step.Name, step.Image, stepDefaultCmd)
 
 	for _, input := range step.Inputs {
 		// if there is a codeset as input, add workspace to the task and
 		// set its working directory to codeset.path
 		if input.Codeset != nil {
-			tb.WorkspaceWithMountPath(codesetWorkspaceName, *input.Codeset.Path)
-			tb.WorkingDir(*input.Codeset.Path)
+			tb.WorkspaceWithMountPath(codesetWorkspaceName, input.Codeset.Path)
+			tb.WorkingDir(input.Codeset.Path)
 		} else {
 			// else add it as a parameter to the tekton task
-			tb.Param(*input.Name)
+			tb.Param(input.Name)
 			// make the inputs also available as env variable (with the
 			// FUSEML_ prefix) so that the container can use them
-			tb.Env(fmt.Sprintf("%s%s", inputsVarPrefix, strings.ToUpper(*input.Name)),
-				fmt.Sprintf("$(params.%s)", *input.Name))
+			tb.Env(fmt.Sprintf("%s%s", inputsVarPrefix, strings.ToUpper(input.Name)),
+				fmt.Sprintf("$(params.%s)", input.Name))
 		}
 	}
 
 	// if image is parameterized reference it as a task parameter to be able
 	// to receive its value from a task output
-	if strings.Contains(*step.Image, "{{") {
+	if strings.Contains(step.Image, "{{") {
 		tb.ParamWithDescription(imageParamName, "Name (reference) of the image to run")
 		tb.Image(fmt.Sprintf("$(params.%s)", imageParamName))
 	}
@@ -534,14 +535,14 @@ func toTektonTaskSpec(step workflow.WorkflowStep) v1beta1.TaskSpec {
 	// can set the task output
 	for _, output := range step.Outputs {
 		if output.Image == nil {
-			tb.Result(*output.Name)
-			tb.Env(stepOutputVarName, *output.Name)
+			tb.Result(output.Name)
+			tb.Env(stepOutputVarName, output.Name)
 		}
 	}
 
 	// load environment variables
 	for _, stepEnv := range step.Env {
-		tb.Env(*stepEnv.Name, *stepEnv.Value)
+		tb.Env(stepEnv.Name, stepEnv.Value)
 	}
 	// export useful env variables to all steps
 	for _, envVar := range globalEnvVars {
@@ -551,70 +552,67 @@ func toTektonTaskSpec(step workflow.WorkflowStep) v1beta1.TaskSpec {
 	return tb.TaskSpec
 }
 
-func stepOutputIsWorkflowOutput(stepOutput *workflow.WorkflowStepOutput,
-	workflowOutput []*workflow.WorkflowOutput) *workflow.WorkflowOutput {
+func stepOutputIsWorkflowOutput(stepOutput *domain.WorkflowStepOutput,
+	workflowOutput []*domain.WorkflowOutput) *domain.WorkflowOutput {
 	for _, wo := range workflowOutput {
-		if *wo.Name == *stepOutput.Name {
+		if wo.Name == stepOutput.Name {
 			return wo
 		}
 	}
 	return nil
 }
 
-func getInputCodesetPath(inputs []*workflow.WorkflowStepInput) string {
+func getInputCodesetPath(inputs []*domain.WorkflowStepInput) string {
 	for _, input := range inputs {
 		if input.Codeset != nil {
-			return *input.Codeset.Path
+			return input.Codeset.Path
 		}
 	}
 	return ""
 }
 
-func (w *WorkflowBackend) toWorkflowRun(wf *workflow.Workflow, p v1beta1.PipelineRun) *workflow.WorkflowRun {
+func (w *WorkflowBackend) toWorkflowRun(wf *domain.Workflow, p v1beta1.PipelineRun) *domain.WorkflowRun {
 
-	wfr := workflow.WorkflowRun{
-		Name:        &p.ObjectMeta.Name,
-		WorkflowRef: &wf.Name,
+	wfr := domain.WorkflowRun{
+		Name:        p.ObjectMeta.Name,
+		WorkflowRef: wf.Name,
 	}
 
 	if p.Status.StartTime != nil {
-		startTime := p.Status.StartTime.Format(time.RFC3339)
-		wfr.StartTime = &startTime
+		wfr.StartTime = p.Status.StartTime.Time
 	}
 
 	if p.Status.CompletionTime != nil {
-		completionTime := p.Status.CompletionTime.Format(time.RFC3339)
-		wfr.CompletionTime = &completionTime
+		wfr.CompletionTime = p.Status.CompletionTime.Time
 	}
 
 	for _, input := range wf.Inputs {
 		var value string
-		if *input.Type == inputTypeCodeset {
+		if input.Type == domain.WorkflowIOTypeCodeset {
 			value = fmt.Sprintf("%s:%s", *getPipelineResourceParamValue("url", p.Spec.Resources[0]),
 				*getPipelineResourceParamValue("revision", p.Spec.Resources[0]))
 		} else {
-			value = *getPipelineRunParamValue(*input.Name, p.Spec.Params)
+			value = *getPipelineRunParamValue(input.Name, p.Spec.Params)
 		}
-		wfr.Inputs = append(wfr.Inputs, &workflow.WorkflowRunInput{
+		wfr.Inputs = append(wfr.Inputs, &domain.WorkflowRunInput{
 			Input: input,
-			Value: &value,
+			Value: value,
 		})
 	}
 
 	for _, output := range wf.Outputs {
-		wfr.Outputs = append(wfr.Outputs, &workflow.WorkflowRunOutput{
+		wfr.Outputs = append(wfr.Outputs, &domain.WorkflowRunOutput{
 			Output: output,
-			Value:  getPipelineRunResultValue(*output.Name, p.Status.PipelineResults),
+			Value:  getPipelineRunResultValue(output.Name, p.Status.PipelineResults),
 		})
 	}
 	status := "Unknown"
 	if len(p.Status.Conditions) > 0 {
 		status = pipelineReasonToWorkflowStatus(p.Status.Conditions[0].Reason)
 	}
-	wfr.Status = &status
+	wfr.Status = status
+	wfr.URL = fmt.Sprintf("%s/#/namespaces/%s/pipelineruns/%s", w.dashboardURL, w.namespace, wfr.Name)
 
-	url := fmt.Sprintf("%s/#/namespaces/%s/pipelineruns/%s", w.dashboardURL, w.namespace, *wfr.Name)
-	wfr.URL = &url
 	return &wfr
 }
 
@@ -642,13 +640,13 @@ func getPipelineRunParamValue(paramName string, params []v1beta1.Param) *string 
 	return nil
 }
 
-func getPipelineRunResultValue(resultName string, results []v1beta1.PipelineRunResult) *string {
+func getPipelineRunResultValue(resultName string, results []v1beta1.PipelineRunResult) string {
 	for _, p := range results {
 		if p.Name == resultName {
-			return &p.Value
+			return p.Value
 		}
 	}
-	return nil
+	return ""
 }
 
 func contains(slice []string, item string) bool {

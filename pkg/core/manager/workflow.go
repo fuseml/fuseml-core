@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/domain"
 )
 
@@ -26,14 +25,13 @@ func NewWorkflowManager(workflowBackend domain.WorkflowBackend, workflowStore do
 }
 
 // List Workflows.
-func (mgr *WorkflowManager) List(ctx context.Context, name *string) []*workflow.Workflow {
+func (mgr *WorkflowManager) List(ctx context.Context, name *string) []*domain.Workflow {
 	return mgr.workflowStore.GetWorkflows(ctx, name)
 }
 
 // Create a new Workflow.
-func (mgr *WorkflowManager) Create(ctx context.Context, wf *workflow.Workflow) (*workflow.Workflow, error) {
-	workflowDateCreated := time.Now().Format(time.RFC3339)
-	wf.Created = &workflowDateCreated
+func (mgr *WorkflowManager) Create(ctx context.Context, wf *domain.Workflow) (*domain.Workflow, error) {
+	wf.Created = time.Now()
 	err := mgr.workflowBackend.CreateWorkflow(ctx, wf)
 	if err != nil {
 		return nil, err
@@ -42,7 +40,7 @@ func (mgr *WorkflowManager) Create(ctx context.Context, wf *workflow.Workflow) (
 }
 
 // Get a Workflow.
-func (mgr *WorkflowManager) Get(ctx context.Context, name string) (*workflow.Workflow, error) {
+func (mgr *WorkflowManager) Get(ctx context.Context, name string) (*domain.Workflow, error) {
 	return mgr.workflowStore.GetWorkflow(ctx, name)
 }
 
@@ -93,7 +91,7 @@ func (mgr *WorkflowManager) AssignToCodeset(ctx context.Context, name, codesetPr
 		return nil, nil, err
 	}
 
-	mgr.workflowStore.AddCodesetAssignment(ctx, name, &domain.AssignedCodeset{Codeset: codeset, WebhookID: webhookID})
+	mgr.workflowStore.AddCodesetAssignment(ctx, name, &domain.CodesetAssignment{Codeset: codeset, WebhookID: webhookID})
 	mgr.codesetStore.Subscribe(ctx, mgr, codeset)
 	mgr.workflowBackend.CreateWorkflowRun(ctx, name, codeset)
 	return
@@ -131,8 +129,8 @@ func (mgr *WorkflowManager) UnassignFromCodeset(ctx context.Context, name, codes
 }
 
 // ListAssignments lists Workflow assignments.
-func (mgr *WorkflowManager) ListAssignments(ctx context.Context, name *string) ([]*workflow.WorkflowAssignment, error) {
-	assignments := []*workflow.WorkflowAssignment{}
+func (mgr *WorkflowManager) ListAssignments(ctx context.Context, name *string) ([]*domain.WorkflowAssignment, error) {
+	assignments := []*domain.WorkflowAssignment{}
 	for wf, acs := range mgr.workflowStore.GetAssignments(ctx, name) {
 
 		listener, err := mgr.workflowBackend.GetWorkflowListener(ctx, wf)
@@ -140,15 +138,14 @@ func (mgr *WorkflowManager) ListAssignments(ctx context.Context, name *string) (
 			return nil, err
 		}
 
-		assignment := newWorkflowAssignment(wf, acs, listener)
-		assignments = append(assignments, assignment)
+		assignments = append(assignments, newWorkflowAssignment(wf, acs, listener))
 	}
 	return assignments, nil
 }
 
 // ListRuns lists Workflow runs.
-func (mgr *WorkflowManager) ListRuns(ctx context.Context, filter *domain.WorkflowRunFilter) ([]*workflow.WorkflowRun, error) {
-	workflowRuns := []*workflow.WorkflowRun{}
+func (mgr *WorkflowManager) ListRuns(ctx context.Context, filter *domain.WorkflowRunFilter) ([]*domain.WorkflowRun, error) {
+	workflowRuns := []*domain.WorkflowRun{}
 	var wfName *string
 	if filter != nil {
 		wfName = filter.WorkflowName
@@ -173,22 +170,17 @@ func (mgr *WorkflowManager) OnDeletingCodeset(ctx context.Context, codeset *doma
 	}
 }
 
-func newWorkflowAssignment(workflowName string, codesets []*domain.AssignedCodeset, listener *domain.WorkflowListener) *workflow.WorkflowAssignment {
-	assignment := &workflow.WorkflowAssignment{
-		Workflow: &workflowName,
-		Status: &workflow.WorkflowAssignmentStatus{
-			Available: &listener.Available,
-			URL:       &listener.DashboardURL,
+func newWorkflowAssignment(workflowName string, codesets []*domain.CodesetAssignment, listener *domain.WorkflowListener) *domain.WorkflowAssignment {
+	assignment := &domain.WorkflowAssignment{
+		Workflow: workflowName,
+		Status: domain.WorkflowAssignmentStatus{
+			Available: listener.Available,
+			URL:       listener.DashboardURL,
 		},
 	}
+
 	for _, c := range codesets {
-		assignment.Codesets = append(assignment.Codesets, &workflow.Codeset{
-			Name:        c.Codeset.Name,
-			Project:     c.Codeset.Project,
-			Description: c.Codeset.Description,
-			Labels:      c.Codeset.Labels,
-			URL:         &c.Codeset.URL,
-		})
+		assignment.Codesets = append(assignment.Codesets, c.Codeset)
 	}
 	return assignment
 }

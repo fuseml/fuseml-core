@@ -23,15 +23,9 @@ func formatAge(startTime *string) string {
 	return "---"
 }
 
-func formatDuration(startTime, completionTime *string) string {
+func formatDuration(startTime, completionTime string) string {
 	layout := time.RFC3339
-	st := time.Time{}
-	ct := time.Time{}
-	if startTime != nil {
-		st, _ = time.Parse(layout, *startTime)
-	}
-	if completionTime != nil {
-		ct, _ = time.Parse(layout, *completionTime)
-	}
+	st, _ := time.Parse(layout, startTime)
+	ct, _ := time.Parse(layout, completionTime)
 	return formatted.Duration(&v1.Time{Time: st}, &v1.Time{Time: ct})
 }
