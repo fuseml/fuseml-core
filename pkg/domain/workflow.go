@@ -3,8 +3,6 @@ package domain
 import (
 	"context"
 	"time"
-
-	"github.com/fuseml/fuseml-core/gen/workflow"
 )
 
 const (
@@ -17,67 +15,267 @@ const (
 	ErrWorkflowNotAssignedToCodeset = WorkflowErr("workflow not assigned to codeset")
 )
 
-// WorkflowErr are expected errors returned when performing operations on workflows
-type WorkflowErr string
+const (
+	// WorkflowIOTypeString represents a workflow input that is of a string type.
+	WorkflowIOTypeString WorkflowIOType = "string"
+	// WorkflowIOTypeCodeset represents a workflow input that is a of codeset type.
+	WorkflowIOTypeCodeset WorkflowIOType = "codeset"
+)
 
-func (e WorkflowErr) Error() string {
-	return string(e)
+// Workflow represents a FuseML workflow.
+type Workflow struct {
+	// CreatedAt is the time the workflow was created.
+	Created time.Time
+	// Name is the name of the workflow.
+	Name string
+	// Description is the description of the workflow.
+	Description string
+	// Inputs is the list of workflow inputs.
+	Inputs []*WorkflowInput
+	// Outputs is the list of workflow outputs.
+	Outputs []*WorkflowOutput
+	// Steps is the list of workflow steps.
+	Steps []*WorkflowStep
 }
 
-// WorkflowManager describes the interface for a Workflow Manager
-type WorkflowManager interface {
-	Create(ctx context.Context, workflow *workflow.Workflow) (*workflow.Workflow, error)
-	Get(ctx context.Context, name string) (*workflow.Workflow, error)
-	Delete(ctx context.Context, name string) error
-	List(ctx context.Context, name *string) []*workflow.Workflow
-	AssignToCodeset(ctx context.Context, name, codesetProject, codesetName string) (*WorkflowListener, *int64, error)
-	UnassignFromCodeset(ctx context.Context, name, codesetProject, codesetName string) error
-	ListAssignments(ctx context.Context, name *string) ([]*workflow.WorkflowAssignment, error)
-	ListRuns(ctx context.Context, filter *WorkflowRunFilter) ([]*workflow.WorkflowRun, error)
+// WorkflowInput represents a input for a FuseML workflow.
+type WorkflowInput struct {
+	// Name is the name of the input.
+	Name string
+	// Description is the description of the input.
+	Description string
+	// Type is the type of the input.
+	Type WorkflowIOType
+	// Default is the default value of the input.
+	Default string
+	// Labels is the list of labels for the input.
+	Labels []string
 }
 
-// WorkflowStore is an interface to workflow stores
-type WorkflowStore interface {
-	GetWorkflow(ctx context.Context, name string) (*workflow.Workflow, error)
-	GetWorkflows(ctx context.Context, name *string) []*workflow.Workflow
-	AddWorkflow(ctx context.Context, w *workflow.Workflow) (*workflow.Workflow, error)
-	DeleteWorkflow(ctx context.Context, name string) error
-	GetAssignedCodeset(ctx context.Context, workflowName string, codeset *Codeset) (*AssignedCodeset, error)
-	GetAssignedCodesets(ctx context.Context, workflowName string) []*AssignedCodeset
-	GetAssignments(ctx context.Context, workflowName *string) map[string][]*AssignedCodeset
-	AddCodesetAssignment(ctx context.Context, workflowName string, assignedCodeset *AssignedCodeset) []*AssignedCodeset
-	DeleteCodesetAssignment(ctx context.Context, workflowName string, codeset *Codeset) []*AssignedCodeset
+// WorkflowIOType is the type of a workflow input/output.
+type WorkflowIOType string
+
+// WorkflowOutput represents the output for a FuseML workflow.
+type WorkflowOutput struct {
+	// Name is the name of the output.
+	Name string
+	// Description is the description of the output.
+	Description string
+	// Type is the type of the output.
+	Type WorkflowIOType
 }
 
-// WorkflowBackend is the interface for the FuseML workflows
-type WorkflowBackend interface {
-	CreateWorkflow(ctx context.Context, workflow *workflow.Workflow) error
-	DeleteWorkflow(ctx context.Context, workflowName string) error
-	CreateWorkflowRun(ctx context.Context, workflowName string, codeset *Codeset) error
-	ListWorkflowRuns(ctx context.Context, workflow *workflow.Workflow, filter *WorkflowRunFilter) ([]*workflow.WorkflowRun, error)
-	CreateWorkflowListener(ctx context.Context, workflowName string, timeout time.Duration) (*WorkflowListener, error)
-	DeleteWorkflowListener(ctx context.Context, workflowName string) error
-	GetWorkflowListener(ctx context.Context, workflowName string) (*WorkflowListener, error)
+// WorkflowStep represents a step in a FuseML workflow.
+type WorkflowStep struct {
+	// Name is the name of the step.
+	Name string
+	// Image is the name of the image to use for the step.
+	Image string
+	// Inputs is the list of inputs for the step.
+	Inputs []*WorkflowStepInput
+	// Outputs is the list of outputs for the step.
+	Outputs []*WorkflowStepOutput
+	// Env is the list of environment variables for the step.
+	Env []*WorkflowStepEnv
 }
 
-// WorkflowRunFilter defines the available filter when listing workflow runs
+// WorkflowStepInput represents a input for a FuseML workflow step.
+type WorkflowStepInput struct {
+	// Name is the name of the input.
+	Name string
+	// Value is the value of the input.
+	Value string
+	// Codeset is the codeset to use for the input.
+	Codeset *WorkflowStepInputCodeset
+}
+
+// WorkflowStepInputCodeset represents a codeset for a FuseML workflow step input.
+type WorkflowStepInputCodeset struct {
+	// Name is the name of the codeset.
+	Name string
+	// Path is the path where the codeset will be mounted
+	Path string
+}
+
+// WorkflowStepOutput represents a output for a FuseML workflow step.
+type WorkflowStepOutput struct {
+	// Name is the name of the output.
+	Name string
+	// Image is the image generated by the step
+	Image *WorkflowStepOutputImage
+}
+
+// WorkflowStepOutputImage represents a image generated by a FuseML workflow step.
+type WorkflowStepOutputImage struct {
+	// Dockerfile is the path to the Dockerfile used to build the image.
+	Dockerfile string
+	// Image is the name of the image.
+	Name string
+}
+
+// WorkflowStepEnv represents an environment variable for a FuseML workflow step.
+type WorkflowStepEnv struct {
+	// Name is the name of the environment variable.
+	Name string
+	// Value is the value of the environment variable.
+	Value string
+}
+
+// WorkflowRun represents a FuseML workflow run.
+type WorkflowRun struct {
+	// Name is the name of the workflow run.
+	Name string
+	// WorkflowRef is the reference to the workflow.
+	WorkflowRef string
+	// Inputs is the list of workflow inputs used on a run.
+	Inputs []*WorkflowRunInput
+	// Outputs is the list of workflow outputs from a run.
+	Outputs []*WorkflowRunOutput
+	// StartTime is the time the workflow run started.
+	StartTime time.Time
+	// CompletionTime is the time the workflow run completed.
+	CompletionTime time.Time
+	// Status is the status of the workflow run.
+	Status string
+	// URL is the URL to the workflow run.
+	URL string
+}
+
+// WorkflowRunInput represents a input from a FuseML workflow run.
+type WorkflowRunInput struct {
+	// Input is the input from the workflow.
+	Input *WorkflowInput
+	// Value is the value of the input for a run.
+	Value string
+}
+
+// WorkflowRunOutput represents a output from a FuseML workflow run.
+type WorkflowRunOutput struct {
+	// Output is the output from the workflow.
+	Output *WorkflowOutput
+	// Value is the value of the output for a run.
+	Value string
+}
+
+// WorkflowAssignment represents a workflow assignment.
+type WorkflowAssignment struct {
+	// Workflow is the name of the assigned workflow.
+	Workflow string
+	// Status is the status of the assignment.
+	Status WorkflowAssignmentStatus
+	// Codesets is the list of codesets that the workflow is assigned to.
+	Codesets []*Codeset
+}
+
+// WorkflowAssignmentStatus represents the status of a workflow assignment.
+type WorkflowAssignmentStatus struct {
+	// Available is weather the assignment is available.
+	Available bool
+	// URL is the URL to the assignment.
+	URL string
+}
+
+// WorkflowRunFilter defines the available filter when listing workflow runs.
 type WorkflowRunFilter struct {
-	WorkflowName   *string
-	CodesetName    string
+	// WorkflowName is the name of the workflow to filter by.
+	WorkflowName *string
+	// CodesetName is the name of the codeset to filter by.
+	CodesetName string
+	// CodesetProject is the name of the codeset project to filter by.
 	CodesetProject string
-	Status         []string
+	// Status is the status of the workflow run to filter by.
+	Status []string
 }
 
 // WorkflowListener defines a listener for a workflow
 type WorkflowListener struct {
-	Name         string
-	Available    bool
-	URL          string
+	// Name is the name of the listener.
+	Name string
+	// Available is weather the listener is available.
+	Available bool
+	// URL is the URL to the listener.
+	URL string
+	// DashboardURL is the URL to the dashboard for the listener.
 	DashboardURL string
 }
 
-// AssignedCodeset describes a assigned codeset its webhook ID
-type AssignedCodeset struct {
-	Codeset   *Codeset
+// CodesetAssignment describes a codeset that has a workflow assigned to it through its webhook ID.
+type CodesetAssignment struct {
+	// Codeset is a reference to the codeset.
+	Codeset *Codeset
+	// WebhookID is the ID of the webhook that is used by the workflow assignment.
 	WebhookID *int64
+}
+
+// WorkflowErr are expected errors returned when performing operations on workflows,
+type WorkflowErr string
+
+// WorkflowManager describes the interface for a Workflow Manager
+type WorkflowManager interface {
+	// Create a new workflow.
+	Create(ctx context.Context, workflow *Workflow) (*Workflow, error)
+	// Get a workflow,
+	Get(ctx context.Context, name string) (*Workflow, error)
+	// Delete a workflow.
+	Delete(ctx context.Context, name string) error
+	// List workflows.
+	List(ctx context.Context, name *string) []*Workflow
+	// AssignToCodeset assigns a workflow to a codeset.
+	AssignToCodeset(ctx context.Context, name, codesetProject, codesetName string) (*WorkflowListener, *int64, error)
+	// UnassignFromCodeset removes a workflow assignment from a codeset.
+	UnassignFromCodeset(ctx context.Context, name, codesetProject, codesetName string) error
+	// ListAssignments returns a list of workflow assignments.
+	ListAssignments(ctx context.Context, name *string) ([]*WorkflowAssignment, error)
+	// ListRuns returns a list of workflow runs.
+	ListRuns(ctx context.Context, filter *WorkflowRunFilter) ([]*WorkflowRun, error)
+}
+
+// WorkflowStore is an interface for workflow stores.
+type WorkflowStore interface {
+	// GetWorkflow returns a workflow.
+	GetWorkflow(ctx context.Context, name string) (*Workflow, error)
+	// ListWorkflows returns a list of workflows.
+	GetWorkflows(ctx context.Context, name *string) []*Workflow
+	// AddWorkflow adds a workflow to the store.
+	AddWorkflow(ctx context.Context, w *Workflow) (*Workflow, error)
+	// DeleteWorkflow deletes a workflow from the store.
+	DeleteWorkflow(ctx context.Context, name string) error
+	// GetAssignedCodeset returns the assignment for a workflow and a codeset.
+	GetAssignedCodeset(ctx context.Context, workflowName string, codeset *Codeset) (*CodesetAssignment, error)
+	// GetAssignedCodesets returns the assignments for a workflow.
+	GetAssignedCodesets(ctx context.Context, workflowName string) []*CodesetAssignment
+	// GetAssignments returns a map of workflows and its assignments, if any.
+	GetAssignments(ctx context.Context, workflowName *string) map[string][]*CodesetAssignment
+	// AddCodesetAssignment adds a codeset assignment to the store.
+	AddCodesetAssignment(ctx context.Context, workflowName string, assignedCodeset *CodesetAssignment) []*CodesetAssignment
+	// DeleteCodesetAssignment deletes a codeset assignment from the store.
+	DeleteCodesetAssignment(ctx context.Context, workflowName string, codeset *Codeset) []*CodesetAssignment
+}
+
+// WorkflowBackend is the interface for the FuseML workflows
+type WorkflowBackend interface {
+	// CreateWorkflow creates a new workflow.
+	CreateWorkflow(ctx context.Context, workflow *Workflow) error
+	// DeleteWorkflow deletes a workflow.
+	DeleteWorkflow(ctx context.Context, workflowName string) error
+	// CreateWorkflowRun creates a new workflow run.
+	CreateWorkflowRun(ctx context.Context, workflowName string, codeset *Codeset) error
+	// ListWorkflowRuns returns a list of workflow runs.
+	ListWorkflowRuns(ctx context.Context, workflow *Workflow, filter *WorkflowRunFilter) ([]*WorkflowRun, error)
+	// CreateWorkflowListener creates a new workflow listener.
+	CreateWorkflowListener(ctx context.Context, workflowName string, timeout time.Duration) (*WorkflowListener, error)
+	// DeleteWorkflowListener deletes a workflow listener.
+	DeleteWorkflowListener(ctx context.Context, workflowName string) error
+	// GetWorkflowListener returns a workflow listener for a workflow.
+	GetWorkflowListener(ctx context.Context, workflowName string) (*WorkflowListener, error)
+}
+
+// Error returns the error message
+func (e WorkflowErr) Error() string {
+	return string(e)
+}
+
+// String returns the string representation of the Workflow Input/Output type
+func (t WorkflowIOType) String() string {
+	return string(t)
 }

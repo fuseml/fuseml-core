@@ -19,12 +19,12 @@ func NewCodesetService(logger *log.Logger, store domain.CodesetStore) codeset.Se
 	return &codesetsrvc{logger, store}
 }
 
-func codesetRestToDomain(rp *codeset.RegisterPayload) (res *domain.Codeset, err error) {
+func codesetRestToDomain(restCodeset *codeset.Codeset) (res *domain.Codeset, err error) {
 	res = &domain.Codeset{
-		Name:        rp.Name,
-		Project:     rp.Project,
-		Labels:      rp.Labels,
-		Description: rp.Description,
+		Name:        restCodeset.Name,
+		Project:     restCodeset.Project,
+		Labels:      restCodeset.Labels,
+		Description: restCodeset.Description,
 	}
 
 	return res, nil
@@ -56,7 +56,12 @@ func (s *codesetsrvc) List(ctx context.Context, p *codeset.ListPayload) (res []*
 // Register a codeset with the FuseML codeset codesetStore.
 func (s *codesetsrvc) Register(ctx context.Context, p *codeset.RegisterPayload) (*codeset.RegisterResult, error) {
 	s.logger.Print("codeset.register")
-	c, err := codesetRestToDomain(p)
+	c, err := codesetRestToDomain(&codeset.Codeset{
+		Name:        p.Name,
+		Project:     p.Project,
+		Description: p.Description,
+		Labels:      p.Labels,
+	})
 	if err != nil {
 		return nil, codeset.MakeBadRequest(err)
 	}

@@ -34,24 +34,22 @@ func formatRunDuration(object interface{}, column string, field interface{}) str
 
 func formatRunStatus(object interface{}, column string, field interface{}) string {
 	if wr, ok := object.(*workflow.WorkflowRun); ok {
-		return formatted.ColorStatus(*wr.Status)
+		return formatted.ColorStatus(wr.Status)
 	}
 	return ""
 }
 
 func formatRunWorkflowRef(object interface{}, column string, field interface{}) string {
 	if wr, ok := object.(*workflow.WorkflowRun); ok {
-		return *wr.WorkflowRef
+		return wr.WorkflowRef
 	}
 	return ""
 }
 
 func formatRunStartTime(object interface{}, column string, field interface{}) string {
 	if wr, ok := object.(*workflow.WorkflowRun); ok {
-		if wr.StartTime != nil {
-			startTime, _ := time.Parse(time.RFC3339, *wr.StartTime)
-			return formatted.Age(&v1.Time{Time: startTime}, clockwork.NewRealClock())
-		}
+		startTime, _ := time.Parse(time.RFC3339, wr.StartTime)
+		return formatted.Age(&v1.Time{Time: startTime}, clockwork.NewRealClock())
 	}
 	return "---"
 }

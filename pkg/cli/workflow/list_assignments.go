@@ -22,7 +22,7 @@ type listAssignmentsOptions struct {
 
 func formatAssignmentStatus(object interface{}, column string, field interface{}) string {
 	if wa, ok := object.(*workflow.WorkflowAssignment); ok {
-		if *wa.Status.Available {
+		if wa.Status.Available {
 			return color.New(color.FgHiGreen).Sprint("UP")
 		}
 		return color.New(color.FgHiRed).Sprint("DOWN")

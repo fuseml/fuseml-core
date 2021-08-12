@@ -297,6 +297,8 @@ var WorkflowInput = Type("WorkflowInput", func() {
 	Field(5, "labels", ArrayOf(String), "Labels associated with the input", func() {
 		Example([]string{"mlflow-project"})
 	})
+
+	Required("name")
 })
 
 // WorkflowOutput defines the output from a FuseML workflow
@@ -310,6 +312,8 @@ var WorkflowOutput = Type("WorkflowOutput", func() {
 	Field(3, "type", String, "The data type of the output", func() {
 		Example("string")
 	})
+
+	Required("name")
 })
 
 // WorkflowStep defines a step for a FuseML workflow
@@ -322,7 +326,9 @@ var WorkflowStep = Type("WorkflowStep", func() {
 	})
 	Field(3, "inputs", ArrayOf(WorkflowStepInput), "List of inputs for the step")
 	Field(4, "outputs", ArrayOf(WorkflowStepOutput), "List of output from the step")
-	Field(5, "env", ArrayOf(StepEnv), "List of environment variables available for the container running the step")
+	Field(5, "env", ArrayOf(WorkflowStepEnv), "List of environment variables available for the container running the step")
+
+	Required("name", "image")
 })
 
 // WorkflowStepInput defines the input for a FuseML workflow step
@@ -333,17 +339,21 @@ var WorkflowStepInput = Type("WorkflowStepInput", func() {
 	Field(2, "value", String, "Value of the input", func() {
 		Example("s3://mlflow-artifacts/3/c7ae3b0e6fd44b4b96f7066c66672551/artifacts/model")
 	})
-	Field(3, "codeset", StepInputCodeset, "Codeset associated with the input")
+	Field(3, "codeset", WorkflowStepInputCodeset, "Codeset associated with the input")
+
+	Required("name")
 })
 
-// StepInputCodeset defines the Codeset type of input for a FuseML workflow step
-var StepInputCodeset = Type("StepInputCodeset", func() {
+// WorkflowStepInputCodeset defines the Codeset type of input for a FuseML workflow step
+var WorkflowStepInputCodeset = Type("WorkflowStepInputCodeset", func() {
 	Field(1, "name", String, "Name or ID of the codeset", func() {
 		Example("mlflow-project")
 	})
 	Field(2, "path", String, "Path where the codeset will be mounted inside the container running the step", func() {
 		Example("/project")
 	})
+
+	Required("name")
 })
 
 // WorkflowStepOutput defines the output from a FuseML workflow step
@@ -351,27 +361,33 @@ var WorkflowStepOutput = Type("WorkflowStepOutput", func() {
 	Field(1, "name", String, "Name of the variable to hold the step output value", func() {
 		Example("model-uri")
 	})
-	Field(2, "image", StepOutputImage, "If the step builds a container image as output it will be referenced as 'image'")
+	Field(2, "image", WorkflowStepOutputImage, "If the step builds a container image as output it will be referenced as 'image'")
+
+	Required("name")
 })
 
-// StepOutputImage defines the output from a FuseML workflow when it builds a container image
-var StepOutputImage = Type("StepOutputImage", func() {
+// WorkflowStepOutputImage defines the output from a FuseML workflow when it builds a container image
+var WorkflowStepOutputImage = Type("WorkflowStepOutputImage", func() {
 	Field(1, "dockerfile", String, "Path to the Dockerfile used to build the image", func() {
 		Example("/project/.fuseml/Dockerfile")
 	})
 	Field(2, "name", String, "Name of the image, including the repository where the image will be stored", func() {
 		Example("registry.fuseml-registry/mlflow-project/mlflow-codeset:0.1")
 	})
+
+	Required("name")
 })
 
-// StepEnv defines the environment variables that are loaded inside the container running a FuseML workflow step
-var StepEnv = Type("StepEnv", func() {
+// WorkflowStepEnv defines the environment variables that are loaded inside the container running a FuseML workflow step
+var WorkflowStepEnv = Type("WorkflowStepEnv", func() {
 	Field(1, "name", String, "Name of the environment variable", func() {
 		Example("PATH")
 	})
-	Field(2, "value", String, "Value to set for the enviroment variable", func() {
+	Field(2, "value", String, "Value to set for the environment variable", func() {
 		Example("/project")
 	})
+
+	Required("name", "value")
 })
 
 // WorkflowRun describes a workflow run returned when listed
@@ -393,25 +409,33 @@ var WorkflowRun = Type("WorkflowRun", func() {
 		Example("Succeeded")
 	})
 	Field(8, "URL", String, "Dashboard URL to the workflow run")
+
+	Required("name", "workflowRef", "startTime", "completionTime", "status")
 })
 
 // WorkflowRunInput describes a input from a WorkflowRun including its value
 var WorkflowRunInput = Type("WorkflowRunInput", func() {
 	Field(1, "input", WorkflowInput, "The workflow input")
 	Field(2, "value", String, "The input value set by the Workflow run")
+
+	Required("input", "value")
 })
 
 // WorkflowRunInput describes the output from a WorkflowRun including its value
 var WorkflowRunOutput = Type("WorkflowRunOutput", func() {
 	Field(1, "output", WorkflowOutput, "The workflow output")
 	Field(2, "value", String, "The output value set by the Workflow run")
+
+	Required("output", "value")
 })
 
 // WorkflowAssignment describes the assignment between a workflow and codesets
 var WorkflowAssignment = Type("WorkflowAssignment", func() {
 	Field(1, "workflow", String, "Workflow assigned to the codeset")
-	Field(2, "status", WorkflowAssignmentStatus, "The status of the assignment")
-	Field(3, "codesets", ArrayOf(Codeset), "Codesets assigned to the workflow")
+	Field(2, "codesets", ArrayOf(Codeset), "Codesets assigned to the workflow")
+	Field(3, "status", WorkflowAssignmentStatus, "The status of the assignment")
+
+	Required("workflow", "codesets")
 })
 
 // WorkflowAssignmentStatus describes the status of the resource responsible for the
@@ -419,4 +443,6 @@ var WorkflowAssignment = Type("WorkflowAssignment", func() {
 var WorkflowAssignmentStatus = Type("WorkflowAssignmentStatus", func() {
 	Field(1, "available", Boolean, "The state of the assignment")
 	Field(2, "URL", String, "Dashboard URL to the resource responsible for the assignment")
+
+	Required("available")
 })

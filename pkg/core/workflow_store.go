@@ -4,16 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/domain"
 )
 
 // storableWorkflow holds the workflow and the codesets assigned to it
 type storableWorkflow struct {
 	// Workflow assigned to the codeset
-	workflow *workflow.Workflow
+	workflow *domain.Workflow
 	// AssignedCodeset holds codesets assigned to the workflow and its hookID
-	assignedCodesets []*domain.AssignedCodeset
+	assignedCodesets []*domain.CodesetAssignment
 }
 
 // WorkflowStore describes in memory store for workflows
@@ -29,7 +28,7 @@ func NewWorkflowStore() *WorkflowStore {
 }
 
 // GetWorkflow returns a workflow identified by its name
-func (ws *WorkflowStore) GetWorkflow(ctx context.Context, name string) (*workflow.Workflow, error) {
+func (ws *WorkflowStore) GetWorkflow(ctx context.Context, name string) (*domain.Workflow, error) {
 	if _, exists := ws.items[name]; exists {
 		return ws.items[name].workflow, nil
 	}
@@ -37,8 +36,8 @@ func (ws *WorkflowStore) GetWorkflow(ctx context.Context, name string) (*workflo
 }
 
 // GetWorkflows returns all workflows or the one that matches a given name.
-func (ws *WorkflowStore) GetWorkflows(ctx context.Context, name *string) (result []*workflow.Workflow) {
-	result = make([]*workflow.Workflow, 0, len(ws.items))
+func (ws *WorkflowStore) GetWorkflows(ctx context.Context, name *string) (result []*domain.Workflow) {
+	result = make([]*domain.Workflow, 0, len(ws.items))
 	if name != nil {
 		if sw, ok := ws.items[*name]; ok {
 			result = append(result, sw.workflow)
@@ -54,7 +53,7 @@ func (ws *WorkflowStore) GetWorkflows(ctx context.Context, name *string) (result
 }
 
 // AddWorkflow adds a new workflow based on the Workflow structure provided as argument
-func (ws *WorkflowStore) AddWorkflow(ctx context.Context, w *workflow.Workflow) (*workflow.Workflow, error) {
+func (ws *WorkflowStore) AddWorkflow(ctx context.Context, w *domain.Workflow) (*domain.Workflow, error) {
 	if _, exists := ws.items[w.Name]; exists {
 		return nil, domain.ErrWorkflowExists
 	}
@@ -77,7 +76,7 @@ func (ws *WorkflowStore) DeleteWorkflow(ctx context.Context, name string) error 
 }
 
 // GetAssignedCodesets returns a list of codesets assigned to the specified workflow
-func (ws *WorkflowStore) GetAssignedCodesets(ctx context.Context, workflowName string) []*domain.AssignedCodeset {
+func (ws *WorkflowStore) GetAssignedCodesets(ctx context.Context, workflowName string) []*domain.CodesetAssignment {
 	if _, exists := ws.items[workflowName]; exists {
 		return ws.items[workflowName].assignedCodesets
 	}
@@ -85,8 +84,8 @@ func (ws *WorkflowStore) GetAssignedCodesets(ctx context.Context, workflowName s
 }
 
 // GetAssignments returns a map of workflows and its assigned codesets
-func (ws *WorkflowStore) GetAssignments(ctx context.Context, workflowName *string) (result map[string][]*domain.AssignedCodeset) {
-	result = make(map[string][]*domain.AssignedCodeset, len(ws.items))
+func (ws *WorkflowStore) GetAssignments(ctx context.Context, workflowName *string) (result map[string][]*domain.CodesetAssignment) {
+	result = make(map[string][]*domain.CodesetAssignment, len(ws.items))
 	if workflowName != nil {
 		if sw, exists := ws.items[*workflowName]; exists && len(sw.assignedCodesets) > 0 {
 			result[*workflowName] = sw.assignedCodesets
@@ -103,7 +102,7 @@ func (ws *WorkflowStore) GetAssignments(ctx context.Context, workflowName *strin
 
 // AddCodesetAssignment adds a codeset to the list of assigned codesets of a workflow if it does not already exists
 func (ws *WorkflowStore) AddCodesetAssignment(ctx context.Context, workflowName string,
-	assignedCodeset *domain.AssignedCodeset) []*domain.AssignedCodeset {
+	assignedCodeset *domain.CodesetAssignment) []*domain.CodesetAssignment {
 	assignedCodesets := ws.items[workflowName].assignedCodesets
 	if assigned, _ := getAssignedCodeset(assignedCodesets, assignedCodeset.Codeset); assigned == nil {
 		assignedCodesets = append(assignedCodesets, assignedCodeset)
@@ -113,7 +112,7 @@ func (ws *WorkflowStore) AddCodesetAssignment(ctx context.Context, workflowName 
 }
 
 // DeleteCodesetAssignment deletes a codeset from the list of assigned codesets of a workflow if it exists
-func (ws *WorkflowStore) DeleteCodesetAssignment(ctx context.Context, workflowName string, codeset *domain.Codeset) []*domain.AssignedCodeset {
+func (ws *WorkflowStore) DeleteCodesetAssignment(ctx context.Context, workflowName string, codeset *domain.Codeset) []*domain.CodesetAssignment {
 	assignedCodesets := ws.items[workflowName].assignedCodesets
 	if _, i := getAssignedCodeset(assignedCodesets, codeset); i != -1 {
 		assignedCodesets = removeAssignedCodeset(assignedCodesets, i)
@@ -123,7 +122,7 @@ func (ws *WorkflowStore) DeleteCodesetAssignment(ctx context.Context, workflowNa
 }
 
 // GetAssignedCodeset returns a AssignedCodeset for the Workflow and Codeset
-func (ws *WorkflowStore) GetAssignedCodeset(ctx context.Context, workflowName string, codeset *domain.Codeset) (*domain.AssignedCodeset, error) {
+func (ws *WorkflowStore) GetAssignedCodeset(ctx context.Context, workflowName string, codeset *domain.Codeset) (*domain.CodesetAssignment, error) {
 	sw, exists := ws.items[workflowName]
 	if !exists {
 		return nil, domain.ErrWorkflowNotFound
@@ -135,7 +134,7 @@ func (ws *WorkflowStore) GetAssignedCodeset(ctx context.Context, workflowName st
 	return ac, nil
 }
 
-func getAssignedCodeset(assignedCodesets []*domain.AssignedCodeset, codeset *domain.Codeset) (*domain.AssignedCodeset, int) {
+func getAssignedCodeset(assignedCodesets []*domain.CodesetAssignment, codeset *domain.Codeset) (*domain.CodesetAssignment, int) {
 	for i, ac := range assignedCodesets {
 		if ac.Codeset.Project == codeset.Project && ac.Codeset.Name == codeset.Name {
 			return ac, i
@@ -144,7 +143,7 @@ func getAssignedCodeset(assignedCodesets []*domain.AssignedCodeset, codeset *dom
 	return nil, -1
 }
 
-func removeAssignedCodeset(codesets []*domain.AssignedCodeset, index int) []*domain.AssignedCodeset {
+func removeAssignedCodeset(codesets []*domain.CodesetAssignment, index int) []*domain.CodesetAssignment {
 	codesets[index] = codesets[len(codesets)-1]
 	return codesets[:len(codesets)-1]
 }
