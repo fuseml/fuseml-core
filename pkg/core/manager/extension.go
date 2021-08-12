@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"sort"
 
 	"github.com/fuseml/fuseml-core/pkg/domain"
 )
@@ -146,6 +147,32 @@ func (registry *ExtensionRegistry) RemoveCredentials(ctx context.Context, creden
 	return registry.extensionStore.DeleteCredentials(ctx, credentialsID)
 }
 
+type queryResults []*domain.ExtensionAccessDescriptor
+
+func (r queryResults) Len() int      { return len(r) }
+func (r queryResults) Swap(i, j int) { r[i], r[j] = r[j], r[i] }
+
+type byID struct{ queryResults }
+
+func (s byID) Less(i, j int) bool {
+	if s.queryResults[i].Extension.ID != s.queryResults[j].Extension.ID {
+		return s.queryResults[i].Extension.ID < s.queryResults[j].Extension.ID
+	}
+	if s.queryResults[i].ExtensionService.ID != s.queryResults[j].ExtensionService.ID {
+		return s.queryResults[i].ExtensionService.ID < s.queryResults[j].ExtensionService.ID
+	}
+	if s.queryResults[i].ExtensionEndpoint.URL != s.queryResults[j].ExtensionEndpoint.URL {
+		return s.queryResults[i].ExtensionEndpoint.URL < s.queryResults[j].ExtensionEndpoint.URL
+	}
+	if s.queryResults[i].ExtensionCredentials == nil {
+		return true
+	}
+	if s.queryResults[j].ExtensionCredentials == nil {
+		return false
+	}
+	return s.queryResults[i].ExtensionCredentials.ID < s.queryResults[j].ExtensionCredentials.ID
+}
+
 // RunExtensionAccessQuery - run a query on the extension registry to find one or more ways to access extensions matching given search parameters
 func (registry *ExtensionRegistry) RunExtensionAccessQuery(ctx context.Context, query *domain.ExtensionQuery) (result []*domain.ExtensionAccessDescriptor, err error) {
 
@@ -181,5 +208,7 @@ func (registry *ExtensionRegistry) RunExtensionAccessQuery(ctx context.Context, 
 			}
 		}
 	}
+
+	sort.Sort(byID{result})
 	return result, nil
 }
