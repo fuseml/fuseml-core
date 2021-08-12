@@ -220,6 +220,39 @@ func TestAssignToCodeset(t *testing.T) {
 		if d := cmp.Diff(wantListener, gotListener); d != "" {
 			t.Errorf("Unexpected Listener: %s", diff.PrintWantGot(d))
 		}
+
+		workflowRuns, err := workflowBackend.ListWorkflowRuns(context.TODO(), wf, nil)
+		assertError(t, err, nil)
+		gotRuns := len(workflowRuns)
+		wantRuns := 1
+		if gotRuns != wantRuns {
+			t.Errorf("Expected %d WorkflowRun got %d", wantRuns, gotRuns)
+		}
+	})
+
+	t.Run("existing assignment", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+
+		wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: "wf"})
+		assertError(t, err, nil)
+		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
+
+		for i := 0; i < 2; i++ {
+			_, _, err := mgr.AssignToCodeset(context.TODO(), wf.Name, codesets[0].Project, codesets[0].Name)
+			assertError(t, err, nil)
+		}
+
+		_, err = workflowBackend.GetWorkflowListener(context.TODO(), wf.Name)
+		assertError(t, err, nil)
+
+		workflowRuns, err := workflowBackend.ListWorkflowRuns(context.TODO(), wf, nil)
+		assertError(t, err, nil)
+
+		gotRuns := len(workflowRuns)
+		wantRuns := 1
+		if gotRuns != wantRuns {
+			t.Errorf("Expected %d WorkflowRun got %d", wantRuns, gotRuns)
+		}
 	})
 
 	t.Run("workflow not found", func(t *testing.T) {
