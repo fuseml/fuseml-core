@@ -86,6 +86,11 @@ func (mgr *WorkflowManager) AssignToCodeset(ctx context.Context, name, codesetPr
 		return nil, nil, err
 	}
 
+	assignment, err := mgr.workflowStore.GetAssignedCodeset(ctx, name, codeset)
+	if err == nil {
+		return wfListener, assignment.WebhookID, nil
+	}
+
 	webhookID, err = mgr.codesetStore.CreateWebhook(ctx, codeset, wfListener.URL)
 	if err != nil {
 		return nil, nil, err
