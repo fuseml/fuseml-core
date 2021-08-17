@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"sort"
+	"time"
 
 	"github.com/Masterminds/semver"
 	"github.com/fuseml/fuseml-core/pkg/domain"
@@ -109,6 +110,9 @@ func (store *ExtensionStore) storeExtensionRecord(ctx context.Context, extension
 		return nil, domain.NewErrExtensionExists(extension.ID)
 	}
 
+	extension.Registered = time.Now()
+	extension.Updated = extension.Registered
+
 	// store a copy of the input extension
 	extRecord := &extensionRecord{
 		extension.Extension,
@@ -150,6 +154,9 @@ func (store *ExtensionStore) storeServiceRecord(
 	if extRecord.services[service.ID] != nil {
 		return nil, domain.NewErrExtensionServiceExists(extRecord.ID, service.ID)
 	}
+
+	service.Registered = time.Now()
+	service.Updated = service.Registered
 
 	// store a copy of the input extension service
 	svcRecord := &extensionServiceRecord{
@@ -246,6 +253,9 @@ func (store *ExtensionStore) storeCredentialsRecord(
 		return nil, domain.NewErrExtensionCredentialsExists(credentials.ExtensionID, credentials.ServiceID, credentials.ID)
 	}
 
+	credentials.Created = time.Now()
+	credentials.Updated = credentials.Created
+
 	// store a copy of the input extension credentials
 	credsRecord := &extensionCredentialsRecord{
 		*credentials,
@@ -278,6 +288,19 @@ func (store *ExtensionStore) getExtensionRecord(ctx context.Context, extensionID
 		return nil, domain.NewErrExtensionNotFound(extensionID)
 	}
 	return extRecord, nil
+}
+
+// GetAllExtensionss - retrieve all registered extensions, with all participating services, endpoints and credentials
+func (store *ExtensionStore) GetAllExtensions(ctx context.Context) (result []*domain.ExtensionRecord, err error) {
+	result = make([]*domain.ExtensionRecord, len(store.items))
+	for extID := range store.items {
+		extRecord, err := store.GetExtension(ctx, extID, true)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, extRecord)
+	}
+	return result, nil
 }
 
 // GetExtension - retrieve an extension by ID
@@ -493,6 +516,8 @@ func (store *ExtensionStore) UpdateExtension(ctx context.Context, extension *dom
 	if err != nil {
 		return err
 	}
+	extension.Registered = extRecord.Registered
+	extension.Updated = time.Now()
 	extRecord.Extension = *extension
 	return nil
 }
@@ -503,6 +528,8 @@ func (store *ExtensionStore) UpdateService(ctx context.Context, service *domain.
 	if err != nil {
 		return err
 	}
+	service.Registered = svcRecord.Registered
+	service.Updated = time.Now()
 	svcRecord.ExtensionService = *service
 	return nil
 }
@@ -523,6 +550,8 @@ func (store *ExtensionStore) UpdateCredentials(ctx context.Context, credentials 
 	if err != nil {
 		return err
 	}
+	credentials.Created = credRecord.Created
+	credentials.Updated = time.Now()
 	credRecord.ExtensionCredentials = *credentials
 	return nil
 }

@@ -60,6 +60,11 @@ func (registry *ExtensionRegistry) AddCredentials(
 	return registry.extensionStore.StoreCredentials(ctx, credentials)
 }
 
+// GetAllExtensions - retrieve all registered extensions, with all participating services, endpoints and credentials
+func (registry *ExtensionRegistry) GetAllExtensions(ctx context.Context) (result []*domain.ExtensionRecord, err error) {
+	return registry.extensionStore.GetAllExtensions(ctx)
+}
+
 // GetExtension - retrieve an extension by ID and, optionally, its entire service/endpoint/credentials subtree
 func (registry *ExtensionRegistry) GetExtension(ctx context.Context, extensionID string, fullTree bool) (result *domain.ExtensionRecord, err error) {
 	return registry.extensionStore.GetExtension(ctx, extensionID, fullTree)
