@@ -1,0 +1,13 @@
+# curl -X POST --data-binary @register-extension001.yaml -H "Content-Type: application/x-yaml" http://localhost:8000/extensions
+# curl -X DELETE http://localhost:8000/extensions/mlflow-0001/services/mlflow-tracking
+# curl -X POST --data-binary @add-service001.yaml -H "Content-Type: application/x-yaml" http://localhost:8000/extensions/mlflow-0001/services
+id: mlflow-tracking
+resource: mlflow-tracking
+category: experiment-tracking
+description: MLFlow experiment tracking service API and UI
+endpoints:
+  - url: http://mlflow
+    type: internal
+  - url: http://mlflow.10.110.120.130.nip.io
+    type: external
+

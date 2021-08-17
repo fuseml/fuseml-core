@@ -106,10 +106,6 @@ func (store *ExtensionStore) storeExtensionRecord(ctx context.Context, extension
 		extension.ID = store.generateExtensionID(&extension.Extension)
 	}
 
-	if store.items[extension.ID] != nil {
-		return nil, domain.NewErrExtensionExists(extension.ID)
-	}
-
 	extension.Registered = time.Now()
 	extension.Updated = extension.Registered
 
@@ -134,6 +130,10 @@ func (store *ExtensionStore) storeExtensionRecord(ctx context.Context, extension
 
 // StoreExtension - store an extension, with all participating services, endpoints and credentials
 func (store *ExtensionStore) StoreExtension(ctx context.Context, extension *domain.ExtensionRecord) (result *domain.ExtensionRecord, err error) {
+	if store.items[extension.ID] != nil {
+		return nil, domain.NewErrExtensionExists(extension.ID)
+	}
+
 	extRecord, err := store.storeExtensionRecord(ctx, extension)
 	if err != nil {
 		// rollback everything in case of error
@@ -149,10 +149,6 @@ func (store *ExtensionStore) storeServiceRecord(
 
 	if service.ID == "" {
 		service.ID = store.generateExtensionServiceID(extRecord, &service.ExtensionService)
-	}
-
-	if extRecord.services[service.ID] != nil {
-		return nil, domain.NewErrExtensionServiceExists(extRecord.ID, service.ID)
 	}
 
 	service.Registered = time.Now()
@@ -197,6 +193,10 @@ func (store *ExtensionStore) StoreService(
 	extRecord := store.items[service.ExtensionID]
 	if extRecord == nil {
 		return nil, domain.NewErrExtensionNotFound(service.ExtensionID)
+	}
+
+	if extRecord.services[service.ID] != nil {
+		return nil, domain.NewErrExtensionServiceExists(extRecord.ID, service.ID)
 	}
 
 	svcRecord, err := store.storeServiceRecord(ctx, service, extRecord)
@@ -292,7 +292,7 @@ func (store *ExtensionStore) getExtensionRecord(ctx context.Context, extensionID
 
 // GetAllExtensionss - retrieve all registered extensions, with all participating services, endpoints and credentials
 func (store *ExtensionStore) GetAllExtensions(ctx context.Context) (result []*domain.ExtensionRecord, err error) {
-	result = make([]*domain.ExtensionRecord, len(store.items))
+	result = make([]*domain.ExtensionRecord, 0)
 	for extID := range store.items {
 		extRecord, err := store.GetExtension(ctx, extID, true)
 		if err != nil {

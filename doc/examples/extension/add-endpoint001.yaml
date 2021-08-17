@@ -1,0 +1,5 @@
+# curl -X POST --data-binary @register-extension001.yaml -H "Content-Type: application/x-yaml" http://localhost:8000/extensions
+# curl -X DELETE http://localhost:8000/extensions/mlflow-0001/services/mlflow-tracking/endpoints/http%3A%2F%2Fmlflow
+# curl -X POST --data-binary @add-endpoint001.yaml -H "Content-Type: application/x-yaml" http://localhost:8000/extensions/mlflow-0001/services/mlflow-tracking/endpoints
+url: http://mlflow
+type: internal

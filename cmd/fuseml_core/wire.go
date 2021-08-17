@@ -9,6 +9,7 @@ import (
 
 	"github.com/fuseml/fuseml-core/gen/application"
 	"github.com/fuseml/fuseml-core/gen/codeset"
+	"github.com/fuseml/fuseml-core/gen/extension"
 	"github.com/fuseml/fuseml-core/gen/project"
 	"github.com/fuseml/fuseml-core/gen/runnable"
 	"github.com/fuseml/fuseml-core/gen/version"
@@ -34,11 +35,15 @@ var storeSet = wire.NewSet(
 	wire.Bind(new(domain.RunnableStore), new(*core.RunnableStore)),
 	core.NewWorkflowStore,
 	wire.Bind(new(domain.WorkflowStore), new(*core.WorkflowStore)),
+	core.NewExtensionStore,
+	wire.Bind(new(domain.ExtensionStore), new(*core.ExtensionStore)),
 )
 
 var managerSet = wire.NewSet(
 	manager.NewWorkflowManager,
 	wire.Bind(new(domain.WorkflowManager), new(*manager.WorkflowManager)),
+	manager.NewExtensionRegistry,
+	wire.Bind(new(domain.ExtensionRegistry), new(*manager.ExtensionRegistry)),
 )
 
 var backendSet = wire.NewSet(
@@ -59,6 +64,8 @@ var endpointsSet = wire.NewSet(
 	version.NewEndpoints,
 	svc.NewWorkflowService,
 	workflow.NewEndpoints,
+	svc.NewExtensionRegistryService,
+	extension.NewEndpoints,
 )
 
 func InitializeEndpoints(logger *log.Logger, fuseMLNamespace string) (*endpoints, error) {
