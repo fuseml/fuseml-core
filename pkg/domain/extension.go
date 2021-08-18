@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// ExtensionEndpointType is the type used for the ExtensionEndpoint EndpointType field
+// ExtensionEndpointType is the type used for the ExtensionEndpoint Type field
 type ExtensionEndpointType string
 
 // Valid values that can be used with ExtensionEndpointType
@@ -119,7 +119,7 @@ type ExtensionEndpoint struct {
 	ExtensionEndpointID
 	// Endpoint type - internal/external. An internal endpoint can only be accessed when the consumer
 	// is located in the same zone as the extension service
-	EndpointType ExtensionEndpointType
+	Type ExtensionEndpointType
 	// Configuration entries (e.g. CA certificates), expressed as set of key-value entries
 	Configuration map[string]string
 }
@@ -219,7 +219,7 @@ type ExtensionQuery struct {
 	// determined automatically by StrictZoneMatch and the Zone value, if a Zone is supplied:
 	//  - if the extension is in the same zone as the query, both internal and external endpoints will match
 	//  - otherwise, only external endpoints will match
-	EndpointType *ExtensionEndpointType
+	Type *ExtensionEndpointType
 	// Search by explicit credentials ID
 	CredentialsID string
 	// Match credentials by scope

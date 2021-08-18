@@ -735,9 +735,9 @@ func (store *ExtensionStore) findEndpoints(
 		if query.EndpointURL != "" && query.EndpointURL != endpoint.URL {
 			return
 		}
-		if query.EndpointType != nil {
+		if query.Type != nil {
 			// match endpoint type, if supplied with the query
-			if *query.EndpointType != endpoint.EndpointType {
+			if *query.Type != endpoint.Type {
 				return
 			}
 		} else if query.Zone != "" {
@@ -745,7 +745,7 @@ func (store *ExtensionStore) findEndpoints(
 			// by comparing the query zone (if supplied) with the extension record zone
 			//  - if the extension is in the same zone as the query, both internal and external endpoints will match
 			//  - otherwise, only external endpoints will match
-			if query.Zone != svcRecord.extension.Zone && endpoint.EndpointType == domain.EETInternal {
+			if query.Zone != svcRecord.extension.Zone && endpoint.Type == domain.EETInternal {
 				return
 			}
 		}

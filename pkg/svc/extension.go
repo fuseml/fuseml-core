@@ -52,7 +52,7 @@ func extensionEndpointToDomain(endpoint *extension.ExtensionEndpoint) (result *d
 			ServiceID:   endpoint.ServiceID,
 			URL:         endpoint.URL,
 		},
-		EndpointType:  domain.ExtensionEndpointType(endpoint.EndpointType),
+		Type:          domain.ExtensionEndpointType(endpoint.Type),
 		Configuration: endpoint.Configuration,
 	}
 }
@@ -143,7 +143,7 @@ func extensionEndpointToRest(endpoint *domain.ExtensionEndpoint) *extension.Exte
 		URL:           endpoint.URL,
 		ExtensionID:   endpoint.ExtensionID,
 		ServiceID:     endpoint.ServiceID,
-		EndpointType:  string(endpoint.EndpointType),
+		Type:          string(endpoint.Type),
 		Configuration: endpoint.Configuration,
 		Status:        &extension.ExtensionEndpointStatus{},
 	}

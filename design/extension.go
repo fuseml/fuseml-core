@@ -848,7 +848,7 @@ Also used to uniquely identifies an endpoint within the scope of a service`, fun
 		Example("s3")
 	})
 	tag++
-	Field(tag, "endpoint_type", String,
+	Field(tag, "type", String,
 		`Endpoint type - internal/external. An internal endpoint can only be accessed when the consumer
 is located in the same zone as the extension service`, func() {
 			Default("external")
