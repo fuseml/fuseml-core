@@ -1,0 +1,5 @@
+# curl -X POST --data-binary @register-extension001.yaml -H "Content-Type: application/x-yaml" http://localhost:8000/extensions
+# curl -X PUT --data-binary @update-service001.yaml -H "Content-Type: application/x-yaml" http://localhost:8000/extensions/mlflow-0001/services/mlflow-tracking
+category: experiment-tracker
+description: MLFlow experiment tracking
+

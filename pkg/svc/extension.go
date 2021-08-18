@@ -22,11 +22,11 @@ func NewExtensionRegistryService(logger *log.Logger, registry domain.ExtensionRe
 
 func extensionToDomain(extension *extension.Extension) (result *domain.Extension) {
 	return &domain.Extension{
-		ID:            extension.ID,
-		Product:       extension.Product,
-		Version:       extension.Version,
-		Description:   extension.Description,
-		Zone:          extension.Zone,
+		ID:            derefString(extension.ID),
+		Product:       derefString(extension.Product),
+		Version:       derefString(extension.Version),
+		Description:   derefString(extension.Description),
+		Zone:          derefString(extension.Zone),
 		Configuration: extension.Configuration,
 	}
 }
@@ -34,13 +34,13 @@ func extensionToDomain(extension *extension.Extension) (result *domain.Extension
 func extensionServiceToDomain(service *extension.ExtensionService) (result *domain.ExtensionService) {
 	return &domain.ExtensionService{
 		ExtensionServiceID: domain.ExtensionServiceID{
-			ExtensionID: service.ExtensionID,
-			ID:          service.ID,
+			ExtensionID: derefString(service.ExtensionID),
+			ID:          derefString(service.ID),
 		},
-		Resource:      service.Resource,
-		Category:      service.Category,
-		Description:   service.Description,
-		AuthRequired:  service.AuthRequired,
+		Resource:      derefString(service.Resource),
+		Category:      derefString(service.Category),
+		Description:   derefString(service.Description),
+		AuthRequired:  derefBool(service.AuthRequired),
 		Configuration: service.Configuration,
 	}
 }
@@ -48,11 +48,11 @@ func extensionServiceToDomain(service *extension.ExtensionService) (result *doma
 func extensionEndpointToDomain(endpoint *extension.ExtensionEndpoint) (result *domain.ExtensionEndpoint) {
 	return &domain.ExtensionEndpoint{
 		ExtensionEndpointID: domain.ExtensionEndpointID{
-			ExtensionID: endpoint.ExtensionID,
-			ServiceID:   endpoint.ServiceID,
-			URL:         endpoint.URL,
+			ExtensionID: derefString(endpoint.ExtensionID),
+			ServiceID:   derefString(endpoint.ServiceID),
+			URL:         derefString(endpoint.URL),
 		},
-		Type:          domain.ExtensionEndpointType(endpoint.Type),
+		Type:          domain.ExtensionEndpointType(derefString(endpoint.Type, string(domain.EETExternal))),
 		Configuration: endpoint.Configuration,
 	}
 }
@@ -60,12 +60,12 @@ func extensionEndpointToDomain(endpoint *extension.ExtensionEndpoint) (result *d
 func extensionCredentialsToDomain(credentials *extension.ExtensionCredentials) (result *domain.ExtensionCredentials) {
 	return &domain.ExtensionCredentials{
 		ExtensionCredentialsID: domain.ExtensionCredentialsID{
-			ExtensionID: credentials.ExtensionID,
-			ServiceID:   credentials.ServiceID,
-			ID:          credentials.ID,
+			ExtensionID: derefString(credentials.ExtensionID),
+			ServiceID:   derefString(credentials.ServiceID),
+			ID:          derefString(credentials.ID),
 		},
-		Scope:         domain.ExtensionCredentialScope(credentials.Scope),
-		Default:       credentials.Default,
+		Scope:         domain.ExtensionCredentialScope(derefString(credentials.Scope, string(domain.ECSGlobal))),
+		Default:       derefBool(credentials.Default),
 		Projects:      credentials.Projects,
 		Users:         credentials.Users,
 		Configuration: credentials.Configuration,
@@ -106,11 +106,11 @@ func extensionServiceRecordToDomain(service *extension.ExtensionService) (result
 
 func extensionToRest(ext *domain.Extension) *extension.Extension {
 	return &extension.Extension{
-		ID:            ext.ID,
-		Product:       ext.Product,
-		Version:       ext.Version,
-		Description:   ext.Description,
-		Zone:          ext.Zone,
+		ID:            refString(ext.ID),
+		Product:       refString(ext.Product),
+		Version:       refString(ext.Version),
+		Description:   refString(ext.Description),
+		Zone:          refString(ext.Zone),
 		Configuration: ext.Configuration,
 		Status: &extension.ExtensionStatus{
 			Registered: ext.Registered.Format(time.RFC3339),
@@ -122,12 +122,12 @@ func extensionToRest(ext *domain.Extension) *extension.Extension {
 
 func extensionServiceToRest(service *domain.ExtensionService) *extension.ExtensionService {
 	return &extension.ExtensionService{
-		ID:            service.ID,
-		ExtensionID:   service.ExtensionID,
-		Resource:      service.Resource,
-		Category:      service.Category,
-		Description:   service.Description,
-		AuthRequired:  service.AuthRequired,
+		ID:            refString(service.ID),
+		ExtensionID:   refString(service.ExtensionID),
+		Resource:      refString(service.Resource),
+		Category:      refString(service.Category),
+		Description:   refString(service.Description),
+		AuthRequired:  &service.AuthRequired,
 		Configuration: service.Configuration,
 		Status: &extension.ExtensionServiceStatus{
 			Registered: service.Registered.Format(time.RFC3339),
@@ -140,10 +140,10 @@ func extensionServiceToRest(service *domain.ExtensionService) *extension.Extensi
 
 func extensionEndpointToRest(endpoint *domain.ExtensionEndpoint) *extension.ExtensionEndpoint {
 	return &extension.ExtensionEndpoint{
-		URL:           endpoint.URL,
-		ExtensionID:   endpoint.ExtensionID,
-		ServiceID:     endpoint.ServiceID,
-		Type:          string(endpoint.Type),
+		URL:           refString(endpoint.URL),
+		ExtensionID:   refString(endpoint.ExtensionID),
+		ServiceID:     refString(endpoint.ServiceID),
+		Type:          refString(string(endpoint.Type)),
 		Configuration: endpoint.Configuration,
 		Status:        &extension.ExtensionEndpointStatus{},
 	}
@@ -159,11 +159,11 @@ func obfuscateCredentials(config map[string]string) (result map[string]string) {
 
 func extensionCredentialsToRest(credentials *domain.ExtensionCredentials) *extension.ExtensionCredentials {
 	return &extension.ExtensionCredentials{
-		ID:            credentials.ID,
-		ExtensionID:   credentials.ExtensionID,
-		ServiceID:     credentials.ServiceID,
-		Scope:         string(credentials.Scope),
-		Default:       credentials.Default,
+		ID:            refString(credentials.ID),
+		ExtensionID:   refString(credentials.ExtensionID),
+		ServiceID:     refString(credentials.ServiceID),
+		Scope:         refString(string(credentials.Scope)),
+		Default:       &credentials.Default,
 		Projects:      credentials.Projects,
 		Users:         credentials.Users,
 		Configuration: obfuscateCredentials(credentials.Configuration),
@@ -263,11 +263,28 @@ func (s *extensionRegistrySvc) ListExtensions(ctx context.Context) (res []*exten
 func (s *extensionRegistrySvc) UpdateExtension(ctx context.Context, req *extension.Extension) (res *extension.Extension, err error) {
 	s.logger.Print("extension.updateExtension")
 	ext := extensionToDomain(req)
-	err = s.registry.UpdateExtension(ctx, ext)
+	extRecord, err := s.registry.GetExtension(ctx, ext.ID, false)
 	if err != nil {
 		return nil, errToRest(err)
 	}
-	return extensionToRest(ext), nil
+	// update only attributes present in the update request
+	extUpdate := domain.Extension{
+		ID:            ext.ID,
+		Product:       derefString(req.Product, extRecord.Product),
+		Version:       derefString(req.Version, extRecord.Version),
+		Description:   derefString(req.Description, extRecord.Description),
+		Zone:          derefString(req.Zone, extRecord.Zone),
+		Configuration: extRecord.Configuration,
+	}
+	if req.Configuration != nil {
+		extUpdate.Configuration = req.Configuration
+	}
+
+	err = s.registry.UpdateExtension(ctx, &extUpdate)
+	if err != nil {
+		return nil, errToRest(err)
+	}
+	return extensionToRest(&extUpdate), nil
 }
 
 // Delete an extension and its subtree of services, endpoints and credentials
@@ -319,11 +336,32 @@ func (s *extensionRegistrySvc) ListServices(ctx context.Context, req *extension.
 func (s *extensionRegistrySvc) UpdateService(ctx context.Context, req *extension.ExtensionService) (res *extension.ExtensionService, err error) {
 	s.logger.Print("extension.updateService")
 	service := extensionServiceToDomain(req)
-	err = s.registry.UpdateService(ctx, service)
+	svcRecord, err := s.registry.GetService(ctx, domain.ExtensionServiceID{
+		ID:          service.ID,
+		ExtensionID: service.ExtensionID,
+	}, false)
 	if err != nil {
 		return nil, errToRest(err)
 	}
-	return extensionServiceToRest(service), nil
+
+	// update only attributes present in the update request
+	svcUpdate := domain.ExtensionService{
+		ExtensionServiceID: svcRecord.ExtensionServiceID,
+		Resource:           derefString(req.Resource, svcRecord.Resource),
+		Category:           derefString(req.Category, svcRecord.Resource),
+		Description:        derefString(req.Description, svcRecord.Description),
+		AuthRequired:       derefBool(req.AuthRequired, svcRecord.AuthRequired),
+		Configuration:      svcRecord.Configuration,
+	}
+	if req.Configuration != nil {
+		svcUpdate.Configuration = req.Configuration
+	}
+
+	err = s.registry.UpdateService(ctx, &svcUpdate)
+	if err != nil {
+		return nil, errToRest(err)
+	}
+	return extensionServiceToRest(&svcUpdate), nil
 }
 
 // Delete an extension service and its subtree of endpoints and credentials
@@ -385,11 +423,30 @@ func (s *extensionRegistrySvc) ListEndpoints(ctx context.Context, req *extension
 func (s *extensionRegistrySvc) UpdateEndpoint(ctx context.Context, req *extension.ExtensionEndpoint) (res *extension.ExtensionEndpoint, err error) {
 	s.logger.Print("extension.updateEndpoint")
 	endpoint := extensionEndpointToDomain(req)
-	err = s.registry.UpdateEndpoint(ctx, endpoint)
+	ep, err := s.registry.GetEndpoint(ctx, domain.ExtensionEndpointID{
+		URL:         endpoint.URL,
+		ExtensionID: endpoint.ExtensionID,
+		ServiceID:   endpoint.ServiceID,
+	})
 	if err != nil {
 		return nil, errToRest(err)
 	}
-	return extensionEndpointToRest(endpoint), nil
+
+	// update only attributes present in the update request
+	epUpdate := domain.ExtensionEndpoint{
+		ExtensionEndpointID: ep.ExtensionEndpointID,
+		Type:                domain.ExtensionEndpointType(derefString(req.Type, string(ep.Type))),
+		Configuration:       ep.Configuration,
+	}
+	if req.Configuration != nil {
+		epUpdate.Configuration = req.Configuration
+	}
+
+	err = s.registry.UpdateEndpoint(ctx, &epUpdate)
+	if err != nil {
+		return nil, errToRest(err)
+	}
+	return extensionEndpointToRest(&epUpdate), nil
 }
 
 // Delete an extension endpoint
@@ -453,11 +510,39 @@ func (s *extensionRegistrySvc) ListCredentials(ctx context.Context, req *extensi
 func (s *extensionRegistrySvc) UpdateCredentials(ctx context.Context, req *extension.ExtensionCredentials) (res *extension.ExtensionCredentials, err error) {
 	s.logger.Print("extension.updateCredentials")
 	credentials := extensionCredentialsToDomain(req)
-	err = s.registry.UpdateCredentials(ctx, credentials)
+	cred, err := s.registry.GetCredentials(ctx, domain.ExtensionCredentialsID{
+		ID:          credentials.ID,
+		ExtensionID: credentials.ExtensionID,
+		ServiceID:   credentials.ServiceID,
+	})
 	if err != nil {
 		return nil, errToRest(err)
 	}
-	return extensionCredentialsToRest(credentials), nil
+
+	// update only attributes present in the update request
+	credUpdate := domain.ExtensionCredentials{
+		ExtensionCredentialsID: cred.ExtensionCredentialsID,
+		Scope:                  domain.ExtensionCredentialScope(derefString(req.Scope, string(cred.Scope))),
+		Default:                derefBool(req.Default, cred.Default),
+		Projects:               cred.Projects,
+		Users:                  cred.Users,
+		Configuration:          cred.Configuration,
+	}
+	if req.Configuration != nil {
+		credUpdate.Configuration = req.Configuration
+	}
+	if req.Projects != nil {
+		credUpdate.Projects = req.Projects
+	}
+	if req.Users != nil {
+		credUpdate.Users = req.Users
+	}
+
+	err = s.registry.UpdateCredentials(ctx, &credUpdate)
+	if err != nil {
+		return nil, errToRest(err)
+	}
+	return extensionCredentialsToRest(&credUpdate), nil
 }
 
 // Delete a set of extension credentials

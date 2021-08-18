@@ -661,7 +661,6 @@ var Extension = Type("Extension", func() {
 	tag := 1
 	Field(tag, "id", String, "Uniquely identifies an extension in the registry", func() {
 		Pattern(identifierPattern)
-		Default("")
 		MaxLength(100)
 		Example("s3-storage-axW45s")
 	})
@@ -670,7 +669,6 @@ var Extension = Type("Extension", func() {
 		`Universal product identifier that can be used to group and identify extensions according to the product
 they belong to. Product values can be used to identify installations of the same product registered
 with the same or different FuseML servers`, func() {
-			Default("")
 			MaxLength(100)
 			Example("mlflow")
 		})
@@ -678,7 +676,6 @@ with the same or different FuseML servers`, func() {
 	Field(tag, "version", String,
 		`Extension version. To support semantic version operations, such as listing extensions
 that match a semantic version constraint, it should be formatted as [v]MAJOR[.MINOR[.PATCH[-PRERELEASE][+BUILD]]]`, func() {
-			Default("")
 			MaxLength(100)
 			Example("1.0")
 			Example("v10.3.1-prealpha+b10022020")
@@ -686,7 +683,6 @@ that match a semantic version constraint, it should be formatted as [v]MAJOR[.MI
 	tag++
 	Field(tag, "description", String, "Extension description", func() {
 		MaxLength(1000)
-		Default("")
 	})
 	tag++
 	Field(tag, "zone", String,
@@ -694,7 +690,6 @@ that match a semantic version constraint, it should be formatted as [v]MAJOR[.MI
 location / zone / area / domain where they are installed (e.g. kubernetes cluster).
 Is used to automatically select between local and external endpoints when
 running queries that specify a zone filter.`, func() {
-			Default("")
 			MaxLength(100)
 			Example("eu-central-01")
 			Example("kube-cluster-dev-00126")
@@ -740,14 +735,12 @@ var ExtensionService = Type("ExtensionService", func() {
 	tag := 1
 	Field(tag, "id", String, "Uniquely identifies an extension service within the scope of an extension", func() {
 		Pattern(identifierPattern)
-		Default("")
 		MaxLength(100)
 		Example("s3")
 	})
 	tag++
 	Field(tag, "extension_id", String, "Reference to the extension this service belongs to", func() {
 		Pattern(identifierPattern)
-		Default("")
 		MaxLength(100)
 		Example("s3-storage-axW45s")
 	})
@@ -756,7 +749,6 @@ var ExtensionService = Type("ExtensionService", func() {
 		`Universal service identifier that can be used to identify a service in any FuseML installation.
 This identifier uniquely identifies the API or protocol (e.g. s3, git, mlflow) that the service
 provides`, func() {
-			Default("")
 			MaxLength(100)
 			Example("s3")
 			Example("git")
@@ -766,7 +758,6 @@ provides`, func() {
 	Field(tag, "category", String,
 		`Universal service category. Used to classify services into well-known categories of AI/ML services
 (e.g. model store, feature store, distributed training, serving)`, func() {
-			Default("")
 			MaxLength(100)
 			Example("model-store")
 			Example("serving-platform")
@@ -776,12 +767,10 @@ provides`, func() {
 		`Marks a service for which authentication is required. If set, a set of credentials is required
 to access the service; if none of the provided credentials match the scope of the consumer,
 this service will be excluded from queries`, func() {
-			Default(false)
 		})
 	tag++
 	Field(tag, "description", String, "Service description", func() {
 		MaxLength(1000)
-		Default("")
 	})
 	tag++
 	Field(tag, "configuration", MapOf(String, String),
@@ -829,21 +818,18 @@ var ExtensionEndpoint = Type("ExtensionEndpoint", func() {
 		`Endpoint URL. In case of k8s controllers and operators, the URL points to the cluster API.
 Also used to uniquely identifies an endpoint within the scope of a service`, func() {
 			Format(FormatURI)
-			Default("")
 			MaxLength(200)
 			Example("https://mlflow.10.120.130.140.nip.io")
 		})
 	tag++
 	Field(tag, "extension_id", String, "Reference to the extension this endpoint belongs to", func() {
 		Pattern(identifierPattern)
-		Default("")
 		MaxLength(100)
 		Example("s3-storage-axW45s")
 	})
 	tag++
 	Field(tag, "service_id", String, "Reference to the service this endpoint belongs to", func() {
 		Pattern(identifierPattern)
-		Default("")
 		MaxLength(100)
 		Example("s3")
 	})
@@ -851,7 +837,6 @@ Also used to uniquely identifies an endpoint within the scope of a service`, fun
 	Field(tag, "type", String,
 		`Endpoint type - internal/external. An internal endpoint can only be accessed when the consumer
 is located in the same zone as the extension service`, func() {
-			Default("external")
 			Enum("internal", "external")
 			Example("internal")
 			Example("external")
@@ -886,21 +871,18 @@ var ExtensionCredentials = Type("ExtensionCredentials", func() {
 	tag := 1
 	Field(tag, "id", String, "Uniquely identifies a set of credentials within the scope of an extension service", func() {
 		Pattern(identifierPattern)
-		Default("")
 		MaxLength(100)
 		Example("dev-token-1353411")
 	})
 	tag++
 	Field(tag, "extension_id", String, "Reference to the extension this set of credentials belongs to", func() {
 		Pattern(identifierPattern)
-		Default("")
 		MaxLength(100)
 		Example("s3-storage-axW45s")
 	})
 	tag++
 	Field(tag, "service_id", String, "Reference to the service this set of credentials belongs to", func() {
 		Pattern(identifierPattern)
-		Default("")
 		MaxLength(100)
 		Example("s3")
 	})
@@ -908,7 +890,6 @@ var ExtensionCredentials = Type("ExtensionCredentials", func() {
 	Field(tag, "default", Boolean,
 		`Use as default credentials. Used to automatically select one of several credentials with the same
 scope matching the same query.`, func() {
-			Default(false)
 		})
 	tag++
 	Field(tag, "scope", String,
@@ -916,7 +897,6 @@ scope matching the same query.`, func() {
 user/project. Project scoped credentials can be used only in the context of one of the projects
 supplied in the Projects list. User scoped credentials can only be used by the users in the Users
 list and, optionally, in the context of the projects supplied in the Projects list`, func() {
-			Default("global")
 			Enum("global", "project", "user")
 			Example("global")
 			Example("project")

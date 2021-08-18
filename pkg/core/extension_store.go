@@ -290,9 +290,9 @@ func (store *ExtensionStore) getExtensionRecord(ctx context.Context, extensionID
 	return extRecord, nil
 }
 
-// GetAllExtensionss - retrieve all registered extensions, with all participating services, endpoints and credentials
+// GetAllExtensions - retrieve all registered extensions, with all participating services, endpoints and credentials
 func (store *ExtensionStore) GetAllExtensions(ctx context.Context) (result []*domain.ExtensionRecord, err error) {
-	result = make([]*domain.ExtensionRecord, 0)
+	result = make([]*domain.ExtensionRecord, 0, len(store.items))
 	for extID := range store.items {
 		extRecord, err := store.GetExtension(ctx, extID, true)
 		if err != nil {
