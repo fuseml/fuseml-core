@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"sort"
+	"time"
 
 	"github.com/Masterminds/semver"
 	"github.com/fuseml/fuseml-core/pkg/domain"
@@ -105,9 +106,8 @@ func (store *ExtensionStore) storeExtensionRecord(ctx context.Context, extension
 		extension.ID = store.generateExtensionID(&extension.Extension)
 	}
 
-	if store.items[extension.ID] != nil {
-		return nil, domain.NewErrExtensionExists(extension.ID)
-	}
+	extension.Registered = time.Now()
+	extension.Updated = extension.Registered
 
 	// store a copy of the input extension
 	extRecord := &extensionRecord{
@@ -130,6 +130,10 @@ func (store *ExtensionStore) storeExtensionRecord(ctx context.Context, extension
 
 // StoreExtension - store an extension, with all participating services, endpoints and credentials
 func (store *ExtensionStore) StoreExtension(ctx context.Context, extension *domain.ExtensionRecord) (result *domain.ExtensionRecord, err error) {
+	if store.items[extension.ID] != nil {
+		return nil, domain.NewErrExtensionExists(extension.ID)
+	}
+
 	extRecord, err := store.storeExtensionRecord(ctx, extension)
 	if err != nil {
 		// rollback everything in case of error
@@ -147,9 +151,8 @@ func (store *ExtensionStore) storeServiceRecord(
 		service.ID = store.generateExtensionServiceID(extRecord, &service.ExtensionService)
 	}
 
-	if extRecord.services[service.ID] != nil {
-		return nil, domain.NewErrExtensionServiceExists(extRecord.ID, service.ID)
-	}
+	service.Registered = time.Now()
+	service.Updated = service.Registered
 
 	// store a copy of the input extension service
 	svcRecord := &extensionServiceRecord{
@@ -190,6 +193,10 @@ func (store *ExtensionStore) StoreService(
 	extRecord := store.items[service.ExtensionID]
 	if extRecord == nil {
 		return nil, domain.NewErrExtensionNotFound(service.ExtensionID)
+	}
+
+	if extRecord.services[service.ID] != nil {
+		return nil, domain.NewErrExtensionServiceExists(extRecord.ID, service.ID)
 	}
 
 	svcRecord, err := store.storeServiceRecord(ctx, service, extRecord)
@@ -246,6 +253,9 @@ func (store *ExtensionStore) storeCredentialsRecord(
 		return nil, domain.NewErrExtensionCredentialsExists(credentials.ExtensionID, credentials.ServiceID, credentials.ID)
 	}
 
+	credentials.Created = time.Now()
+	credentials.Updated = credentials.Created
+
 	// store a copy of the input extension credentials
 	credsRecord := &extensionCredentialsRecord{
 		*credentials,
@@ -278,6 +288,19 @@ func (store *ExtensionStore) getExtensionRecord(ctx context.Context, extensionID
 		return nil, domain.NewErrExtensionNotFound(extensionID)
 	}
 	return extRecord, nil
+}
+
+// GetAllExtensions - retrieve all registered extensions, with all participating services, endpoints and credentials
+func (store *ExtensionStore) GetAllExtensions(ctx context.Context) (result []*domain.ExtensionRecord, err error) {
+	result = make([]*domain.ExtensionRecord, 0, len(store.items))
+	for extID := range store.items {
+		extRecord, err := store.GetExtension(ctx, extID, true)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, extRecord)
+	}
+	return result, nil
 }
 
 // GetExtension - retrieve an extension by ID
@@ -493,6 +516,8 @@ func (store *ExtensionStore) UpdateExtension(ctx context.Context, extension *dom
 	if err != nil {
 		return err
 	}
+	extension.Registered = extRecord.Registered
+	extension.Updated = time.Now()
 	extRecord.Extension = *extension
 	return nil
 }
@@ -503,6 +528,8 @@ func (store *ExtensionStore) UpdateService(ctx context.Context, service *domain.
 	if err != nil {
 		return err
 	}
+	service.Registered = svcRecord.Registered
+	service.Updated = time.Now()
 	svcRecord.ExtensionService = *service
 	return nil
 }
@@ -523,6 +550,8 @@ func (store *ExtensionStore) UpdateCredentials(ctx context.Context, credentials 
 	if err != nil {
 		return err
 	}
+	credentials.Created = credRecord.Created
+	credentials.Updated = time.Now()
 	credRecord.ExtensionCredentials = *credentials
 	return nil
 }
@@ -706,9 +735,9 @@ func (store *ExtensionStore) findEndpoints(
 		if query.EndpointURL != "" && query.EndpointURL != endpoint.URL {
 			return
 		}
-		if query.EndpointType != nil {
+		if query.Type != nil {
 			// match endpoint type, if supplied with the query
-			if *query.EndpointType != endpoint.EndpointType {
+			if *query.Type != endpoint.Type {
 				return
 			}
 		} else if query.Zone != "" {
@@ -716,7 +745,7 @@ func (store *ExtensionStore) findEndpoints(
 			// by comparing the query zone (if supplied) with the extension record zone
 			//  - if the extension is in the same zone as the query, both internal and external endpoints will match
 			//  - otherwise, only external endpoints will match
-			if query.Zone != svcRecord.extension.Zone && endpoint.EndpointType == domain.EETInternal {
+			if query.Zone != svcRecord.extension.Zone && endpoint.Type == domain.EETInternal {
 				return
 			}
 		}

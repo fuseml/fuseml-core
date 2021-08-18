@@ -3,9 +3,10 @@ package domain
 import (
 	"context"
 	"fmt"
+	"time"
 )
 
-// ExtensionEndpointType is the type used for the ExtensionEndpoint EndpointType field
+// ExtensionEndpointType is the type used for the ExtensionEndpoint Type field
 type ExtensionEndpointType string
 
 // Valid values that can be used with ExtensionEndpointType
@@ -53,6 +54,10 @@ type Extension struct {
 	// Configuration entries (e.g. configuration values required to configure all clients that connect to
 	// this extension), expressed as set of key-value entries
 	Configuration map[string]string
+	// The time when the extension was registered
+	Registered time.Time
+	// The time when the extension was last updated
+	Updated time.Time
 }
 
 // ExtensionServiceID is a unique extension service identifier
@@ -87,6 +92,10 @@ type ExtensionService struct {
 	// Configuration entries (e.g. configuration values required to configure the client to access this
 	// service), expressed as set of key-value entries
 	Configuration map[string]string
+	// The time when the service was registered
+	Registered time.Time
+	// The time when the service was last updated
+	Updated time.Time
 }
 
 // ExtensionEndpointID is a unique extension endpoint identifier
@@ -110,7 +119,7 @@ type ExtensionEndpoint struct {
 	ExtensionEndpointID
 	// Endpoint type - internal/external. An internal endpoint can only be accessed when the consumer
 	// is located in the same zone as the extension service
-	EndpointType ExtensionEndpointType
+	Type ExtensionEndpointType
 	// Configuration entries (e.g. CA certificates), expressed as set of key-value entries
 	Configuration map[string]string
 }
@@ -150,6 +159,10 @@ type ExtensionCredentials struct {
 	Users []string
 	// Configuration entries (e.g. usernames, passwords, tokens, keys), expressed as set of key-value entries
 	Configuration map[string]string
+	// The time when the credential set was created
+	Created time.Time
+	// The time when the credential set was last updated
+	Updated time.Time
 }
 
 // ExtensionRecord is used to associate an extension with a list of all provided services along with the
@@ -206,7 +219,7 @@ type ExtensionQuery struct {
 	// determined automatically by StrictZoneMatch and the Zone value, if a Zone is supplied:
 	//  - if the extension is in the same zone as the query, both internal and external endpoints will match
 	//  - otherwise, only external endpoints will match
-	EndpointType *ExtensionEndpointType
+	Type *ExtensionEndpointType
 	// Search by explicit credentials ID
 	CredentialsID string
 	// Match credentials by scope
@@ -379,15 +392,17 @@ type ExtensionRegistry interface {
 	// Register a new extension, with all participating services, endpoints and credentials
 	RegisterExtension(ctx context.Context, extension *ExtensionRecord) (result *ExtensionRecord, err error)
 	// Add a service to an existing extension
-	AddService(ctx context.Context, service *ExtensionService) (result *ExtensionService, err error)
+	AddService(ctx context.Context, service *ExtensionServiceRecord) (result *ExtensionServiceRecord, err error)
 	// Add an endpoint to an existing extension service
 	AddEndpoint(ctx context.Context, endpoint *ExtensionEndpoint) (result *ExtensionEndpoint, err error)
 	// Add a set of credentials to an existing extension service
 	AddCredentials(ctx context.Context, credentials *ExtensionCredentials) (result *ExtensionCredentials, err error)
+	// Retrieve all registered extensions, with all participating services, endpoints and credentials
+	GetAllExtensions(ctx context.Context) (result []*ExtensionRecord, err error)
 	// Retrieve an extension by ID and, optionally, its entire service/endpoint/credentials subtree
 	GetExtension(ctx context.Context, extensionID string, fullTree bool) (result *ExtensionRecord, err error)
 	// Retrieve an extension service by ID and, optionally, its entire endpoint/credentials subtree
-	GetService(ctx context.Context, serviceID ExtensionServiceID) (result *ExtensionServiceRecord, err error)
+	GetService(ctx context.Context, serviceID ExtensionServiceID, fullTree bool) (result *ExtensionServiceRecord, err error)
 	// Retrieve an extension endpoint by ID
 	GetEndpoint(ctx context.Context, endpointID ExtensionEndpointID) (result *ExtensionEndpoint, err error)
 	// Retrieve a set of extension credentials by ID
@@ -422,6 +437,8 @@ type ExtensionStore interface {
 	StoreEndpoint(ctx context.Context, endpoint *ExtensionEndpoint) (result *ExtensionEndpoint, err error)
 	// Store a set of extension credentials
 	StoreCredentials(ctx context.Context, credentials *ExtensionCredentials) (result *ExtensionCredentials, err error)
+	// Retrieve all registered extensions, with all participating services, endpoints and credentials
+	GetAllExtensions(ctx context.Context) (result []*ExtensionRecord, err error)
 	// Retrieve an extension by ID and, optionally, its entire service/endpoint/credentials subtree
 	GetExtension(ctx context.Context, extensionID string, fullTree bool) (result *ExtensionRecord, err error)
 	// Retrieve the list of services belonging to an extension

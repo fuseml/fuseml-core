@@ -13,6 +13,7 @@ import (
 
 	applicationsvr "github.com/fuseml/fuseml-core/gen/http/application/server"
 	codesetsvr "github.com/fuseml/fuseml-core/gen/http/codeset/server"
+	extensionsvr "github.com/fuseml/fuseml-core/gen/http/extension/server"
 	openapisvr "github.com/fuseml/fuseml-core/gen/http/openapi/server"
 	projectsvr "github.com/fuseml/fuseml-core/gen/http/project/server"
 	runnablesvr "github.com/fuseml/fuseml-core/gen/http/runnable/server"
@@ -64,6 +65,7 @@ func handleHTTPServer(ctx context.Context, u *url.URL, endpoints *endpoints, wg 
 		projectServer     *projectsvr.Server
 		openapiServer     *openapisvr.Server
 		workflowServer    *workflowsvr.Server
+		extensionServer   *extensionsvr.Server
 	)
 	{
 		eh := errorHandler(logger)
@@ -73,6 +75,7 @@ func handleHTTPServer(ctx context.Context, u *url.URL, endpoints *endpoints, wg 
 		codesetServer = codesetsvr.New(endpoints.codeset, mux, dec, enc, eh, nil)
 		projectServer = projectsvr.New(endpoints.project, mux, dec, enc, eh, nil)
 		workflowServer = workflowsvr.New(endpoints.workflow, mux, dec, enc, eh, nil)
+		extensionServer = extensionsvr.New(endpoints.extension, mux, dec, enc, eh, nil)
 		openapiServer = openapisvr.New(nil, mux, dec, enc, eh, nil)
 		if debug {
 			servers := goahttp.Servers{
@@ -83,6 +86,7 @@ func handleHTTPServer(ctx context.Context, u *url.URL, endpoints *endpoints, wg 
 				projectServer,
 				openapiServer,
 				workflowServer,
+				extensionServer,
 			}
 			servers.Use(httpmdlwr.Debug(mux, os.Stdout))
 		}
@@ -95,6 +99,7 @@ func handleHTTPServer(ctx context.Context, u *url.URL, endpoints *endpoints, wg 
 	projectsvr.Mount(mux, projectServer)
 	openapisvr.Mount(mux)
 	workflowsvr.Mount(mux, workflowServer)
+	extensionsvr.Mount(mux, extensionServer)
 
 	// Wrap the multiplexer with additional middlewares. Middlewares mounted
 	// here apply to all the service endpoints.
@@ -126,6 +131,9 @@ func handleHTTPServer(ctx context.Context, u *url.URL, endpoints *endpoints, wg 
 		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
 	}
 	for _, m := range workflowServer.Mounts {
+		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
+	}
+	for _, m := range extensionServer.Mounts {
 		logger.Printf("HTTP %q mounted on %s %s", m.Method, m.Verb, m.Pattern)
 	}
 

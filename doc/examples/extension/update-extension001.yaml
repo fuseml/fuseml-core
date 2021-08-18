@@ -1,0 +1,4 @@
+# curl -X POST --data-binary @register-extension001.yaml -H "Content-Type: application/x-yaml" http://localhost:8000/extensions
+# curl -X PUT --data-binary @update-extension001.yaml -H "Content-Type: application/x-yaml" http://localhost:8000/extensions/mlflow-0001
+version: "1.20.0"
+zone: cluster-beta

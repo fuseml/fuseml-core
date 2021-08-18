@@ -667,7 +667,7 @@ func TestExtensionUpdate(t *testing.T) {
 			ExtensionEndpointID: domain.ExtensionEndpointID{
 				URL: "https://testendpoint-001.com",
 			},
-			EndpointType: domain.EETExternal,
+			Type: domain.EETExternal,
 			Configuration: map[string]string{
 				"ep-001-config-one": "svc-001-value-one",
 				"ep-001-config-two": "svc-001-value-two",
@@ -678,7 +678,7 @@ func TestExtensionUpdate(t *testing.T) {
 			ExtensionEndpointID: domain.ExtensionEndpointID{
 				URL: "https://testendpoint-002.com",
 			},
-			EndpointType: domain.EETInternal,
+			Type: domain.EETInternal,
 			Configuration: map[string]string{
 				"ep-002-config-one": "svc-002-value-one",
 				"ep-002-config-two": "svc-002-value-two",
@@ -784,7 +784,7 @@ func TestExtensionUpdate(t *testing.T) {
 
 		*ep1 = domain.ExtensionEndpoint{
 			ExtensionEndpointID: ep1.ExtensionEndpointID,
-			EndpointType:        domain.EETInternal,
+			Type:                domain.EETInternal,
 			Configuration: map[string]string{
 				"ep-001-config-one": "svc-001-value-one-updated",
 				"ep-001-config-two": "svc-001-value-two-updated",
@@ -800,7 +800,7 @@ func TestExtensionUpdate(t *testing.T) {
 
 		*ep2 = domain.ExtensionEndpoint{
 			ExtensionEndpointID: ep2.ExtensionEndpointID,
-			EndpointType:        domain.EETExternal,
+			Type:                domain.EETExternal,
 			Configuration: map[string]string{
 				"ep-002-config-one": "svc-002-value-one-updated",
 				"ep-002-config-two": "svc-002-value-two-updated",
@@ -903,7 +903,7 @@ func TestExtensionQuery(t *testing.T) {
 			ExtensionEndpointID: domain.ExtensionEndpointID{
 				URL: "https://testendpoint-001.com",
 			},
-			EndpointType: domain.EETExternal,
+			Type: domain.EETExternal,
 			Configuration: map[string]string{
 				"ep-001-config-one": "svc-001-value-one",
 				"ep-001-config-two": "svc-001-value-two",
@@ -914,7 +914,7 @@ func TestExtensionQuery(t *testing.T) {
 			ExtensionEndpointID: domain.ExtensionEndpointID{
 				URL: "https://testendpoint-002.com",
 			},
-			EndpointType: domain.EETInternal,
+			Type: domain.EETInternal,
 			Configuration: map[string]string{
 				"ep-002-config-one": "svc-002-value-one",
 				"ep-002-config-two": "svc-002-value-two",
@@ -1005,7 +1005,7 @@ func TestExtensionQuery(t *testing.T) {
 			ExtensionEndpointID: domain.ExtensionEndpointID{
 				URL: "https://testendpoint-003.com",
 			},
-			EndpointType: domain.EETExternal,
+			Type: domain.EETExternal,
 			Configuration: map[string]string{
 				"ep-003-config-one": "svc-003-value-one",
 				"ep-003-config-two": "svc-003-value-two",
@@ -1016,7 +1016,7 @@ func TestExtensionQuery(t *testing.T) {
 			ExtensionEndpointID: domain.ExtensionEndpointID{
 				URL: "https://testendpoint-004.com",
 			},
-			EndpointType: domain.EETInternal,
+			Type: domain.EETInternal,
 			Configuration: map[string]string{
 				"ep-004-config-one": "svc-004-value-one",
 				"ep-004-config-two": "svc-004-value-two",
@@ -1074,7 +1074,7 @@ func TestExtensionQuery(t *testing.T) {
 			ServiceResource:    "testresource-one",
 			ServiceCategory:    "testcategory-one",
 			EndpointURL:        "https://testendpoint-001.com",
-			EndpointType:       &epType,
+			Type:               &epType,
 			CredentialsID:      "testcredentials-001",
 			CredentialsScope:   domain.ECSGlobal,
 			User:               "",

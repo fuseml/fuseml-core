@@ -11,6 +11,8 @@ import (
 	applicationsvr "github.com/fuseml/fuseml-core/gen/grpc/application/server"
 	codesetpb "github.com/fuseml/fuseml-core/gen/grpc/codeset/pb"
 	codesetsvr "github.com/fuseml/fuseml-core/gen/grpc/codeset/server"
+	extensionpb "github.com/fuseml/fuseml-core/gen/grpc/extension/pb"
+	extensionsvr "github.com/fuseml/fuseml-core/gen/grpc/extension/server"
 	projectpb "github.com/fuseml/fuseml-core/gen/grpc/project/pb"
 	projectsvr "github.com/fuseml/fuseml-core/gen/grpc/project/server"
 	runnablepb "github.com/fuseml/fuseml-core/gen/grpc/runnable/pb"
@@ -46,6 +48,7 @@ func handleGRPCServer(ctx context.Context, u *url.URL, endpoints *endpoints, wg 
 		codesetServer     *codesetsvr.Server
 		projectServer     *projectsvr.Server
 		workflowServer    *workflowsvr.Server
+		extensionServer   *extensionsvr.Server
 	)
 	{
 		applicationServer = applicationsvr.New(endpoints.application, nil)
@@ -53,6 +56,7 @@ func handleGRPCServer(ctx context.Context, u *url.URL, endpoints *endpoints, wg 
 		codesetServer = codesetsvr.New(endpoints.codeset, nil)
 		projectServer = projectsvr.New(endpoints.project, nil)
 		workflowServer = workflowsvr.New(endpoints.workflow, nil)
+		extensionServer = extensionsvr.New(endpoints.extension, nil)
 	}
 
 	// Initialize gRPC server with the middleware.
@@ -69,6 +73,7 @@ func handleGRPCServer(ctx context.Context, u *url.URL, endpoints *endpoints, wg 
 	codesetpb.RegisterCodesetServer(srv, codesetServer)
 	projectpb.RegisterProjectServer(srv, projectServer)
 	workflowpb.RegisterWorkflowServer(srv, workflowServer)
+	extensionpb.RegisterExtensionServer(srv, extensionServer)
 
 	for svc, info := range srv.GetServiceInfo() {
 		for _, m := range info.Methods {

@@ -8,6 +8,7 @@ package main
 import (
 	"github.com/fuseml/fuseml-core/gen/application"
 	"github.com/fuseml/fuseml-core/gen/codeset"
+	"github.com/fuseml/fuseml-core/gen/extension"
 	"github.com/fuseml/fuseml-core/gen/project"
 	"github.com/fuseml/fuseml-core/gen/runnable"
 	"github.com/fuseml/fuseml-core/gen/version"
@@ -51,6 +52,10 @@ func InitializeEndpoints(logger *log.Logger, fuseMLNamespace string) (*endpoints
 	workflowManager := manager.NewWorkflowManager(workflowBackend, workflowStore, gitCodesetStore)
 	workflowService := svc.NewWorkflowService(logger, workflowManager)
 	workflowEndpoints := workflow.NewEndpoints(workflowService)
+	extensionStore := core.NewExtensionStore()
+	extensionRegistry := manager.NewExtensionRegistry(extensionStore)
+	extensionService := svc.NewExtensionRegistryService(logger, extensionRegistry)
+	extensionEndpoints := extension.NewEndpoints(extensionService)
 	mainEndpoints := &endpoints{
 		application: applicationEndpoints,
 		codeset:     codesetEndpoints,
@@ -58,16 +63,17 @@ func InitializeEndpoints(logger *log.Logger, fuseMLNamespace string) (*endpoints
 		runnable:    runnableEndpoints,
 		version:     versionEndpoints,
 		workflow:    workflowEndpoints,
+		extension:   extensionEndpoints,
 	}
 	return mainEndpoints, nil
 }
 
 // wire.go:
 
-var storeSet = wire.NewSet(core.NewApplicationStore, wire.Bind(new(domain.ApplicationStore), new(*core.ApplicationStore)), gitea.NewAdminClient, wire.Bind(new(domain.GitAdminClient), new(*gitea.AdminClient)), core.NewGitCodesetStore, wire.Bind(new(domain.CodesetStore), new(*core.GitCodesetStore)), core.NewGitProjectStore, wire.Bind(new(domain.ProjectStore), new(*core.GitProjectStore)), core.NewRunnableStore, wire.Bind(new(domain.RunnableStore), new(*core.RunnableStore)), core.NewWorkflowStore, wire.Bind(new(domain.WorkflowStore), new(*core.WorkflowStore)))
+var storeSet = wire.NewSet(core.NewApplicationStore, wire.Bind(new(domain.ApplicationStore), new(*core.ApplicationStore)), gitea.NewAdminClient, wire.Bind(new(domain.GitAdminClient), new(*gitea.AdminClient)), core.NewGitCodesetStore, wire.Bind(new(domain.CodesetStore), new(*core.GitCodesetStore)), core.NewGitProjectStore, wire.Bind(new(domain.ProjectStore), new(*core.GitProjectStore)), core.NewRunnableStore, wire.Bind(new(domain.RunnableStore), new(*core.RunnableStore)), core.NewWorkflowStore, wire.Bind(new(domain.WorkflowStore), new(*core.WorkflowStore)), core.NewExtensionStore, wire.Bind(new(domain.ExtensionStore), new(*core.ExtensionStore)))
 
-var managerSet = wire.NewSet(manager.NewWorkflowManager, wire.Bind(new(domain.WorkflowManager), new(*manager.WorkflowManager)))
+var managerSet = wire.NewSet(manager.NewWorkflowManager, wire.Bind(new(domain.WorkflowManager), new(*manager.WorkflowManager)), manager.NewExtensionRegistry, wire.Bind(new(domain.ExtensionRegistry), new(*manager.ExtensionRegistry)))
 
 var backendSet = wire.NewSet(tekton.NewWorkflowBackend, wire.Bind(new(domain.WorkflowBackend), new(*tekton.WorkflowBackend)))
 
-var endpointsSet = wire.NewSet(svc.NewApplicationService, application.NewEndpoints, svc.NewCodesetService, codeset.NewEndpoints, svc.NewProjectService, project.NewEndpoints, svc.NewRunnableService, runnable.NewEndpoints, svc.NewVersionService, version.NewEndpoints, svc.NewWorkflowService, workflow.NewEndpoints)
+var endpointsSet = wire.NewSet(svc.NewApplicationService, application.NewEndpoints, svc.NewCodesetService, codeset.NewEndpoints, svc.NewProjectService, project.NewEndpoints, svc.NewRunnableService, runnable.NewEndpoints, svc.NewVersionService, version.NewEndpoints, svc.NewWorkflowService, workflow.NewEndpoints, svc.NewExtensionRegistryService, extension.NewEndpoints)

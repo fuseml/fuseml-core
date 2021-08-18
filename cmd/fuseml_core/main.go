@@ -14,6 +14,7 @@ import (
 
 	"github.com/fuseml/fuseml-core/gen/application"
 	"github.com/fuseml/fuseml-core/gen/codeset"
+	"github.com/fuseml/fuseml-core/gen/extension"
 	"github.com/fuseml/fuseml-core/gen/project"
 	"github.com/fuseml/fuseml-core/gen/runnable"
 	"github.com/fuseml/fuseml-core/gen/version"
@@ -29,6 +30,7 @@ type endpoints struct {
 	runnable    *runnable.Endpoints
 	version     *version.Endpoints
 	workflow    *workflow.Endpoints
+	extension   *extension.Endpoints
 }
 
 func main() {

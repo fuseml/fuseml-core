@@ -397,17 +397,3 @@ func workflowRunOutputsDomainToRest(domainRunOutputs []*domain.WorkflowRunOutput
 	}
 	return restRunOutputs
 }
-
-func refString(s string) *string {
-	if s == "" {
-		return nil
-	}
-	return &s
-}
-
-func derefString(s *string) string {
-	if s != nil {
-		return *s
-	}
-	return ""
-}
