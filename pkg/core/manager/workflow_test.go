@@ -32,6 +32,9 @@ var (
 	// 3. name: cs2, project: csproject1
 	codesetStore *fakeCodesetStore
 
+	// extensionRegistry stores extensions
+	extensionRegistry *ExtensionRegistry
+
 	// workflowRunStatuses are the possible Status for a WorkflowRun. The status of a WorkflowRun is set
 	// accordingly to its order, cycling between the workflowRunStatuses. E.g. run0: Succeeded, run1: Failed,
 	// run2: Succeeded, ...
@@ -786,6 +789,7 @@ func newFakeWorkflowManager(t *testing.T) *WorkflowManager {
 	workflowStore = core.NewWorkflowStore()
 	workflowBackend = &fakeWorkflowBackend{t, make(map[string]*fakeStorableWorkflow)}
 	codesetStore = &fakeCodesetStore{t, make(map[codesetID]fakeStorableCodeset)}
+	extensionRegistry = NewExtensionRegistry(core.NewExtensionStore())
 
 	// add codesets to the codeset store for the tests to use it:
 	// 1. name: cs0, project: csproject0
@@ -806,7 +810,7 @@ func newFakeWorkflowManager(t *testing.T) *WorkflowManager {
 		}
 	}
 
-	return NewWorkflowManager(workflowBackend, workflowStore, codesetStore)
+	return NewWorkflowManager(workflowBackend, workflowStore, codesetStore, extensionRegistry)
 }
 
 type fakeStorableWorkflow struct {

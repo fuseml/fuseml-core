@@ -19,7 +19,7 @@ const (
 	imageParamName            = "IMAGE"
 	stepOutputVarName         = "TASK_RESULT"
 	inputsVarPrefix           = "FUSEML_"
-	globalEnvVarPrefix        = "FUSEML_ENV_"
+	envVarPrefix              = "FUSEML_ENV_"
 	stepDefaultCmd            = "run"
 
 	// LabelCodesetName is the label key for the codeset name

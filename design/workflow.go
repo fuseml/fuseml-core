@@ -326,7 +326,8 @@ var WorkflowStep = Type("WorkflowStep", func() {
 	})
 	Field(3, "inputs", ArrayOf(WorkflowStepInput), "List of inputs for the step")
 	Field(4, "outputs", ArrayOf(WorkflowStepOutput), "List of output from the step")
-	Field(5, "env", ArrayOf(WorkflowStepEnv), "List of environment variables available for the container running the step")
+	Field(5, "extensions", ArrayOf(WorkflowStepExtension), "List of extension requirements")
+	Field(6, "env", ArrayOf(WorkflowStepEnv), "List of environment variables available for the container running the step")
 
 	Required("name", "image")
 })
@@ -376,6 +377,117 @@ var WorkflowStepOutputImage = Type("WorkflowStepOutputImage", func() {
 	})
 
 	Required("name")
+})
+
+// WorkflowStepExtension defines the extension requirements that a FuseML workflow step has
+var WorkflowStepExtension = Type("WorkflowStepExtension", func() {
+	tag := 1
+	Field(1, "name", String, "Unique name used to reference this extension requirement", func() {
+		Pattern(identifierPattern)
+		MaxLength(100)
+		Example("s3")
+	})
+	tag++
+	Field(tag, "extension_id", String, "Reference extension explicitly by ID", func() {
+		Pattern(identifierPattern)
+		MaxLength(100)
+		Example("s3-storage-axW45s")
+		Default("")
+	})
+	tag++
+	Field(tag, "service_id", String, "Reference service explicitly by ID", func() {
+		Pattern(identifierPattern)
+		MaxLength(100)
+		Example("s3")
+		Default("")
+	})
+	tag++
+	Field(tag, "product", String,
+		`Reference extension by product. Product values are used to identify installations of the same product registered
+with the same or different FuseML servers`, func() {
+			MaxLength(100)
+			Example("mlflow")
+			Default("")
+		})
+	tag++
+	Field(tag, "version", String,
+		`Filter extension by version. This field can be set to an explicit version value or a semantic
+version constraint`, func() {
+			MaxLength(100)
+			Example("1.0")
+			Example("v10.3.1-prealpha+b10022020")
+			Example(">=v1.0,<v1.5")
+			Default("")
+		})
+	tag++
+	Field(tag, "zone", String,
+		`Match only extensions installed in a given zone - the infrastructure
+location / zone / area / domain where they are installed (e.g. kubernetes cluster).
+The zone filter is also used to automatically select between internal and external endpoints.`, func() {
+			MaxLength(100)
+			Example("eu-central-01")
+			Example("kube-cluster-dev-00126")
+			Default("")
+		})
+	tag++
+	Field(tag, "service_resource", String,
+		`Filter extension services by resource type. This identifier uniquely identifies the API or protocol
+(e.g. s3, git, mlflow) that the service provides`, func() {
+			MaxLength(100)
+			Example("s3")
+			Example("git")
+			Example("mlflow-tracker")
+			Default("")
+		})
+	tag++
+	Field(tag, "service_category", String,
+		`Filter extension services by service category. Used to classify services into well-known categories of AI/ML services
+(e.g. model store, feature store, distributed training, serving)`, func() {
+			MaxLength(100)
+			Example("model-store")
+			Example("serving-platform")
+			Default("")
+		})
+	tag++
+	Field(tag, "status", WorkflowStepExtensionStatus, "Extension requirement status")
+	tag++
+	Required("name")
+})
+
+// WorkflowStepExtensionStatus defines the extension endpoint and set of credentials that an extension
+// requirement is currently resolved to
+var WorkflowStepExtensionStatus = Type("WorkflowStepExtensionStatus", func() {
+	tag := 1
+	Field(tag, "extension_id", String, "The unique ID of the extension", func() {
+		Pattern(identifierPattern)
+		MaxLength(100)
+		Example("s3-storage-axW45s")
+		Default("")
+	})
+	tag++
+	Field(tag, "service_id", String, "The unique ID of the service belonging to the extension", func() {
+		Pattern(identifierPattern)
+		MaxLength(100)
+		Example("s3")
+		Default("")
+	})
+	tag++
+	Field(tag, "url", String,
+		`The endpoint URL. In case of k8s controllers and operators, the URL points to the cluster API.
+Also used to uniquely identifies an endpoint within the scope of a service`, func() {
+			Format(FormatURI)
+			MaxLength(200)
+			Example("https://mlflow.10.120.130.140.nip.io")
+			Default("")
+		})
+	tag++
+	Field(tag, "credentials_id", String, "The ID of the set of credentials required to access the endpoint", func() {
+		Pattern(identifierPattern)
+		MaxLength(100)
+		Example("dev-token-1353411")
+		Default("")
+	})
+	tag++
 })
 
 // WorkflowStepEnv defines the environment variables that are loaded inside the container running a FuseML workflow step

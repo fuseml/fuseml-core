@@ -175,11 +175,12 @@ func workflowStepsRestToDomain(restSteps []*workflow.WorkflowStep) []*domain.Wor
 	steps := make([]*domain.WorkflowStep, len(restSteps))
 	for i, restStep := range restSteps {
 		steps[i] = &domain.WorkflowStep{
-			Name:    restStep.Name,
-			Image:   restStep.Image,
-			Inputs:  workflowStepInputsRestToDomain(restStep.Inputs),
-			Outputs: workflowStepOutputsRestToDomain(restStep.Outputs),
-			Env:     workflowStepEnvsRestToDomain(restStep.Env),
+			Name:       restStep.Name,
+			Image:      restStep.Image,
+			Inputs:     workflowStepInputsRestToDomain(restStep.Inputs),
+			Outputs:    workflowStepOutputsRestToDomain(restStep.Outputs),
+			Extensions: workflowStepExtensionsRestToDomain(restStep.Extensions),
+			Env:        workflowStepEnvsRestToDomain(restStep.Env),
 		}
 	}
 	return steps
@@ -216,6 +217,24 @@ func workflowStepOutputsRestToDomain(restStepOutputs []*workflow.WorkflowStepOut
 			}
 		}
 		outputs[i] = &domainStepOutput
+	}
+	return outputs
+}
+
+func workflowStepExtensionsRestToDomain(restStepExtensions []*workflow.WorkflowStepExtension) []*domain.WorkflowStepExtension {
+	outputs := make([]*domain.WorkflowStepExtension, len(restStepExtensions))
+	for i, restStepExtension := range restStepExtensions {
+		domainStepExtention := domain.WorkflowStepExtension{
+			Name:               restStepExtension.Name,
+			ExtensionID:        restStepExtension.ExtensionID,
+			ServiceID:          restStepExtension.ServiceID,
+			Product:            restStepExtension.Product,
+			Zone:               restStepExtension.Zone,
+			VersionConstraints: restStepExtension.Version,
+			ServiceResource:    restStepExtension.ServiceResource,
+			ServiceCategory:    restStepExtension.ServiceCategory,
+		}
+		outputs[i] = &domainStepExtention
 	}
 	return outputs
 }
@@ -281,11 +300,12 @@ func workflowStepsDomainToRest(domainSteps []*domain.WorkflowStep) []*workflow.W
 	restSteps := make([]*workflow.WorkflowStep, len(domainSteps))
 	for i, domainStep := range domainSteps {
 		restSteps[i] = &workflow.WorkflowStep{
-			Name:    domainStep.Name,
-			Image:   domainStep.Image,
-			Inputs:  workflowStepInputsDomainToRest(domainStep.Inputs),
-			Outputs: workflowStepOutputsDomainToRest(domainStep.Outputs),
-			Env:     workflowStepEnvsDomainToRest(domainStep.Env),
+			Name:       domainStep.Name,
+			Image:      domainStep.Image,
+			Inputs:     workflowStepInputsDomainToRest(domainStep.Inputs),
+			Outputs:    workflowStepOutputsDomainToRest(domainStep.Outputs),
+			Extensions: workflowStepExtensionsDomainToRest(domainStep.Extensions),
+			Env:        workflowStepEnvsDomainToRest(domainStep.Env),
 		}
 	}
 	return restSteps
@@ -324,6 +344,34 @@ func workflowStepOutputsDomainToRest(domainStepOutputs []*domain.WorkflowStepOut
 		restStepOutputs[i] = &restStepOutput
 	}
 	return restStepOutputs
+}
+
+func workflowStepExtensionsDomainToRest(domainStepExtensions []*domain.WorkflowStepExtension) []*workflow.WorkflowStepExtension {
+	restStepExtensions := make([]*workflow.WorkflowStepExtension, len(domainStepExtensions))
+	for i, domainStepExtension := range domainStepExtensions {
+		restStepExtension := workflow.WorkflowStepExtension{
+			Name:            domainStepExtension.Name,
+			ExtensionID:     domainStepExtension.ExtensionID,
+			ServiceID:       domainStepExtension.ServiceID,
+			Product:         domainStepExtension.Product,
+			Zone:            domainStepExtension.Zone,
+			Version:         domainStepExtension.VersionConstraints,
+			ServiceResource: domainStepExtension.ServiceResource,
+			ServiceCategory: domainStepExtension.ServiceCategory,
+		}
+		if domainStepExtension.ExtensionAccess != nil {
+			restStepExtension.Status = &workflow.WorkflowStepExtensionStatus{
+				ExtensionID: domainStepExtension.ExtensionAccess.Extension.ID,
+				ServiceID:   domainStepExtension.ExtensionAccess.ExtensionService.ID,
+				URL:         domainStepExtension.ExtensionAccess.URL,
+			}
+			if domainStepExtension.ExtensionAccess.ExtensionCredentials != nil {
+				restStepExtension.Status.CredentialsID = domainStepExtension.ExtensionAccess.ExtensionCredentials.ID
+			}
+		}
+		restStepExtensions[i] = &restStepExtension
+	}
+	return restStepExtensions
 }
 
 func workflowStepEnvsDomainToRest(domainStepEnvs []*domain.WorkflowStepEnv) []*workflow.WorkflowStepEnv {

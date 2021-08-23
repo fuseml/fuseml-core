@@ -28,8 +28,6 @@ const (
 	errWaitListenerTimeout = WorkflowBackendErr("time out waiting for listener to become ready")
 )
 
-var globalEnvVars []EnvVar
-
 // WorkflowBackendErr are expected errors returned from the WorkflowBackend
 type WorkflowBackendErr string
 
@@ -291,12 +289,18 @@ func listenerIsAvailable(status v1alpha1.EventListenerStatus) bool {
 	return status.Address.URL != nil
 }
 
+func toEnvVarName(name string) (res string) {
+	res = strings.ToUpper(name)
+	res = strings.ReplaceAll(res, "-", "_")
+	return res
+}
+
 func generatePipeline(w domain.Workflow, namespace string) *v1beta1.Pipeline {
 	resolver := newVariablesResolver()
 	pb := builder.NewPipelineBuilder(w.Name, namespace)
+	// label the pipeline with a reference to the workflow name
 	pb.Meta(builder.Label(LabelWorkflowRef, w.Name))
 	pb.Description(w.Description)
-	globalEnvVars = []EnvVar{{"WORKFLOW_NAMESPACE", namespace}, {"WORKFLOW_NAME", w.Name}}
 
 	// process the FuseML workflow inputs
 	for _, input := range w.Inputs {
@@ -357,10 +361,50 @@ STEPS:
 			}
 		}
 
+		envVars := []EnvVar{{"WORKFLOW_NAMESPACE", namespace}, {"WORKFLOW_NAME", w.Name}}
+		stepResolver := resolver.clone()
+		for _, extension := range step.Extensions {
+			// add references to relevant extension fields
+			extVarPrefix := fmt.Sprintf("EXT_%s", toEnvVarName(extension.Name))
+			stepResolver.addReference(fmt.Sprintf("extensions.%s.product", extension.Name), extension.ExtensionAccess.Product)
+			envVars = append(envVars, EnvVar{fmt.Sprintf("%s_PRODUCT", extVarPrefix), extension.ExtensionAccess.Product})
+			stepResolver.addReference(fmt.Sprintf("extensions.%s.zone", extension.Name), extension.ExtensionAccess.Zone)
+			envVars = append(envVars, EnvVar{fmt.Sprintf("%s_ZONE", extVarPrefix), extension.ExtensionAccess.Zone})
+			stepResolver.addReference(fmt.Sprintf("extensions.%s.version", extension.Name), extension.ExtensionAccess.Version)
+			envVars = append(envVars, EnvVar{fmt.Sprintf("%s_VERSION", extVarPrefix), extension.ExtensionAccess.Version})
+			stepResolver.addReference(fmt.Sprintf("extensions.%s.service_resource", extension.Name), extension.ExtensionAccess.Resource)
+			envVars = append(envVars, EnvVar{fmt.Sprintf("%s_RESOURCE", extVarPrefix), extension.ExtensionAccess.Resource})
+			stepResolver.addReference(fmt.Sprintf("extensions.%s.service_category", extension.Name), extension.ExtensionAccess.Category)
+			envVars = append(envVars, EnvVar{fmt.Sprintf("%s_CATEGORY", extVarPrefix), extension.ExtensionAccess.Category})
+			stepResolver.addReference(fmt.Sprintf("extensions.%s.url", extension.Name), extension.ExtensionAccess.URL)
+			envVars = append(envVars, EnvVar{fmt.Sprintf("%s_URL", extVarPrefix), extension.ExtensionAccess.URL})
+			// add all configuration values as environment variables for the step as well as references
+			// that can be expanded in other fields
+			for k, v := range extension.ExtensionAccess.Extension.Configuration {
+				envVars = append(envVars, EnvVar{k, v})
+				stepResolver.addReference(fmt.Sprintf("extensions.%s.cfg.%s", extension.Name, k), v)
+			}
+			for k, v := range extension.ExtensionAccess.ExtensionService.Configuration {
+				envVars = append(envVars, EnvVar{k, v})
+				stepResolver.addReference(fmt.Sprintf("extensions.%s.cfg.%s", extension.Name, k), v)
+			}
+			for k, v := range extension.ExtensionAccess.ExtensionEndpoint.Configuration {
+				envVars = append(envVars, EnvVar{k, v})
+				stepResolver.addReference(fmt.Sprintf("extensions.%s.cfg.%s", extension.Name, k), v)
+			}
+			// TODO: use secrets to store credentials env vars
+			if extension.ExtensionAccess.ExtensionCredentials != nil {
+				for k, v := range extension.ExtensionAccess.ExtensionCredentials.Configuration {
+					envVars = append(envVars, EnvVar{k, v})
+					stepResolver.addReference(fmt.Sprintf("extensions.%s.cfg.%s", extension.Name, k), v)
+				}
+			}
+		}
+
 		// if the workflow step is not a pipeline task that references an existing TektonTask,
 		// build the task spec from the FuseML workflow step.
 		// generates a v1beta1.TaskSpec from a workflow.WorkflowStep
-		taskSpec := toTektonTaskSpec(step)
+		taskSpec := toTektonTaskSpec(step, stepResolver, envVars)
 		taskWs := make(map[string]string)
 		taskParams := make(map[string]string)
 		for _, input := range step.Inputs {
@@ -504,7 +548,7 @@ func generateEventListener(template *v1alpha1.TriggerTemplate, binding *v1alpha1
 	return &elb.EventListener
 }
 
-func toTektonTaskSpec(step *domain.WorkflowStep) v1beta1.TaskSpec {
+func toTektonTaskSpec(step *domain.WorkflowStep, resolver *variablesResolver, envVars []EnvVar) v1beta1.TaskSpec {
 	tb := builder.NewTaskSpecBuilder(step.Name, step.Image, stepDefaultCmd)
 
 	for _, input := range step.Inputs {
@@ -542,11 +586,11 @@ func toTektonTaskSpec(step *domain.WorkflowStep) v1beta1.TaskSpec {
 
 	// load environment variables
 	for _, stepEnv := range step.Env {
-		tb.Env(stepEnv.Name, stepEnv.Value)
+		tb.Env(stepEnv.Name, resolver.resolve(stepEnv.Value))
 	}
-	// export useful env variables to all steps
-	for _, envVar := range globalEnvVars {
-		tb.Env(fmt.Sprintf("%s%s", globalEnvVarPrefix, envVar.name), envVar.value)
+	// export env variables
+	for _, envVar := range envVars {
+		tb.Env(fmt.Sprintf("%s%s", envVarPrefix, envVar.name), envVar.value)
 	}
 
 	return tb.TaskSpec

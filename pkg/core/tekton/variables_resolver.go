@@ -16,6 +16,14 @@ func newVariablesResolver() *variablesResolver {
 	return r
 }
 
+func (r *variablesResolver) clone() (res *variablesResolver) {
+	res = newVariablesResolver()
+	for key, value := range r.references {
+		res.references[key] = value
+	}
+	return res
+}
+
 func (r *variablesResolver) resolve(value string) string {
 	regex := regexp.MustCompile(`{([^{{{}}}]*)}`)
 	matches := regex.FindAllStringSubmatch(value, -1)
