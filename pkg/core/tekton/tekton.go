@@ -289,12 +289,6 @@ func listenerIsAvailable(status v1alpha1.EventListenerStatus) bool {
 	return status.Address.URL != nil
 }
 
-func toEnvVarName(name string) (res string) {
-	res = strings.ToUpper(name)
-	res = strings.ReplaceAll(res, "-", "_")
-	return res
-}
-
 func generatePipeline(w domain.Workflow, namespace string) *v1beta1.Pipeline {
 	resolver := newVariablesResolver()
 	pb := builder.NewPipelineBuilder(w.Name, namespace)
@@ -361,23 +355,19 @@ STEPS:
 			}
 		}
 
-		envVars := []EnvVar{{"WORKFLOW_NAMESPACE", namespace}, {"WORKFLOW_NAME", w.Name}}
+		envVars := []EnvVar{
+			{envVarPrefix + "WORKFLOW_NAMESPACE", namespace},
+			{envVarPrefix + "WORKFLOW_NAME", w.Name},
+		}
 		stepResolver := resolver.clone()
 		for _, extension := range step.Extensions {
 			// add references to relevant extension fields
-			extVarPrefix := fmt.Sprintf("EXT_%s", toEnvVarName(extension.Name))
 			stepResolver.addReference(fmt.Sprintf("extensions.%s.product", extension.Name), extension.ExtensionAccess.Product)
-			envVars = append(envVars, EnvVar{fmt.Sprintf("%s_PRODUCT", extVarPrefix), extension.ExtensionAccess.Product})
 			stepResolver.addReference(fmt.Sprintf("extensions.%s.zone", extension.Name), extension.ExtensionAccess.Zone)
-			envVars = append(envVars, EnvVar{fmt.Sprintf("%s_ZONE", extVarPrefix), extension.ExtensionAccess.Zone})
 			stepResolver.addReference(fmt.Sprintf("extensions.%s.version", extension.Name), extension.ExtensionAccess.Version)
-			envVars = append(envVars, EnvVar{fmt.Sprintf("%s_VERSION", extVarPrefix), extension.ExtensionAccess.Version})
 			stepResolver.addReference(fmt.Sprintf("extensions.%s.service_resource", extension.Name), extension.ExtensionAccess.Resource)
-			envVars = append(envVars, EnvVar{fmt.Sprintf("%s_RESOURCE", extVarPrefix), extension.ExtensionAccess.Resource})
 			stepResolver.addReference(fmt.Sprintf("extensions.%s.service_category", extension.Name), extension.ExtensionAccess.Category)
-			envVars = append(envVars, EnvVar{fmt.Sprintf("%s_CATEGORY", extVarPrefix), extension.ExtensionAccess.Category})
 			stepResolver.addReference(fmt.Sprintf("extensions.%s.url", extension.Name), extension.ExtensionAccess.URL)
-			envVars = append(envVars, EnvVar{fmt.Sprintf("%s_URL", extVarPrefix), extension.ExtensionAccess.URL})
 			// add all configuration values as environment variables for the step as well as references
 			// that can be expanded in other fields
 			for k, v := range extension.ExtensionAccess.Extension.Configuration {
@@ -590,7 +580,7 @@ func toTektonTaskSpec(step *domain.WorkflowStep, resolver *variablesResolver, en
 	}
 	// export env variables
 	for _, envVar := range envVars {
-		tb.Env(fmt.Sprintf("%s%s", envVarPrefix, envVar.name), envVar.value)
+		tb.Env(envVar.name, envVar.value)
 	}
 
 	return tb.TaskSpec

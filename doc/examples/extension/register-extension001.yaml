@@ -3,7 +3,7 @@ id: mlflow-0001
 product: mlflow
 version: "1.19.0"
 description: MLFlow experiment tracking service
-zone: cluster-alpha
+zone: local
 services:
   - id: mlflow-tracking
     resource: mlflow-tracking
@@ -13,15 +13,19 @@ services:
     endpoints:
       - url: http://mlflow
         type: internal
+        configuration:
+          MLFLOW_TRACKING_URI: http://mlflow
       - url: http://mlflow.172.22.0.2.nip.io
         type: external
+        configuration:
+          MLFLOW_TRACKING_URI: http://mlflow.172.22.0.2.nip.io
   - id: mlflow-store
     resource: s3
     category: model-store
     description: MLFlow minio S3 storage back-end
     auth_required: True
     credentials:
-      - id: default-s3-account
+      - id: default
         scope: global
         configuration:
           AWS_ACCESS_KEY_ID: v4Us74XUtkuEGd10yS05
@@ -29,5 +33,9 @@ services:
     endpoints:
       - url: http://mlflow-minio:9000
         type: internal
+        configuration:
+          MLFLOW_S3_ENDPOINT_URL: http://mlflow-minio:9000
       - url: http://minio.172.22.0.2.nip.io:9000
         type: external
+        configuration:
+          MLFLOW_S3_ENDPOINT_URL: http://minio.172.22.0.2.nip.io:9000
