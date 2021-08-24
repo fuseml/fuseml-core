@@ -41,3 +41,10 @@ jobs:
       - name: Run "${{ matrix.target }}"
         run: |
           make generate ${{ matrix.target }}
+
+      - name: Upload coverage to Codecov
+        if: matrix.target == 'test'
+        uses: codecov/codecov-action@v2
+        with:
+          files: ./cover.out
+          flags: unittests
