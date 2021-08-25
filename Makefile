@@ -43,7 +43,7 @@ all: fuseml
 
 # Run tests
 test: generate lint
-	go test ./... -coverprofile cover.out
+	go test ./... -coverprofile cover.out -covermode=atomic
 
 # Generate code, run linter and build FuseML binaries
 fuseml: generate lint build
