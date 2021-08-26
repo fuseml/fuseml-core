@@ -1,3 +1,4 @@
+//go:build wireinject
 // +build wireinject
 
 package main
@@ -6,6 +7,7 @@ import (
 	"log"
 
 	"github.com/google/wire"
+	"github.com/timshannon/badgerhold/v3"
 
 	"github.com/fuseml/fuseml-core/gen/application"
 	"github.com/fuseml/fuseml-core/gen/codeset"
@@ -17,6 +19,7 @@ import (
 	"github.com/fuseml/fuseml-core/pkg/core"
 	"github.com/fuseml/fuseml-core/pkg/core/gitea"
 	"github.com/fuseml/fuseml-core/pkg/core/manager"
+	"github.com/fuseml/fuseml-core/pkg/core/store/badger"
 	"github.com/fuseml/fuseml-core/pkg/core/tekton"
 	"github.com/fuseml/fuseml-core/pkg/domain"
 	"github.com/fuseml/fuseml-core/pkg/svc"
@@ -33,8 +36,8 @@ var storeSet = wire.NewSet(
 	wire.Bind(new(domain.ProjectStore), new(*core.GitProjectStore)),
 	core.NewRunnableStore,
 	wire.Bind(new(domain.RunnableStore), new(*core.RunnableStore)),
-	core.NewWorkflowStore,
-	wire.Bind(new(domain.WorkflowStore), new(*core.WorkflowStore)),
+	badger.NewWorkflowStore,
+	wire.Bind(new(domain.WorkflowStore), new(*badger.WorkflowStore)),
 	core.NewExtensionStore,
 	wire.Bind(new(domain.ExtensionStore), new(*core.ExtensionStore)),
 )
@@ -68,12 +71,15 @@ var endpointsSet = wire.NewSet(
 	extension.NewEndpoints,
 )
 
-func InitializeEndpoints(logger *log.Logger, fuseMLNamespace string) (*endpoints, error) {
+func InitializeCore(logger *log.Logger, storeOptions badgerhold.Options, fuseMLNamespace string) (*coreInit, error) {
 	wire.Build(
 		storeSet,
 		managerSet,
 		backendSet,
 		endpointsSet,
-		wire.Struct(new(endpoints), "*"))
-	return &endpoints{}, nil
+		wire.Struct(new(endpoints), "*"),
+		wire.Struct(new(stores), "*"),
+		wire.Struct(new(coreInit), "*"),
+	)
+	return &coreInit{}, nil
 }

@@ -134,6 +134,10 @@ func (ws *WorkflowStore) GetAssignedCodeset(ctx context.Context, workflowName st
 	return ac, nil
 }
 
+func (ws *WorkflowStore) Close() error {
+	return nil
+}
+
 func getAssignedCodeset(assignedCodesets []*domain.CodesetAssignment, codeset *domain.Codeset) (*domain.CodesetAssignment, int) {
 	for i, ac := range assignedCodesets {
 		if ac.Codeset.Project == codeset.Project && ac.Codeset.Name == codeset.Name {

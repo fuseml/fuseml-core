@@ -13,6 +13,7 @@ const (
 	// ErrWorkflowNotAssignedToCodeset describes the error message returned when trying to unassign a workflow from a codeset
 	// but it is not assigned to the codeset.
 	ErrWorkflowNotAssignedToCodeset = WorkflowErr("workflow not assigned to codeset")
+	ErrCannotDeleteAssignedWorkflow = WorkflowErr("cannot delete workflow, there are codesets assigned to it")
 )
 
 const (
@@ -250,6 +251,8 @@ type WorkflowStore interface {
 	AddCodesetAssignment(ctx context.Context, workflowName string, assignedCodeset *CodesetAssignment) []*CodesetAssignment
 	// DeleteCodesetAssignment deletes a codeset assignment from the store.
 	DeleteCodesetAssignment(ctx context.Context, workflowName string, codeset *Codeset) []*CodesetAssignment
+	// Close closes the store.
+	Close() error
 }
 
 // WorkflowBackend is the interface for the FuseML workflows
