@@ -362,29 +362,29 @@ STEPS:
 		stepResolver := resolver.clone()
 		for _, extension := range step.Extensions {
 			// add references to relevant extension fields
-			stepResolver.addReference(fmt.Sprintf("extensions.%s.product", extension.Name), extension.ExtensionAccess.Product)
-			stepResolver.addReference(fmt.Sprintf("extensions.%s.zone", extension.Name), extension.ExtensionAccess.Zone)
-			stepResolver.addReference(fmt.Sprintf("extensions.%s.version", extension.Name), extension.ExtensionAccess.Version)
-			stepResolver.addReference(fmt.Sprintf("extensions.%s.service_resource", extension.Name), extension.ExtensionAccess.Resource)
-			stepResolver.addReference(fmt.Sprintf("extensions.%s.service_category", extension.Name), extension.ExtensionAccess.Category)
-			stepResolver.addReference(fmt.Sprintf("extensions.%s.url", extension.Name), extension.ExtensionAccess.URL)
+			stepResolver.addReference(fmt.Sprintf("extensions.%s.product", extension.Name), extension.ExtensionAccess.Extension.Product)
+			stepResolver.addReference(fmt.Sprintf("extensions.%s.zone", extension.Name), extension.ExtensionAccess.Extension.Zone)
+			stepResolver.addReference(fmt.Sprintf("extensions.%s.version", extension.Name), extension.ExtensionAccess.Extension.Version)
+			stepResolver.addReference(fmt.Sprintf("extensions.%s.service_resource", extension.Name), extension.ExtensionAccess.Service.Resource)
+			stepResolver.addReference(fmt.Sprintf("extensions.%s.service_category", extension.Name), extension.ExtensionAccess.Service.Category)
+			stepResolver.addReference(fmt.Sprintf("extensions.%s.url", extension.Name), extension.ExtensionAccess.Endpoint.URL)
 			// add all configuration values as environment variables for the step as well as references
 			// that can be expanded in other fields
 			for k, v := range extension.ExtensionAccess.Extension.Configuration {
 				envVars = append(envVars, EnvVar{k, v})
 				stepResolver.addReference(fmt.Sprintf("extensions.%s.cfg.%s", extension.Name, k), v)
 			}
-			for k, v := range extension.ExtensionAccess.ExtensionService.Configuration {
+			for k, v := range extension.ExtensionAccess.Service.Configuration {
 				envVars = append(envVars, EnvVar{k, v})
 				stepResolver.addReference(fmt.Sprintf("extensions.%s.cfg.%s", extension.Name, k), v)
 			}
-			for k, v := range extension.ExtensionAccess.ExtensionEndpoint.Configuration {
+			for k, v := range extension.ExtensionAccess.Endpoint.Configuration {
 				envVars = append(envVars, EnvVar{k, v})
 				stepResolver.addReference(fmt.Sprintf("extensions.%s.cfg.%s", extension.Name, k), v)
 			}
 			// TODO: use secrets to store credentials env vars
-			if extension.ExtensionAccess.ExtensionCredentials != nil {
-				for k, v := range extension.ExtensionAccess.ExtensionCredentials.Configuration {
+			if extension.ExtensionAccess.Credentials != nil {
+				for k, v := range extension.ExtensionAccess.Credentials.Configuration {
 					envVars = append(envVars, EnvVar{k, v})
 					stepResolver.addReference(fmt.Sprintf("extensions.%s.cfg.%s", extension.Name, k), v)
 				}

@@ -362,11 +362,11 @@ func workflowStepExtensionsDomainToRest(domainStepExtensions []*domain.WorkflowS
 		if domainStepExtension.ExtensionAccess != nil {
 			restStepExtension.Status = &workflow.WorkflowStepExtensionStatus{
 				ExtensionID: domainStepExtension.ExtensionAccess.Extension.ID,
-				ServiceID:   domainStepExtension.ExtensionAccess.ExtensionService.ID,
-				URL:         domainStepExtension.ExtensionAccess.URL,
+				ServiceID:   domainStepExtension.ExtensionAccess.Service.ID,
+				URL:         domainStepExtension.ExtensionAccess.Endpoint.URL,
 			}
-			if domainStepExtension.ExtensionAccess.ExtensionCredentials != nil {
-				restStepExtension.Status.CredentialsID = domainStepExtension.ExtensionAccess.ExtensionCredentials.ID
+			if domainStepExtension.ExtensionAccess.Credentials != nil {
+				restStepExtension.Status.CredentialsID = domainStepExtension.ExtensionAccess.Credentials.ID
 			}
 		}
 		restStepExtensions[i] = &restStepExtension

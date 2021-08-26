@@ -163,19 +163,19 @@ func (s byID) Less(i, j int) bool {
 	if s.queryResults[i].Extension.ID != s.queryResults[j].Extension.ID {
 		return s.queryResults[i].Extension.ID < s.queryResults[j].Extension.ID
 	}
-	if s.queryResults[i].ExtensionService.ID != s.queryResults[j].ExtensionService.ID {
-		return s.queryResults[i].ExtensionService.ID < s.queryResults[j].ExtensionService.ID
+	if s.queryResults[i].Service.ID != s.queryResults[j].Service.ID {
+		return s.queryResults[i].Service.ID < s.queryResults[j].Service.ID
 	}
-	if s.queryResults[i].ExtensionEndpoint.URL != s.queryResults[j].ExtensionEndpoint.URL {
-		return s.queryResults[i].ExtensionEndpoint.URL < s.queryResults[j].ExtensionEndpoint.URL
+	if s.queryResults[i].Endpoint.URL != s.queryResults[j].Endpoint.URL {
+		return s.queryResults[i].Endpoint.URL < s.queryResults[j].Endpoint.URL
 	}
-	if s.queryResults[i].ExtensionCredentials == nil {
+	if s.queryResults[i].Credentials == nil {
 		return true
 	}
-	if s.queryResults[j].ExtensionCredentials == nil {
+	if s.queryResults[j].Credentials == nil {
 		return false
 	}
-	return s.queryResults[i].ExtensionCredentials.ID < s.queryResults[j].ExtensionCredentials.ID
+	return s.queryResults[i].Credentials.ID < s.queryResults[j].Credentials.ID
 }
 
 // RunExtensionAccessQuery - run a query on the extension registry to find one or more ways to access extensions matching given search parameters
@@ -194,19 +194,19 @@ func (registry *ExtensionRegistry) RunExtensionAccessQuery(ctx context.Context, 
 				if len(service.Credentials) > 0 || service.AuthRequired {
 					for _, credentials := range service.Credentials {
 						accessDesc := domain.ExtensionAccessDescriptor{
-							Extension:            extension.Extension,
-							ExtensionService:     service.ExtensionService,
-							ExtensionEndpoint:    *endpoint,
-							ExtensionCredentials: credentials,
+							Extension:   extension.Extension,
+							Service:     service.ExtensionService,
+							Endpoint:    *endpoint,
+							Credentials: credentials,
 						}
 						result = append(result, &accessDesc)
 					}
 				} else {
 					accessDesc := domain.ExtensionAccessDescriptor{
-						Extension:            extension.Extension,
-						ExtensionService:     service.ExtensionService,
-						ExtensionEndpoint:    *endpoint,
-						ExtensionCredentials: nil,
+						Extension:   extension.Extension,
+						Service:     service.ExtensionService,
+						Endpoint:    *endpoint,
+						Credentials: nil,
 					}
 					result = append(result, &accessDesc)
 				}

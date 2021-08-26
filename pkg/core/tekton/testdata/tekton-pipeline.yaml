@@ -92,6 +92,10 @@ spec:
             env:
               - name: TASK_RESULT
                 value: mlflow-model-url
+              - name: FUSEML_ENV_WORKFLOW_NAMESPACE
+                value: test-namespace
+              - name: FUSEML_ENV_WORKFLOW_NAME
+                value: mlflow-sklearn-e2e
               - name: MLFLOW_TRACKING_URI
                 value: 'http://mlflow'
               - name: MLFLOW_S3_ENDPOINT_URL
@@ -100,10 +104,6 @@ spec:
                 value: gABTE5DmmLgjJypJzGFs
               - name: AWS_SECRET_ACCESS_KEY
                 value: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
-              - name: FUSEML_ENV_WORKFLOW_NAMESPACE
-                value: test-namespace
-              - name: FUSEML_ENV_WORKFLOW_NAME
-                value: mlflow-sklearn-e2e
             image: $(params.IMAGE)
             name: trainer
             resources: {}
@@ -140,14 +140,16 @@ spec:
                 value: $(params.predictor)
               - name: TASK_RESULT
                 value: prediction-url
-              - name: AWS_ACCESS_KEY_ID
-                value: gABTE5DmmLgjJypJzGFs
-              - name: AWS_SECRET_ACCESS_KEY
-                value: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
               - name: FUSEML_ENV_WORKFLOW_NAMESPACE
                 value: test-namespace
               - name: FUSEML_ENV_WORKFLOW_NAME
                 value: mlflow-sklearn-e2e
+              - name: MLFLOW_S3_ENDPOINT_URL
+                value: 'http://mlflow-minio:9000'
+              - name: AWS_ACCESS_KEY_ID
+                value: gABTE5DmmLgjJypJzGFs
+              - name: AWS_SECRET_ACCESS_KEY
+                value: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
             image: 'ghcr.io/fuseml/kfserving-predictor:0.1'
             name: predictor
             resources: {}

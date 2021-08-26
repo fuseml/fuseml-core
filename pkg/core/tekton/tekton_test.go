@@ -19,6 +19,7 @@ import (
 	"github.com/tektoncd/pipeline/test/diff"
 	"github.com/tektoncd/triggers/pkg/apis/triggers/v1alpha1"
 	faketriggersclient "github.com/tektoncd/triggers/pkg/client/injection/client/fake"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"knative.dev/pkg/apis"
@@ -61,7 +62,9 @@ func TestCreateWorkflow(t *testing.T) {
 		readYaml(t, wantTektonPipeline, &want)
 
 		ignoreTypeMetaField := cmpopts.IgnoreFields(v1beta1.Pipeline{}, "TypeMeta")
-		if d := cmp.Diff(want, *got, cmpopts.SortSlices(func(x, y v1beta1.Param) bool { return x.Name < y.Name }), ignoreTypeMetaField); d != "" {
+		sortParamSlices := cmpopts.SortSlices(func(x, y v1beta1.Param) bool { return x.Name < y.Name })
+		sortEnvVarSlices := cmpopts.SortSlices(func(x, y corev1.EnvVar) bool { return x.Name < y.Name })
+		if d := cmp.Diff(want, *got, ignoreTypeMetaField, sortParamSlices, sortEnvVarSlices); d != "" {
 			t.Errorf("Unexpected Pipeline: %s", diff.PrintWantGot(d))
 		}
 	})

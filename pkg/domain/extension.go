@@ -187,10 +187,10 @@ type ExtensionServiceRecord struct {
 // a service, an endpoint and an optional set of credentials. It's returned as result when running access queries
 // against the extension registry.
 type ExtensionAccessDescriptor struct {
-	Extension
-	ExtensionService
-	ExtensionEndpoint
-	*ExtensionCredentials
+	Extension   Extension
+	Service     ExtensionService
+	Endpoint    ExtensionEndpoint
+	Credentials *ExtensionCredentials
 }
 
 // ExtensionQuery is a query that can be run against the extension registry to retrieve

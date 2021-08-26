@@ -215,7 +215,7 @@ func (mgr *WorkflowManager) resolveExtensionReferences(ctx context.Context, wf *
 			// prefer internal endpoints if more results are returned
 			extReq.ExtensionAccess = accessDescList[0]
 			for _, accessDesc := range accessDescList {
-				if accessDesc.ExtensionEndpoint.Type == domain.EETInternal {
+				if accessDesc.Endpoint.Type == domain.EETInternal {
 					extReq.ExtensionAccess = accessDesc
 					break
 				}
