@@ -12,6 +12,8 @@ import (
 	"sync"
 	"syscall"
 
+	"github.com/timshannon/badgerhold/v3"
+
 	"github.com/fuseml/fuseml-core/gen/application"
 	"github.com/fuseml/fuseml-core/gen/codeset"
 	"github.com/fuseml/fuseml-core/gen/extension"
@@ -20,14 +22,12 @@ import (
 	"github.com/fuseml/fuseml-core/gen/version"
 	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/core/config"
-	"github.com/fuseml/fuseml-core/pkg/domain"
 	ver "github.com/fuseml/fuseml-core/pkg/version"
-	"github.com/timshannon/badgerhold/v3"
 )
 
 type coreInit struct {
 	endpoints *endpoints
-	stores    *stores
+	store     *badgerhold.Store
 }
 type endpoints struct {
 	application *application.Endpoints
@@ -37,15 +37,6 @@ type endpoints struct {
 	version     *version.Endpoints
 	workflow    *workflow.Endpoints
 	extension   *extension.Endpoints
-}
-
-type stores struct {
-	application domain.ApplicationStore
-	codeset     domain.CodesetStore
-	project     domain.ProjectStore
-	runnable    domain.RunnableStore
-	workflow    domain.WorkflowStore
-	extension   domain.ExtensionStore
 }
 
 func main() {
@@ -214,8 +205,8 @@ func main() {
 	// Send cancellation signal to the goroutines.
 	cancel()
 
-	// Close the stores.
-	coreInit.stores.workflow.Close()
+	// Closes the stores.
+	coreInit.store.Close()
 
 	wg.Wait()
 	logger.Println("exited")

@@ -276,8 +276,6 @@ type WorkflowStore interface {
 	AddCodesetAssignment(ctx context.Context, workflowName string, assignedCodeset *CodesetAssignment) []*CodesetAssignment
 	// DeleteCodesetAssignment deletes a codeset assignment from the store.
 	DeleteCodesetAssignment(ctx context.Context, workflowName string, codeset *Codeset) []*CodesetAssignment
-	// Close closes the store.
-	Close() error
 }
 
 // WorkflowBackend is the interface for the FuseML workflows

@@ -26,6 +26,7 @@ import (
 )
 
 var storeSet = wire.NewSet(
+	badgerhold.Open,
 	core.NewApplicationStore,
 	wire.Bind(new(domain.ApplicationStore), new(*core.ApplicationStore)),
 	gitea.NewAdminClient,
@@ -78,7 +79,6 @@ func InitializeCore(logger *log.Logger, storeOptions badgerhold.Options, fuseMLN
 		backendSet,
 		endpointsSet,
 		wire.Struct(new(endpoints), "*"),
-		wire.Struct(new(stores), "*"),
 		wire.Struct(new(coreInit), "*"),
 	)
 	return &coreInit{}, nil

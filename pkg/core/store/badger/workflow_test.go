@@ -462,12 +462,15 @@ func newWorkflowStore(t *testing.T) (*WorkflowStore, func()) {
 	opt.Logger = nil
 	opt.Dir = dir
 	opt.ValueDir = dir
-	store, err := NewWorkflowStore(opt)
+
+	store, err := badgerhold.Open(opt)
 	if err != nil {
-		t.Fatalf("failed to open workflow store: %v", err)
+		t.Fatalf("failed to open store: %v", err)
 	}
 
-	return store, func() {
+	workflowStore := NewWorkflowStore(store)
+
+	return workflowStore, func() {
 		store.Close()
 		os.RemoveAll(dir)
 	}
