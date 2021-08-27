@@ -27,8 +27,8 @@ import (
 
 var storeSet = wire.NewSet(
 	badgerhold.Open,
-	core.NewApplicationStore,
-	wire.Bind(new(domain.ApplicationStore), new(*core.ApplicationStore)),
+	badger.NewApplicationStore,
+	wire.Bind(new(domain.ApplicationStore), new(*badger.ApplicationStore)),
 	gitea.NewAdminClient,
 	wire.Bind(new(domain.GitAdminClient), new(*gitea.AdminClient)),
 	core.NewGitCodesetStore,

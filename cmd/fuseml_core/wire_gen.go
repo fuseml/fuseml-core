@@ -29,7 +29,11 @@ import (
 // Injectors from wire.go:
 
 func InitializeCore(logger *log.Logger, storeOptions badgerhold.Options, fuseMLNamespace string) (*coreInit, error) {
-	applicationStore := core.NewApplicationStore()
+	store, err := badgerhold.Open(storeOptions)
+	if err != nil {
+		return nil, err
+	}
+	applicationStore := badger.NewApplicationStore(store)
 	service := svc.NewApplicationService(logger, applicationStore)
 	applicationEndpoints := application.NewEndpoints(service)
 	adminClient, err := gitea.NewAdminClient(logger)
@@ -48,10 +52,6 @@ func InitializeCore(logger *log.Logger, storeOptions badgerhold.Options, fuseMLN
 	versionService := svc.NewVersionService(logger)
 	versionEndpoints := version.NewEndpoints(versionService)
 	workflowBackend, err := tekton.NewWorkflowBackend(logger, fuseMLNamespace)
-	if err != nil {
-		return nil, err
-	}
-	store, err := badgerhold.Open(storeOptions)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func InitializeCore(logger *log.Logger, storeOptions badgerhold.Options, fuseMLN
 
 // wire.go:
 
-var storeSet = wire.NewSet(badgerhold.Open, core.NewApplicationStore, wire.Bind(new(domain.ApplicationStore), new(*core.ApplicationStore)), gitea.NewAdminClient, wire.Bind(new(domain.GitAdminClient), new(*gitea.AdminClient)), core.NewGitCodesetStore, wire.Bind(new(domain.CodesetStore), new(*core.GitCodesetStore)), core.NewGitProjectStore, wire.Bind(new(domain.ProjectStore), new(*core.GitProjectStore)), core.NewRunnableStore, wire.Bind(new(domain.RunnableStore), new(*core.RunnableStore)), badger.NewWorkflowStore, wire.Bind(new(domain.WorkflowStore), new(*badger.WorkflowStore)), core.NewExtensionStore, wire.Bind(new(domain.ExtensionStore), new(*core.ExtensionStore)))
+var storeSet = wire.NewSet(badgerhold.Open, badger.NewApplicationStore, wire.Bind(new(domain.ApplicationStore), new(*badger.ApplicationStore)), gitea.NewAdminClient, wire.Bind(new(domain.GitAdminClient), new(*gitea.AdminClient)), core.NewGitCodesetStore, wire.Bind(new(domain.CodesetStore), new(*core.GitCodesetStore)), core.NewGitProjectStore, wire.Bind(new(domain.ProjectStore), new(*core.GitProjectStore)), core.NewRunnableStore, wire.Bind(new(domain.RunnableStore), new(*core.RunnableStore)), badger.NewWorkflowStore, wire.Bind(new(domain.WorkflowStore), new(*badger.WorkflowStore)), core.NewExtensionStore, wire.Bind(new(domain.ExtensionStore), new(*core.ExtensionStore)))
 
 var managerSet = wire.NewSet(manager.NewWorkflowManager, wire.Bind(new(domain.WorkflowManager), new(*manager.WorkflowManager)), manager.NewExtensionRegistry, wire.Bind(new(domain.ExtensionRegistry), new(*manager.ExtensionRegistry)))
 
