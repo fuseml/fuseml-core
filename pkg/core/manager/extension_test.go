@@ -1082,10 +1082,10 @@ func TestExtensionQuery(t *testing.T) {
 		}
 
 		qRes := []*domain.ExtensionAccessDescriptor{{
-			Extension:            er1.Extension,
-			ExtensionService:     sr1.ExtensionService,
-			ExtensionEndpoint:    *ep1,
-			ExtensionCredentials: c1,
+			Extension:   er1.Extension,
+			Service:     sr1.ExtensionService,
+			Endpoint:    *ep1,
+			Credentials: c1,
 		}}
 		qOut, err := registry.RunExtensionAccessQuery(context.Background(), q)
 		assertError(t, err, nil)
@@ -1104,10 +1104,10 @@ func TestExtensionQuery(t *testing.T) {
 		}
 
 		qRes = []*domain.ExtensionAccessDescriptor{{
-			Extension:            er1.Extension,
-			ExtensionService:     sr2.ExtensionService,
-			ExtensionEndpoint:    *ep2,
-			ExtensionCredentials: c2,
+			Extension:   er1.Extension,
+			Service:     sr2.ExtensionService,
+			Endpoint:    *ep2,
+			Credentials: c2,
 		}}
 		qOut, err = registry.RunExtensionAccessQuery(context.Background(), q)
 		assertError(t, err, nil)
@@ -1124,16 +1124,16 @@ func TestExtensionQuery(t *testing.T) {
 
 		qRes = []*domain.ExtensionAccessDescriptor{
 			{
-				Extension:            er1.Extension,
-				ExtensionService:     sr2.ExtensionService,
-				ExtensionEndpoint:    *ep2,
-				ExtensionCredentials: c2,
+				Extension:   er1.Extension,
+				Service:     sr2.ExtensionService,
+				Endpoint:    *ep2,
+				Credentials: c2,
 			},
 			{
-				Extension:            er2.Extension,
-				ExtensionService:     sr4.ExtensionService,
-				ExtensionEndpoint:    *ep4,
-				ExtensionCredentials: c4,
+				Extension:   er2.Extension,
+				Service:     sr4.ExtensionService,
+				Endpoint:    *ep4,
+				Credentials: c4,
 			},
 		}
 		qOut, err = registry.RunExtensionAccessQuery(context.Background(), q)

@@ -1,0 +1,17 @@
+# curl -X POST --data-binary @register-extension003.yaml -H "Content-Type: application/x-yaml" http://localhost:8000/extensions
+id: trow-registry-builtin
+product: trow
+version: "0.3.3"
+description: FuseML built-in Trow container registry instance 
+zone: local
+services:
+  - id: oci
+    resource: oci
+    category: container-registry
+    description: Trow's OCI API 
+    auth_required: False
+    endpoints:
+      - url: http://registry.fuseml-registry
+        type: internal
+      - url: http://127.0.0.1:30500
+        type: external

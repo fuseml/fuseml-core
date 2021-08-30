@@ -710,7 +710,6 @@ this extension), expressed as set of key-value entries`, func() {
 	Field(tag, "status", ExtensionStatus, "Extension status")
 	tag++
 	Field(tag, "services", ArrayOf(ExtensionService), "List of services provided by this extension")
-	tag++
 })
 
 // Extension status descriptor
@@ -727,7 +726,6 @@ var ExtensionStatus = Type("ExtensionStatus", func() {
 		Default(time.Now().Format(time.RFC3339))
 		Example(time.Now().Format(time.RFC3339))
 	})
-	tag++
 })
 
 // Extension service descriptor
@@ -791,7 +789,6 @@ this service), expressed as set of key-value entries`, func() {
 	Field(tag, "endpoints", ArrayOf(ExtensionEndpoint), "List of endpoints through which this service can be accessed")
 	tag++
 	Field(tag, "credentials", ArrayOf(ExtensionCredentials), "List of credentials required to access this service")
-	tag++
 })
 
 // Extension service status descriptor
@@ -808,7 +805,6 @@ var ExtensionServiceStatus = Type("ExtensionServiceStatus", func() {
 		Default(time.Now().Format(time.RFC3339))
 		Example(time.Now().Format(time.RFC3339))
 	})
-	tag++
 })
 
 // Extension endpoint descriptor
@@ -855,15 +851,12 @@ this endpoint), expressed as set of key-value entries`, func() {
 		})
 	tag++
 	Field(tag, "status", ExtensionEndpointStatus, "Endpoint status")
-	tag++
 })
 
 // Extension endpoint status descriptor
 var ExtensionEndpointStatus = Type("ExtensionEndpointStatus", func() {
-	tag := 1
 	// empty for now, but can be extended to include future operational status attrs
 	// e.g. whether the endpoint is reachable or not, or number of consumers
-	tag++
 })
 
 // Extension credentials descriptor
@@ -922,7 +915,6 @@ list and, optionally, in the context of the projects supplied in the Projects li
 		})
 	tag++
 	Field(tag, "status", ExtensionCredentialsStatus, "Credentials status")
-	tag++
 })
 
 // Extension credentials status descriptor
@@ -939,5 +931,4 @@ var ExtensionCredentialsStatus = Type("ExtensionCredentialsStatus", func() {
 		Default(time.Now().Format(time.RFC3339))
 		Example(time.Now().Format(time.RFC3339))
 	})
-	tag++
 })

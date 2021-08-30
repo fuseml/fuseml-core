@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/fuseml/fuseml-core/pkg/domain"
@@ -13,15 +14,20 @@ const createWorkflowListenerTimeout = 1
 
 // WorkflowManager implements the domain.WorkflowManager interface
 type WorkflowManager struct {
-	workflowBackend domain.WorkflowBackend
-	workflowStore   domain.WorkflowStore
-	codesetStore    domain.CodesetStore
+	workflowBackend   domain.WorkflowBackend
+	workflowStore     domain.WorkflowStore
+	codesetStore      domain.CodesetStore
+	extensionRegistry domain.ExtensionRegistry
 }
 
 // NewWorkflowManager initializes a Workflow Manager
 // FIXME: instead of CodesetStore, receive a CodesetManager
-func NewWorkflowManager(workflowBackend domain.WorkflowBackend, workflowStore domain.WorkflowStore, codesetStore domain.CodesetStore) *WorkflowManager {
-	return &WorkflowManager{workflowBackend, workflowStore, codesetStore}
+func NewWorkflowManager(
+	workflowBackend domain.WorkflowBackend,
+	workflowStore domain.WorkflowStore,
+	codesetStore domain.CodesetStore,
+	extensionRegistry domain.ExtensionRegistry) *WorkflowManager {
+	return &WorkflowManager{workflowBackend, workflowStore, codesetStore, extensionRegistry}
 }
 
 // List Workflows.
@@ -32,7 +38,11 @@ func (mgr *WorkflowManager) List(ctx context.Context, name *string) []*domain.Wo
 // Create a new Workflow.
 func (mgr *WorkflowManager) Create(ctx context.Context, wf *domain.Workflow) (*domain.Workflow, error) {
 	wf.Created = time.Now()
-	err := mgr.workflowBackend.CreateWorkflow(ctx, wf)
+	err := mgr.resolveExtensionReferences(ctx, wf)
+	if err != nil {
+		return nil, err
+	}
+	err = mgr.workflowBackend.CreateWorkflow(ctx, wf)
 	if err != nil {
 		return nil, err
 	}
@@ -173,6 +183,47 @@ func (mgr *WorkflowManager) OnDeletingCodeset(ctx context.Context, codeset *doma
 	for _, wf := range mgr.List(ctx, nil) {
 		mgr.UnassignFromCodeset(ctx, wf.Name, codeset.Project, codeset.Name)
 	}
+}
+
+// Resolve all the extension references in the workflow steps and update them with actual
+// extension endpoints and credentials
+func (mgr *WorkflowManager) resolveExtensionReferences(ctx context.Context, wf *domain.Workflow) error {
+	for _, step := range wf.Steps {
+		for _, extReq := range step.Extensions {
+			accessDescList, err := mgr.extensionRegistry.RunExtensionAccessQuery(ctx, &domain.ExtensionQuery{
+				ExtensionID:        extReq.ExtensionID,
+				Product:            extReq.Product,
+				VersionConstraints: extReq.VersionConstraints,
+				Zone:               extReq.Zone,
+				// allow extensions outside of the zone for now
+				StrictZoneMatch: false,
+				ServiceID:       extReq.ServiceID,
+				ServiceResource: extReq.ServiceResource,
+				ServiceCategory: extReq.ServiceCategory,
+				// determine endpoint type automatically based on zone
+				Type: nil,
+				// only global credentials supported for now
+				CredentialsScope: domain.ECSGlobal,
+			})
+			if err != nil {
+				return fmt.Errorf("error resolving extension requirements for step %q extension %q: %w", step.Name, extReq.Name, err)
+			}
+			if len(accessDescList) == 0 {
+				return fmt.Errorf("could not resolve extension requirements for step %q extension %q", step.Name, extReq.Name)
+			}
+			// for now, assume that all internal endpoints are accessible from workflow steps and
+			// prefer internal endpoints if more results are returned
+			extReq.ExtensionAccess = accessDescList[0]
+			for _, accessDesc := range accessDescList {
+				if accessDesc.Endpoint.Type == domain.EETInternal {
+					extReq.ExtensionAccess = accessDesc
+					break
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 func newWorkflowAssignment(workflowName string, codesets []*domain.CodesetAssignment, listener *domain.WorkflowListener) *domain.WorkflowAssignment {

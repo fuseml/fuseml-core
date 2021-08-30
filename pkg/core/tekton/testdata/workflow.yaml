@@ -34,15 +34,55 @@ steps:
           path: '/project'
     outputs:
       - name: mlflow-model-url
-    env:
-      - name: MLFLOW_TRACKING_URI
-        value: "http://mlflow"
-      - name: MLFLOW_S3_ENDPOINT_URL
-        value: "http://mlflow-minio:9000"
-      - name: AWS_ACCESS_KEY_ID
-        value: gABTE5DmmLgjJypJzGFs
-      - name: AWS_SECRET_ACCESS_KEY
-        value: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
+    extensions:
+      - name: mlflow-tracking
+        product: mlflow
+        service_resource: mlflow-tracking
+        extensionAccess:
+          extension:
+            id: mlflow-0001
+            product: mlflow
+            version: "1.19.0"
+            description: MLFlow experiment tracking service
+            zone: local
+          service:
+            id: mlflow-tracking
+            resource: mlflow-tracking
+            category: experiment-tracking
+            description: MLFlow experiment tracking service API and UI
+            auth_required: False
+          endpoint:
+            url: http://mlflow
+            type: internal
+            configuration:
+              MLFLOW_TRACKING_URI: http://mlflow
+      - name: mlflow-store
+        product: mlflow
+        service_resource: s3
+        extensionAccess:
+          extension:
+            id: mlflow-0001
+            product: mlflow
+            version: "1.19.0"
+            description: MLFlow experiment tracking service
+            zone: local
+          service:
+            id: mlflow-store
+            resource: s3
+            category: model-store
+            description: MLFlow minio S3 storage back-end
+            auth_required: True
+          endpoint:
+            url: http://mlflow-minio:9000
+            type: internal
+            configuration:
+              MLFLOW_S3_ENDPOINT_URL: http://mlflow-minio:9000
+          credentials:
+            id: default
+            scope: global
+            configuration:
+              AWS_ACCESS_KEY_ID: gABTE5DmmLgjJypJzGFs
+              AWS_SECRET_ACCESS_KEY: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
   - name: predictor
     image: ghcr.io/fuseml/kfserving-predictor:0.1
     inputs:
@@ -55,8 +95,47 @@ steps:
           path: '/project'
     outputs:
       - name: prediction-url
-    env:
-      - name: AWS_ACCESS_KEY_ID
-        value: gABTE5DmmLgjJypJzGFs
-      - name: AWS_SECRET_ACCESS_KEY
-        value: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
+    extensions:
+      - name: s3-storage
+        service_resource: s3
+        extensionAccess:
+          extension:
+            id: mlflow-0001
+            product: mlflow
+            version: "1.19.0"
+            description: MLFlow experiment tracking service
+            zone: local
+          service:
+            id: mlflow-store
+            resource: s3
+            category: model-store
+            description: MLFlow minio S3 storage back-end
+            auth_required: True
+          endpoint:
+            url: http://mlflow-minio:9000
+            type: internal
+            configuration:
+              MLFLOW_S3_ENDPOINT_URL: http://mlflow-minio:9000
+          credentials:
+            id: default
+            scope: global
+            configuration:
+              AWS_ACCESS_KEY_ID: gABTE5DmmLgjJypJzGFs
+              AWS_SECRET_ACCESS_KEY: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
+      - name: kfserving
+        service_resource: kfserving-api
+        extensionAccess:
+          extension:
+            id: kfserving-local
+            product: kfserving
+            version: "0.6.0"
+            description: KFServing prediction service platform
+            zone: local
+          service:
+            id: API
+            resource: kfserving-api
+            category: prediction-serving
+            description: KFServing prediction service API
+          endpoint:
+            url: https://kubernetes.default.svc
+            type: internal

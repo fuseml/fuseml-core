@@ -32,6 +32,9 @@ var (
 	// 3. name: cs2, project: csproject1
 	codesetStore *fakeCodesetStore
 
+	// extensionRegistry stores extensions
+	extensionRegistry *ExtensionRegistry
+
 	// workflowRunStatuses are the possible Status for a WorkflowRun. The status of a WorkflowRun is set
 	// accordingly to its order, cycling between the workflowRunStatuses. E.g. run0: Succeeded, run1: Failed,
 	// run2: Succeeded, ...
@@ -74,6 +77,61 @@ func TestCreate(t *testing.T) {
 		want := []*domain.Workflow{&wf}
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Workflow: %s", diff.PrintWantGot(d))
+		}
+	})
+
+	t.Run("new workflow with matching extensions", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+		ext := createFakeExtension(t, mgr, "test-")
+		ext, err := mgr.extensionRegistry.RegisterExtension(context.Background(), ext)
+		assertError(t, err, nil)
+
+		wf := domain.Workflow{
+			Name: "test",
+			Steps: []*domain.WorkflowStep{{
+				Name: "test-step",
+				Extensions: []*domain.WorkflowStepExtension{{
+					Name:               "test-extension",
+					Product:            ext.Product,
+					VersionConstraints: ">=" + ext.Version,
+					ServiceResource:    ext.Services[0].Resource,
+				}},
+			}},
+		}
+		got, err := mgr.Create(context.Background(), &wf)
+		assertError(t, err, nil)
+
+		want, _ := workflowStore.GetWorkflow(context.TODO(), wf.Name)
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected Workflow: %s", diff.PrintWantGot(d))
+		}
+
+		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
+		err = workflowBackend.CreateWorkflowRun(context.TODO(), wf.Name, codesets[0])
+		assertError(t, err, nil)
+	})
+
+	t.Run("new workflow with no matching extensions", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+		ext := createFakeExtension(t, mgr, "test-")
+		ext, err := mgr.extensionRegistry.RegisterExtension(context.Background(), ext)
+		assertError(t, err, nil)
+
+		wf := domain.Workflow{
+			Name: "test",
+			Steps: []*domain.WorkflowStep{{
+				Name: "test-step",
+				Extensions: []*domain.WorkflowStepExtension{{
+					Name:               "test-extension",
+					Product:            ext.Product,
+					VersionConstraints: "<" + ext.Version,
+					ServiceResource:    ext.Services[0].Resource,
+				}},
+			}},
+		}
+		_, err = mgr.Create(context.Background(), &wf)
+		if err.Error() != "could not resolve extension requirements for step \"test-step\" extension \"test-extension\"" {
+			t.Errorf("Unexpected Workflow error: %q", err)
 		}
 	})
 }
@@ -786,6 +844,7 @@ func newFakeWorkflowManager(t *testing.T) *WorkflowManager {
 	workflowStore = core.NewWorkflowStore()
 	workflowBackend = &fakeWorkflowBackend{t, make(map[string]*fakeStorableWorkflow)}
 	codesetStore = &fakeCodesetStore{t, make(map[codesetID]fakeStorableCodeset)}
+	extensionRegistry = NewExtensionRegistry(core.NewExtensionStore())
 
 	// add codesets to the codeset store for the tests to use it:
 	// 1. name: cs0, project: csproject0
@@ -806,7 +865,61 @@ func newFakeWorkflowManager(t *testing.T) *WorkflowManager {
 		}
 	}
 
-	return NewWorkflowManager(workflowBackend, workflowStore, codesetStore)
+	return NewWorkflowManager(workflowBackend, workflowStore, codesetStore, extensionRegistry)
+}
+
+func createFakeExtension(t *testing.T, wfm *WorkflowManager, prefix string) *domain.ExtensionRecord {
+	t.Helper()
+
+	e := &domain.Extension{
+		ID:      prefix + "extension",
+		Product: prefix + "product",
+		Version: "1.0",
+		Zone:    prefix + "zone",
+	}
+	er := newExtension(e)
+	s1 := &domain.ExtensionService{
+		ExtensionServiceID: domain.ExtensionServiceID{
+			ID: prefix + "service-001",
+		},
+		Resource: prefix + "resource",
+		Category: prefix + "category",
+	}
+	sr1 := addService(er, s1)
+	s2 := &domain.ExtensionService{
+		ExtensionServiceID: domain.ExtensionServiceID{
+			ID: prefix + "service-002",
+		},
+	}
+	sr2 := addService(er, s2)
+	ep1 := &domain.ExtensionEndpoint{
+		ExtensionEndpointID: domain.ExtensionEndpointID{
+			URL: fmt.Sprintf("https://%sendpoint-001.com", prefix),
+		},
+		Type: domain.EETInternal,
+	}
+	addEndpoint(sr1, ep1)
+	ep2 := &domain.ExtensionEndpoint{
+		ExtensionEndpointID: domain.ExtensionEndpointID{
+			URL: fmt.Sprintf("https://%sendpoint-002.com", prefix),
+		},
+		Type: domain.EETExternal,
+	}
+	addEndpoint(sr2, ep2)
+	c1 := &domain.ExtensionCredentials{
+		ExtensionCredentialsID: domain.ExtensionCredentialsID{
+			ID: prefix + "credentials-001",
+		},
+	}
+	addCredentials(sr1, c1)
+	c2 := &domain.ExtensionCredentials{
+		ExtensionCredentialsID: domain.ExtensionCredentialsID{
+			ID: prefix + "credentials-002",
+		},
+	}
+	addCredentials(sr2, c2)
+
+	return er
 }
 
 type fakeStorableWorkflow struct {

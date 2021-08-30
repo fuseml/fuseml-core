@@ -76,6 +76,8 @@ type WorkflowStep struct {
 	Inputs []*WorkflowStepInput
 	// Outputs is the list of outputs for the step.
 	Outputs []*WorkflowStepOutput
+	// Extensions is the list of extensions required for the step.
+	Extensions []*WorkflowStepExtension
 	// Env is the list of environment variables for the step.
 	Env []*WorkflowStepEnv
 }
@@ -112,6 +114,29 @@ type WorkflowStepOutputImage struct {
 	Dockerfile string
 	// Image is the name of the image.
 	Name string
+}
+
+// WorkflowStepExtension represents the extension requirements for a FuseML workflow step.
+type WorkflowStepExtension struct {
+	// Unique name used to reference this extension requirement
+	Name string
+	// Reference extension explicitly by ID
+	ExtensionID string
+	// Reference extension by product name
+	Product string
+	// Filter extension by version or by semantic version constraints
+	VersionConstraints string
+	// Match extensions installed in a given zone
+	Zone string
+	// Reference service explicitly by ID
+	ServiceID string
+	// Filter by service resource type
+	ServiceResource string
+	// Filter by service category
+	ServiceCategory string
+	// Extension access - points to the extension endpoint and credentials that
+	// the extension requirements are (currently) resolved to
+	ExtensionAccess *ExtensionAccessDescriptor
 }
 
 // WorkflowStepEnv represents an environment variable for a FuseML workflow step.
