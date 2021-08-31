@@ -29,6 +29,7 @@ type coreInit struct {
 	endpoints *endpoints
 	store     *badgerhold.Store
 }
+
 type endpoints struct {
 	application *application.Endpoints
 	codeset     *codeset.Endpoints

@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"fmt"
 	"time"
 )
 
@@ -13,6 +14,7 @@ const (
 	// ErrWorkflowNotAssignedToCodeset describes the error message returned when trying to unassign a workflow from a codeset
 	// but it is not assigned to the codeset.
 	ErrWorkflowNotAssignedToCodeset = WorkflowErr("workflow not assigned to codeset")
+	// ErrCannotDeleteAssignedWorkflow describes the error message returned when trying to delete a workflow that is assigned to a codeset.
 	ErrCannotDeleteAssignedWorkflow = WorkflowErr("cannot delete workflow, there are codesets assigned to it")
 )
 
@@ -37,6 +39,8 @@ type Workflow struct {
 	Outputs []*WorkflowOutput
 	// Steps is the list of workflow steps.
 	Steps []*WorkflowStep
+	// AssignedTo is the assignments of the workflow.
+	AssignedTo *WorkflowAssignment
 }
 
 // WorkflowInput represents a input for a FuseML workflow.
@@ -185,12 +189,8 @@ type WorkflowRunOutput struct {
 
 // WorkflowAssignment represents a workflow assignment.
 type WorkflowAssignment struct {
-	// Workflow is the name of the assigned workflow.
-	Workflow string
-	// Status is the status of the assignment.
-	Status WorkflowAssignmentStatus
 	// Codesets is the list of codesets that the workflow is assigned to.
-	Codesets []*Codeset
+	Codesets []*CodesetAssignment
 }
 
 // WorkflowAssignmentStatus represents the status of a workflow assignment.
@@ -238,44 +238,46 @@ type WorkflowErr string
 
 // WorkflowManager describes the interface for a Workflow Manager
 type WorkflowManager interface {
-	// Create a new workflow.
-	Create(ctx context.Context, workflow *Workflow) (*Workflow, error)
-	// Get a workflow,
-	Get(ctx context.Context, name string) (*Workflow, error)
-	// Delete a workflow.
-	Delete(ctx context.Context, name string) error
-	// List workflows.
-	List(ctx context.Context, name *string) []*Workflow
+	// CreateWorkflow creates a new workflow.
+	CreateWorkflow(ctx context.Context, workflow *Workflow) (*Workflow, error)
+	// GetWorkflow retrieves a workflow.
+	GetWorkflow(ctx context.Context, name string) (*Workflow, error)
+	// GetWorkflows returns a list of workflows.
+	GetWorkflows(ctx context.Context, name *string) []*Workflow
+	// DeleteWorkflow deletes a workflow.
+	DeleteWorkflow(ctx context.Context, name string) error
 	// AssignToCodeset assigns a workflow to a codeset.
 	AssignToCodeset(ctx context.Context, name, codesetProject, codesetName string) (*WorkflowListener, *int64, error)
 	// UnassignFromCodeset removes a workflow assignment from a codeset.
 	UnassignFromCodeset(ctx context.Context, name, codesetProject, codesetName string) error
-	// ListAssignments returns a list of workflow assignments.
-	ListAssignments(ctx context.Context, name *string) ([]*WorkflowAssignment, error)
-	// ListRuns returns a list of workflow runs.
-	ListRuns(ctx context.Context, filter *WorkflowRunFilter) ([]*WorkflowRun, error)
+	// GetAllCodesetAssignments returns all the codeset assignments from all workflows, or a specific one.
+	GetAllCodesetAssignments(ctx context.Context, name *string) map[string][]*CodesetAssignment
+	// GetAssignmentStatus returns the status of a workflow assignment.
+	GetAssignmentStatus(ctx context.Context, name string) *WorkflowAssignmentStatus
+	// GetWorkflowRuns returns all the workflow runs for a workflow.
+	GetWorkflowRuns(ctx context.Context, filter *WorkflowRunFilter) ([]*WorkflowRun, error)
 }
 
 // WorkflowStore is an interface for workflow stores.
 type WorkflowStore interface {
+	// AddWorkflow adds a workflow to the store.
+	AddWorkflow(ctx context.Context, w *Workflow) (*Workflow, error)
 	// GetWorkflow returns a workflow.
 	GetWorkflow(ctx context.Context, name string) (*Workflow, error)
 	// ListWorkflows returns a list of workflows.
 	GetWorkflows(ctx context.Context, name *string) []*Workflow
-	// AddWorkflow adds a workflow to the store.
-	AddWorkflow(ctx context.Context, w *Workflow) (*Workflow, error)
 	// DeleteWorkflow deletes a workflow from the store.
 	DeleteWorkflow(ctx context.Context, name string) error
-	// GetAssignedCodeset returns the assignment for a workflow and a codeset.
-	GetAssignedCodeset(ctx context.Context, workflowName string, codeset *Codeset) (*CodesetAssignment, error)
-	// GetAssignedCodesets returns the assignments for a workflow.
-	GetAssignedCodesets(ctx context.Context, workflowName string) []*CodesetAssignment
-	// GetAssignments returns a map of workflows and its assignments, if any.
-	GetAssignments(ctx context.Context, workflowName *string) map[string][]*CodesetAssignment
 	// AddCodesetAssignment adds a codeset assignment to the store.
-	AddCodesetAssignment(ctx context.Context, workflowName string, assignedCodeset *CodesetAssignment) []*CodesetAssignment
+	AddCodesetAssignment(ctx context.Context, workflowName string, codeset *Codeset, webhook *int64) ([]*CodesetAssignment, error)
+	// GetCodesetAssignment returns the assignment for a workflow and a codeset.
+	GetCodesetAssignment(ctx context.Context, workflowName string, codeset *Codeset) (*CodesetAssignment, error)
+	// GetCodesetAssignments returns the codeset assignments for a workflow.
+	GetCodesetAssignments(ctx context.Context, workflowName string) []*CodesetAssignment
+	// GetAllCodesetAssignments returns all the codeset assignments from all workflows, or a specific one.
+	GetAllCodesetAssignments(ctx context.Context, workflowName *string) map[string][]*CodesetAssignment
 	// DeleteCodesetAssignment deletes a codeset assignment from the store.
-	DeleteCodesetAssignment(ctx context.Context, workflowName string, codeset *Codeset) []*CodesetAssignment
+	DeleteCodesetAssignment(ctx context.Context, workflowName string, codeset *Codeset) ([]*CodesetAssignment, error)
 }
 
 // WorkflowBackend is the interface for the FuseML workflows
@@ -286,14 +288,87 @@ type WorkflowBackend interface {
 	DeleteWorkflow(ctx context.Context, workflowName string) error
 	// CreateWorkflowRun creates a new workflow run.
 	CreateWorkflowRun(ctx context.Context, workflowName string, codeset *Codeset) error
-	// ListWorkflowRuns returns a list of workflow runs.
-	ListWorkflowRuns(ctx context.Context, workflow *Workflow, filter *WorkflowRunFilter) ([]*WorkflowRun, error)
+	// GetWorkflowRuns returns a list of workflow runs.
+	GetWorkflowRuns(ctx context.Context, workflow *Workflow, filter *WorkflowRunFilter) ([]*WorkflowRun, error)
 	// CreateWorkflowListener creates a new workflow listener.
 	CreateWorkflowListener(ctx context.Context, workflowName string, timeout time.Duration) (*WorkflowListener, error)
 	// DeleteWorkflowListener deletes a workflow listener.
 	DeleteWorkflowListener(ctx context.Context, workflowName string) error
 	// GetWorkflowListener returns a workflow listener for a workflow.
 	GetWorkflowListener(ctx context.Context, workflowName string) (*WorkflowListener, error)
+}
+
+// AssignToCodeset assigns a workflow to a codeset.
+func (w *Workflow) AssignToCodeset(ctx context.Context, codeset *Codeset, webhookID *int64) error {
+	if codeset == nil {
+		return fmt.Errorf("codeset is nil")
+	}
+
+	if w.AssignedTo == nil {
+		w.AssignedTo = &WorkflowAssignment{}
+	}
+
+	if w.AssignedTo.Codesets == nil {
+		w.AssignedTo.Codesets = []*CodesetAssignment{{Codeset: codeset, WebhookID: webhookID}}
+		return nil
+	}
+
+	codesetAssignments := w.AssignedTo.Codesets
+	for _, assignment := range codesetAssignments {
+		if assignment.Codeset.Name == codeset.Name && assignment.Codeset.Project == codeset.Project {
+			return nil
+		}
+	}
+
+	codesetAssignments = append(codesetAssignments, &CodesetAssignment{Codeset: codeset, WebhookID: webhookID})
+	w.AssignedTo.Codesets = codesetAssignments
+	return nil
+}
+
+// UnassignFromCodeset removes a workflow assignment from a codeset.
+func (w *Workflow) UnassignFromCodeset(ctx context.Context, codeset *Codeset) error {
+	if codeset == nil {
+		return fmt.Errorf("codeset is nil")
+	}
+
+	if w.AssignedTo == nil || w.AssignedTo.Codesets == nil {
+		return nil
+	}
+
+	codesetAssignments := w.AssignedTo.Codesets
+	for i, assignment := range codesetAssignments {
+		// TODO: Maybe we should implement an equals function for Codeset?
+		if assignment.Codeset.Name == codeset.Name && assignment.Codeset.Project == codeset.Project {
+			codesetAssignments = append(codesetAssignments[:i], codesetAssignments[i+1:]...)
+			break
+		}
+	}
+	if len(codesetAssignments) == 0 {
+		w.AssignedTo.Codesets = nil
+	} else {
+		w.AssignedTo.Codesets = codesetAssignments
+	}
+	return nil
+}
+
+// GetCodesetAssignments returns the codeset assignments for a workflow.
+func (w *Workflow) GetCodesetAssignments(ctx context.Context) []*CodesetAssignment {
+	if w.AssignedTo == nil || w.AssignedTo.Codesets == nil {
+		return []*CodesetAssignment{}
+	}
+	return w.AssignedTo.Codesets
+}
+
+// GetCodesetAssignment returns the assignment for a workflow and a codeset.
+func (w *Workflow) GetCodesetAssignment(ctx context.Context, codeset *Codeset) (*CodesetAssignment, error) {
+	if w.AssignedTo != nil {
+		for _, assignment := range w.AssignedTo.Codesets {
+			if assignment.Codeset.Name == codeset.Name && assignment.Codeset.Project == codeset.Project {
+				return assignment, nil
+			}
+		}
+	}
+	return nil, ErrWorkflowNotAssignedToCodeset
 }
 
 // Error returns the error message

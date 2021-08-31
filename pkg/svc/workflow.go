@@ -25,7 +25,7 @@ func NewWorkflowService(logger *log.Logger, workflowManager domain.WorkflowManag
 // List Workflows.
 func (s *workflowsrvc) List(ctx context.Context, w *workflow.ListPayload) (res []*workflow.Workflow, err error) {
 	s.logger.Print("workflow.list")
-	workflows := s.mgr.List(ctx, w.Name)
+	workflows := s.mgr.GetWorkflows(ctx, w.Name)
 	for _, w := range workflows {
 		res = append(res, workflowDomainToRest(w))
 	}
@@ -35,7 +35,7 @@ func (s *workflowsrvc) List(ctx context.Context, w *workflow.ListPayload) (res [
 // Create a new Workflow.
 func (s *workflowsrvc) Create(ctx context.Context, w *workflow.Workflow) (res *workflow.Workflow, err error) {
 	s.logger.Print("workflow.create")
-	wf, err := s.mgr.Create(ctx, workflowRestToDomain(w))
+	wf, err := s.mgr.CreateWorkflow(ctx, workflowRestToDomain(w))
 	if err != nil {
 		s.logger.Print(err)
 		if err == domain.ErrWorkflowExists {
@@ -49,7 +49,7 @@ func (s *workflowsrvc) Create(ctx context.Context, w *workflow.Workflow) (res *w
 // Get a Workflow.
 func (s *workflowsrvc) Get(ctx context.Context, w *workflow.GetPayload) (res *workflow.Workflow, err error) {
 	s.logger.Print("workflow.get")
-	wf, err := s.mgr.Get(ctx, w.Name)
+	wf, err := s.mgr.GetWorkflow(ctx, w.Name)
 	if err != nil {
 		s.logger.Print(err)
 		if err == domain.ErrWorkflowNotFound {
@@ -63,7 +63,7 @@ func (s *workflowsrvc) Get(ctx context.Context, w *workflow.GetPayload) (res *wo
 // Delete a Workflow and its assignments.
 func (s *workflowsrvc) Delete(ctx context.Context, d *workflow.DeletePayload) (err error) {
 	s.logger.Print("workflow.delete")
-	err = s.mgr.Delete(ctx, d.Name)
+	err = s.mgr.DeleteWorkflow(ctx, d.Name)
 	if err != nil {
 		s.logger.Print(err)
 		return
@@ -102,14 +102,15 @@ func (s *workflowsrvc) Unassign(ctx context.Context, u *workflow.UnassignPayload
 // ListAssignments lists Workflow assignments.
 func (s *workflowsrvc) ListAssignments(ctx context.Context, w *workflow.ListAssignmentsPayload) (assignments []*workflow.WorkflowAssignment, err error) {
 	s.logger.Print("workflow.listAssignments")
-	domainAssignments, err := s.mgr.ListAssignments(ctx, w.Name)
+	domainAssignments := s.mgr.GetAllCodesetAssignments(ctx, w.Name)
 	if err != nil {
 		return nil, err
 	}
 
-	assignments = make([]*workflow.WorkflowAssignment, len(domainAssignments))
-	for i, domainAssignment := range domainAssignments {
-		assignments[i] = workflowAssignmentDomainToRest(domainAssignment)
+	assignments = []*workflow.WorkflowAssignment{}
+	for wf, assignment := range domainAssignments {
+		status := s.mgr.GetAssignmentStatus(ctx, wf)
+		assignments = append(assignments, workflowAssignmentDomainToRest(assignment, wf, status))
 	}
 	return
 }
@@ -127,7 +128,7 @@ func (s *workflowsrvc) ListRuns(ctx context.Context, w *workflow.ListRunsPayload
 	if w.Status != nil {
 		filter.Status = []string{*w.Status}
 	}
-	domainRuns, err := s.mgr.ListRuns(ctx, &filter)
+	domainRuns, err := s.mgr.GetWorkflowRuns(ctx, &filter)
 	if err != nil {
 		return nil, err
 	}
@@ -386,18 +387,18 @@ func workflowStepEnvsDomainToRest(domainStepEnvs []*domain.WorkflowStepEnv) []*w
 	return restStepEnvs
 }
 
-func workflowAssignmentDomainToRest(domainAssignment *domain.WorkflowAssignment) *workflow.WorkflowAssignment {
-	restCodesets := make([]*workflow.Codeset, len(domainAssignment.Codesets))
-	for i, domainCodeset := range domainAssignment.Codesets {
-		restCodesets[i] = (*workflow.Codeset)(codesetDomainToRest(domainCodeset))
+func workflowAssignmentDomainToRest(domainAssignment []*domain.CodesetAssignment, wfName string, wfAsgStatus *domain.WorkflowAssignmentStatus) *workflow.WorkflowAssignment {
+	restCodesets := make([]*workflow.Codeset, len(domainAssignment))
+	for i, domainCodeset := range domainAssignment {
+		restCodesets[i] = (*workflow.Codeset)(codesetDomainToRest(domainCodeset.Codeset))
 	}
 
 	restAssignment := workflow.WorkflowAssignment{
-		Workflow: domainAssignment.Workflow,
+		Workflow: wfName,
 		Codesets: restCodesets,
 		Status: &workflow.WorkflowAssignmentStatus{
-			Available: domainAssignment.Status.Available,
-			URL:       refString(domainAssignment.Status.URL),
+			Available: wfAsgStatus.Available,
+			URL:       refString(wfAsgStatus.URL),
 		},
 	}
 	return &restAssignment

@@ -47,11 +47,11 @@ func (e codesetErr) Error() string {
 	return string(e)
 }
 
-func TestCreate(t *testing.T) {
+func TestCreateWorkflow(t *testing.T) {
 	t.Run("new workflow", func(t *testing.T) {
 		mgr := newFakeWorkflowManager(t)
 		wf := domain.Workflow{Name: "test"}
-		got, err := mgr.Create(context.Background(), &wf)
+		got, err := mgr.CreateWorkflow(context.Background(), &wf)
 		assertError(t, err, nil)
 
 		want, _ := workflowStore.GetWorkflow(context.TODO(), wf.Name)
@@ -67,10 +67,10 @@ func TestCreate(t *testing.T) {
 	t.Run("existing workflow", func(t *testing.T) {
 		mgr := newFakeWorkflowManager(t)
 		wf := domain.Workflow{Name: "test"}
-		_, err := mgr.Create(context.Background(), &wf)
+		_, err := mgr.CreateWorkflow(context.Background(), &wf)
 		assertError(t, err, nil)
 
-		_, err = mgr.Create(context.Background(), &wf)
+		_, err = mgr.CreateWorkflow(context.Background(), &wf)
 		assertError(t, err, domain.ErrWorkflowExists)
 
 		got := workflowStore.GetWorkflows(context.TODO(), nil)
@@ -98,7 +98,7 @@ func TestCreate(t *testing.T) {
 				}},
 			}},
 		}
-		got, err := mgr.Create(context.Background(), &wf)
+		got, err := mgr.CreateWorkflow(context.Background(), &wf)
 		assertError(t, err, nil)
 
 		want, _ := workflowStore.GetWorkflow(context.TODO(), wf.Name)
@@ -129,32 +129,32 @@ func TestCreate(t *testing.T) {
 				}},
 			}},
 		}
-		_, err = mgr.Create(context.Background(), &wf)
+		_, err = mgr.CreateWorkflow(context.Background(), &wf)
 		if err.Error() != "could not resolve extension requirements for step \"test-step\" extension \"test-extension\"" {
 			t.Errorf("Unexpected Workflow error: %q", err)
 		}
 	})
 }
 
-func TestList(t *testing.T) {
+func TestGetWorkflows(t *testing.T) {
 	t.Run("all", func(t *testing.T) {
 		mgr := newFakeWorkflowManager(t)
 		want := []*domain.Workflow{}
 
 		// no workflows
-		got := mgr.List(context.TODO(), nil)
+		got := mgr.GetWorkflows(context.TODO(), nil)
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Workflow list: %s", diff.PrintWantGot(d))
 		}
 
 		// create 3 workflows (wf0, wf1, wf2)
 		for i := 0; i < 3; i++ {
-			wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: fmt.Sprintf("wf%d", i)})
+			wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: fmt.Sprintf("wf%d", i)})
 			assertError(t, err, nil)
 			want = append(want, wf)
 		}
 
-		got = mgr.List(context.TODO(), nil)
+		got = mgr.GetWorkflows(context.TODO(), nil)
 		if d := cmp.Diff(want, got, cmpopts.SortSlices(func(x, y *domain.Workflow) bool { return x.Name < y.Name })); d != "" {
 			t.Errorf("Unexpected Workflow list: %s", diff.PrintWantGot(d))
 		}
@@ -166,21 +166,21 @@ func TestList(t *testing.T) {
 
 		// no workflows
 		wfName := "does-not-exist"
-		got := mgr.List(context.TODO(), &wfName)
+		got := mgr.GetWorkflows(context.TODO(), &wfName)
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Workflow list: %s", diff.PrintWantGot(d))
 		}
 
 		// create 3 workflows (wf0, wf1, wf2)
 		for i := 0; i < 3; i++ {
-			wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: fmt.Sprintf("wf%d", i)})
+			wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: fmt.Sprintf("wf%d", i)})
 			assertError(t, err, nil)
 			want = append(want, wf)
 		}
 
 		for i := 0; i < len(want); i++ {
 			name := fmt.Sprintf("wf%d", i)
-			got := mgr.List(context.TODO(), &name)
+			got := mgr.GetWorkflows(context.TODO(), &name)
 			if d := cmp.Diff([]*domain.Workflow{want[i]}, got, cmpopts.SortSlices(func(x, y *domain.Workflow) bool { return x.Name < y.Name })); d != "" {
 				t.Errorf("Unexpected Workflow list: %s", diff.PrintWantGot(d))
 			}
@@ -188,13 +188,13 @@ func TestList(t *testing.T) {
 	})
 }
 
-func TestGet(t *testing.T) {
+func TestGetWorkflow(t *testing.T) {
 	t.Run("get", func(t *testing.T) {
 		mgr := newFakeWorkflowManager(t)
-		want, err := mgr.Create(context.Background(), &domain.Workflow{Name: "wf"})
+		want, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: "wf"})
 		assertError(t, err, nil)
 
-		got, err := mgr.Get(context.Background(), want.Name)
+		got, err := mgr.GetWorkflow(context.Background(), want.Name)
 		assertError(t, err, nil)
 
 		if d := cmp.Diff(want, got); d != "" {
@@ -204,18 +204,18 @@ func TestGet(t *testing.T) {
 
 	t.Run("not found", func(t *testing.T) {
 		mgr := newFakeWorkflowManager(t)
-		_, err := mgr.Get(context.Background(), "wf")
+		_, err := mgr.GetWorkflow(context.Background(), "wf")
 		assertError(t, err, domain.ErrWorkflowNotFound)
 	})
 }
 
-func TestDelete(t *testing.T) {
+func TestDeleteWorkflow(t *testing.T) {
 	t.Run("not assigned", func(t *testing.T) {
 		mgr := newFakeWorkflowManager(t)
-		wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: "wf"})
+		wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: "wf"})
 		assertError(t, err, nil)
 
-		err = mgr.Delete(context.Background(), wf.Name)
+		err = mgr.DeleteWorkflow(context.Background(), wf.Name)
 		assertError(t, err, nil)
 
 		got := workflowStore.GetWorkflows(context.TODO(), &wf.Name)
@@ -231,20 +231,20 @@ func TestDelete(t *testing.T) {
 	t.Run("assigned", func(t *testing.T) {
 		mgr := newFakeWorkflowManager(t)
 
-		wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: "wf"})
+		wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: "wf"})
 		assertError(t, err, nil)
 
 		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
 		_, _, got := mgr.AssignToCodeset(context.Background(), wf.Name, codesets[0].Project, codesets[0].Name)
 		assertError(t, got, nil)
 
-		err = mgr.Delete(context.Background(), wf.Name)
+		err = mgr.DeleteWorkflow(context.Background(), wf.Name)
 		assertError(t, err, nil)
 	})
 
 	t.Run("not found", func(t *testing.T) {
 		mgr := newFakeWorkflowManager(t)
-		err := mgr.Delete(context.Background(), "wf")
+		err := mgr.DeleteWorkflow(context.Background(), "wf")
 		assertError(t, err, nil)
 	})
 }
@@ -253,7 +253,7 @@ func TestAssignToCodeset(t *testing.T) {
 	t.Run("assign", func(t *testing.T) {
 		mgr := newFakeWorkflowManager(t)
 
-		wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: "wf"})
+		wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: "wf"})
 		assertError(t, err, nil)
 
 		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
@@ -267,8 +267,9 @@ func TestAssignToCodeset(t *testing.T) {
 			t.Errorf("Unexpected codeset subscriber: %s", diff.PrintWantGot(d))
 		}
 
-		got := workflowStore.GetAssignments(context.TODO(), &wf.Name)
-		want := map[string][]*domain.CodesetAssignment{wf.Name: {{Codeset: codeset, WebhookID: webhookID}}}
+		got := workflowStore.GetAllCodesetAssignments(context.TODO(), &wf.Name)
+		csAsg := domain.CodesetAssignment{Codeset: codeset, WebhookID: webhookID}
+		want := map[string][]*domain.CodesetAssignment{wf.Name: {&csAsg}}
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Assignment: %s", diff.PrintWantGot(d))
 		}
@@ -279,7 +280,7 @@ func TestAssignToCodeset(t *testing.T) {
 			t.Errorf("Unexpected Listener: %s", diff.PrintWantGot(d))
 		}
 
-		workflowRuns, err := workflowBackend.ListWorkflowRuns(context.TODO(), wf, nil)
+		workflowRuns, err := workflowBackend.GetWorkflowRuns(context.TODO(), wf, nil)
 		assertError(t, err, nil)
 		gotRuns := len(workflowRuns)
 		wantRuns := 1
@@ -291,7 +292,7 @@ func TestAssignToCodeset(t *testing.T) {
 	t.Run("existing assignment", func(t *testing.T) {
 		mgr := newFakeWorkflowManager(t)
 
-		wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: "wf"})
+		wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: "wf"})
 		assertError(t, err, nil)
 		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
 
@@ -303,7 +304,7 @@ func TestAssignToCodeset(t *testing.T) {
 		_, err = workflowBackend.GetWorkflowListener(context.TODO(), wf.Name)
 		assertError(t, err, nil)
 
-		workflowRuns, err := workflowBackend.ListWorkflowRuns(context.TODO(), wf, nil)
+		workflowRuns, err := workflowBackend.GetWorkflowRuns(context.TODO(), wf, nil)
 		assertError(t, err, nil)
 
 		gotRuns := len(workflowRuns)
@@ -321,7 +322,7 @@ func TestAssignToCodeset(t *testing.T) {
 		_, _, got := mgr.AssignToCodeset(context.Background(), wfName, codesets[0].Project, codesets[0].Name)
 		assertError(t, got, domain.ErrWorkflowNotFound)
 
-		gotAss := workflowStore.GetAssignments(context.TODO(), nil)
+		gotAss := workflowStore.GetAllCodesetAssignments(context.TODO(), nil)
 		wantAss := map[string][]*domain.CodesetAssignment{}
 		if d := cmp.Diff(wantAss, gotAss); d != "" {
 			t.Errorf("Unexpected Assignment: %s", diff.PrintWantGot(d))
@@ -335,13 +336,13 @@ func TestAssignToCodeset(t *testing.T) {
 	t.Run("codeset not found", func(t *testing.T) {
 		mgr := newFakeWorkflowManager(t)
 
-		wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: "wf"})
+		wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: "wf"})
 		assertError(t, err, nil)
 
 		_, _, got := mgr.AssignToCodeset(context.Background(), wf.Name, "unknownProj", "unknownCs")
 		assertError(t, got, errCodesetNotFound)
 
-		gotAss := workflowStore.GetAssignments(context.TODO(), nil)
+		gotAss := workflowStore.GetAllCodesetAssignments(context.TODO(), nil)
 		wantAss := map[string][]*domain.CodesetAssignment{}
 		if d := cmp.Diff(wantAss, gotAss); d != "" {
 			t.Errorf("Unexpected Assignment: %s", diff.PrintWantGot(d))
@@ -356,7 +357,7 @@ func TestUnassignFromCodeset(t *testing.T) {
 	t.Run("unassign", func(t *testing.T) {
 		mgr := newFakeWorkflowManager(t)
 
-		wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: "wf"})
+		wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: "wf"})
 		assertError(t, err, nil)
 
 		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
@@ -384,8 +385,9 @@ func TestUnassignFromCodeset(t *testing.T) {
 		}
 
 		// should have only one assignment to cs1
-		gotAss := workflowStore.GetAssignments(context.TODO(), &wf.Name)
-		wantAss := map[string][]*domain.CodesetAssignment{wf.Name: {{Codeset: codesets[1], WebhookID: webhooks[codesets[1]][0]}}}
+		gotAss := workflowStore.GetAllCodesetAssignments(context.TODO(), &wf.Name)
+		csAsg := domain.CodesetAssignment{Codeset: codesets[1], WebhookID: webhooks[codesets[1]][0]}
+		wantAss := map[string][]*domain.CodesetAssignment{wf.Name: {&csAsg}}
 		if d := cmp.Diff(wantAss, gotAss); d != "" {
 			t.Errorf("Unexpected Assignment: %s", diff.PrintWantGot(d))
 		}
@@ -402,7 +404,7 @@ func TestUnassignFromCodeset(t *testing.T) {
 		assertError(t, err, nil)
 
 		// should have no assignment
-		gotAss = workflowStore.GetAssignments(context.TODO(), &wf.Name)
+		gotAss = workflowStore.GetAllCodesetAssignments(context.TODO(), &wf.Name)
 		wantAss = map[string][]*domain.CodesetAssignment{}
 		if d := cmp.Diff(wantAss, gotAss); d != "" {
 			t.Errorf("Unexpected Assignment: %s", diff.PrintWantGot(d))
@@ -422,7 +424,7 @@ func TestUnassignFromCodeset(t *testing.T) {
 		assertError(t, got, domain.ErrWorkflowNotFound)
 
 		// should have no assignment
-		gotAss := workflowStore.GetAssignments(context.TODO(), nil)
+		gotAss := workflowStore.GetAllCodesetAssignments(context.TODO(), nil)
 		wantAss := map[string][]*domain.CodesetAssignment{}
 		if d := cmp.Diff(wantAss, gotAss); d != "" {
 			t.Errorf("Unexpected Assignment: %s", diff.PrintWantGot(d))
@@ -437,14 +439,14 @@ func TestUnassignFromCodeset(t *testing.T) {
 		mgr := newFakeWorkflowManager(t)
 
 		wfName := "wf"
-		wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: wfName})
+		wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: wfName})
 		assertError(t, err, nil)
 
 		got := mgr.UnassignFromCodeset(context.Background(), wf.Name, "unknownProj", "unknownCs")
 		assertError(t, got, errCodesetNotFound)
 
 		// should have no assignment
-		gotAss := workflowStore.GetAssignments(context.TODO(), nil)
+		gotAss := workflowStore.GetAllCodesetAssignments(context.TODO(), nil)
 		wantAss := map[string][]*domain.CodesetAssignment{}
 		if d := cmp.Diff(wantAss, gotAss); d != "" {
 			t.Errorf("Unexpected Assignment: %s", diff.PrintWantGot(d))
@@ -458,7 +460,7 @@ func TestUnassignFromCodeset(t *testing.T) {
 	t.Run("workflow not assigned", func(t *testing.T) {
 		mgr := newFakeWorkflowManager(t)
 
-		wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: "wf"})
+		wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: "wf"})
 		assertError(t, err, nil)
 
 		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
@@ -469,7 +471,7 @@ func TestUnassignFromCodeset(t *testing.T) {
 	t.Run("on codeset deleting", func(t *testing.T) {
 		mgr := newFakeWorkflowManager(t)
 
-		wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: "wf"})
+		wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: "wf"})
 		assertError(t, err, nil)
 
 		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
@@ -480,7 +482,7 @@ func TestUnassignFromCodeset(t *testing.T) {
 		codesetStore.Delete(context.TODO(), codeset.Project, codeset.Name)
 
 		// should have no assignment
-		gotAss := workflowStore.GetAssignments(context.TODO(), nil)
+		gotAss := workflowStore.GetAllCodesetAssignments(context.TODO(), nil)
 		wantAss := map[string][]*domain.CodesetAssignment{}
 		if d := cmp.Diff(wantAss, gotAss); d != "" {
 			t.Errorf("Unexpected Assignment: %s", diff.PrintWantGot(d))
@@ -488,18 +490,19 @@ func TestUnassignFromCodeset(t *testing.T) {
 	})
 }
 
-func TestListAssignments(t *testing.T) {
+func TestGetAllCodesetAssignments(t *testing.T) {
 	t.Run("list", func(t *testing.T) {
 		mgr := newFakeWorkflowManager(t)
 
 		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
-		want := make(map[string]*domain.WorkflowAssignment, len(codesets))
+		want := make(map[string][]*domain.CodesetAssignment, len(codesets))
 
-		addToWant := func(wf string, cs *domain.Codeset, webhookID *int64, listener *domain.WorkflowListener) {
-			if acs, exists := want[wf]; exists {
-				want[wf].Codesets = append(acs.Codesets, &domain.Codeset{Name: cs.Name, Project: cs.Project, URL: cs.URL})
+		addToWantAssignment := func(wf string, cs *domain.Codeset, webhookID *int64) {
+			csAsg := domain.CodesetAssignment{Codeset: cs, WebhookID: webhookID}
+			if a, exists := want[wf]; exists {
+				want[wf] = append(a, &csAsg)
 			} else {
-				want[wf] = newWorkflowAssignment(wf, []*domain.CodesetAssignment{{Codeset: cs, WebhookID: webhookID}}, listener)
+				want[wf] = []*domain.CodesetAssignment{&csAsg}
 			}
 		}
 
@@ -507,59 +510,47 @@ func TestListAssignments(t *testing.T) {
 		// wf1 -> cs1
 		// wf2 -> cs0, cs2
 		for i := 0; i < len(codesets); i++ {
-			wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: fmt.Sprintf("wf%d", i)})
+			wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: fmt.Sprintf("wf%d", i)})
 			assertError(t, err, nil)
 			if i != 0 {
 				if i == 2 {
 					cs := codesets[i-2]
-					listener, webhookID, err := mgr.AssignToCodeset(context.Background(), wf.Name, cs.Project, cs.Name)
+					_, webhookID, err := mgr.AssignToCodeset(context.Background(), wf.Name, cs.Project, cs.Name)
 					assertError(t, err, nil)
-					addToWant(wf.Name, cs, webhookID, listener)
+					addToWantAssignment(wf.Name, cs, webhookID)
 				}
-				listener, webhookID, err := mgr.AssignToCodeset(context.Background(), wf.Name, codesets[i].Project, codesets[i].Name)
+				_, webhookID, err := mgr.AssignToCodeset(context.Background(), wf.Name, codesets[i].Project, codesets[i].Name)
 				assertError(t, err, nil)
-				addToWant(wf.Name, codesets[i], webhookID, listener)
+				addToWantAssignment(wf.Name, codesets[i], webhookID)
 			}
 		}
 
 		// list all
-		got, err := mgr.ListAssignments(context.Background(), nil)
-		assertError(t, err, nil)
-		wantAll := make([]*domain.WorkflowAssignment, 0, len(want))
-		for _, ass := range want {
-			wantAll = append(wantAll, ass)
-		}
-
-		if d := cmp.Diff(wantAll, got, cmpopts.SortSlices(func(x, y *domain.WorkflowAssignment) bool { return x.Workflow < y.Workflow })); d != "" {
+		got := mgr.GetAllCodesetAssignments(context.Background(), nil)
+		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Workflow Assignments: %s", diff.PrintWantGot(d))
 		}
 
 		// list from a specific workflow
 		for i := 0; i < len(codesets); i++ {
 			wf := fmt.Sprintf("wf%d", i)
-			got, err := mgr.ListAssignments(context.Background(), &wf)
-			assertError(t, err, nil)
+			got := mgr.GetAllCodesetAssignments(context.TODO(), &wf)
 
-			wantByName := []*domain.WorkflowAssignment{}
-			if i != 0 {
-				wantByName = append(wantByName, want[wf])
-			}
-
-			if d := cmp.Diff(wantByName, got); d != "" {
+			if d := cmp.Diff(want[wf], got[wf]); d != "" {
 				t.Errorf("Unexpected Workflow Assignments: %s", diff.PrintWantGot(d))
 			}
 		}
 	})
 }
 
-func TestListRuns(t *testing.T) {
+func TestGetWorkflowRuns(t *testing.T) {
 	t.Run("all", func(t *testing.T) {
 		mgr := newFakeWorkflowManager(t)
 
 		want := []*domain.WorkflowRun{}
 
 		// filter nil, no runs
-		got, err := mgr.ListRuns(context.Background(), nil)
+		got, err := mgr.GetWorkflowRuns(context.Background(), nil)
 		assertError(t, err, nil)
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
@@ -567,13 +558,13 @@ func TestListRuns(t *testing.T) {
 
 		// with filter, no runs
 		filter := domain.WorkflowRunFilter{}
-		got, err = mgr.ListRuns(context.Background(), &filter)
+		got, err = mgr.GetWorkflowRuns(context.Background(), &filter)
 		assertError(t, err, nil)
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
 		}
 
-		wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: "wf"})
+		wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: "wf"})
 		assertError(t, err, nil)
 
 		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
@@ -583,10 +574,10 @@ func TestListRuns(t *testing.T) {
 			_, _, err = mgr.AssignToCodeset(context.Background(), wf.Name, codesets[0].Project, codesets[0].Name)
 			assertError(t, err, nil)
 
-			got, err = mgr.ListRuns(context.Background(), &filter)
+			got, err = mgr.GetWorkflowRuns(context.Background(), &filter)
 			assertError(t, err, nil)
 
-			want, _ = workflowBackend.ListWorkflowRuns(context.TODO(), wf, nil)
+			want, _ = workflowBackend.GetWorkflowRuns(context.TODO(), wf, nil)
 			if d := cmp.Diff(want, got); d != "" {
 				t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
 			}
@@ -601,19 +592,19 @@ func TestListRuns(t *testing.T) {
 		// non existing workflow, no runs
 		wfName := "unknownWf"
 		filterNoRunsNoWf := domain.WorkflowRunFilter{WorkflowName: &wfName}
-		got, err := mgr.ListRuns(context.Background(), &filterNoRunsNoWf)
+		got, err := mgr.GetWorkflowRuns(context.Background(), &filterNoRunsNoWf)
 		assertError(t, err, nil)
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
 		}
 
 		// create a workflow
-		wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: "wf"})
+		wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: "wf"})
 		assertError(t, err, nil)
 
 		// existing workflow, no runs
 		filterNoRunsExistingWf := domain.WorkflowRunFilter{WorkflowName: &wf.Name}
-		got, err = mgr.ListRuns(context.Background(), &filterNoRunsExistingWf)
+		got, err = mgr.GetWorkflowRuns(context.Background(), &filterNoRunsExistingWf)
 		assertError(t, err, nil)
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
@@ -625,7 +616,7 @@ func TestListRuns(t *testing.T) {
 		// wf2 -> 2 runs (cs0, csproject0, Succeeded, Failed)
 		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
 		for i := 0; i < len(codesets); i++ {
-			wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: fmt.Sprintf("wf%d", i)})
+			wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: fmt.Sprintf("wf%d", i)})
 			assertError(t, err, nil)
 
 			for j := 0; j < i; j++ {
@@ -639,10 +630,10 @@ func TestListRuns(t *testing.T) {
 		workflows := workflowStore.GetWorkflows(context.TODO(), nil)
 		for _, wf := range workflows {
 			filter := domain.WorkflowRunFilter{WorkflowName: &wf.Name}
-			got, err = mgr.ListRuns(context.Background(), &filter)
+			got, err = mgr.GetWorkflowRuns(context.Background(), &filter)
 			assertError(t, err, nil)
 
-			want, _ := workflowBackend.ListWorkflowRuns(context.TODO(), &domain.Workflow{Name: wf.Name}, nil)
+			want, _ := workflowBackend.GetWorkflowRuns(context.TODO(), &domain.Workflow{Name: wf.Name}, nil)
 			if d := cmp.Diff(want, got); d != "" {
 				t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
 			}
@@ -657,7 +648,7 @@ func TestListRuns(t *testing.T) {
 		// non existing codeset, no runs
 		csName := "unknownCs"
 		filterNoRunsNoCs := domain.WorkflowRunFilter{CodesetName: csName}
-		got, err := mgr.ListRuns(context.Background(), &filterNoRunsNoCs)
+		got, err := mgr.GetWorkflowRuns(context.Background(), &filterNoRunsNoCs)
 		assertError(t, err, nil)
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
@@ -666,13 +657,13 @@ func TestListRuns(t *testing.T) {
 		// existing codeset, no runs
 		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
 		filterNoRuns := domain.WorkflowRunFilter{CodesetName: codesets[0].Name}
-		got, err = mgr.ListRuns(context.Background(), &filterNoRuns)
+		got, err = mgr.GetWorkflowRuns(context.Background(), &filterNoRuns)
 		assertError(t, err, nil)
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
 		}
 
-		wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: "wf"})
+		wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: "wf"})
 		assertError(t, err, nil)
 
 		// create multiple runs for the same workflow (wf) using different codesets:
@@ -687,10 +678,10 @@ func TestListRuns(t *testing.T) {
 		// iterate over each codeset and list runs by codeset name
 		for _, cs := range codesets {
 			filter := domain.WorkflowRunFilter{CodesetName: cs.Name}
-			got, err = mgr.ListRuns(context.Background(), &filter)
+			got, err = mgr.GetWorkflowRuns(context.Background(), &filter)
 			assertError(t, err, nil)
 
-			want, _ := workflowBackend.ListWorkflowRuns(context.TODO(), wf, &filter)
+			want, _ := workflowBackend.GetWorkflowRuns(context.TODO(), wf, &filter)
 			if d := cmp.Diff(want, got); d != "" {
 				t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
 			}
@@ -699,10 +690,10 @@ func TestListRuns(t *testing.T) {
 		// iterate over each codeset and list runs by codeset project
 		for _, cs := range codesets {
 			filter := domain.WorkflowRunFilter{CodesetProject: cs.Project}
-			got, err = mgr.ListRuns(context.Background(), &filter)
+			got, err = mgr.GetWorkflowRuns(context.Background(), &filter)
 			assertError(t, err, nil)
 
-			want, _ := workflowBackend.ListWorkflowRuns(context.TODO(), wf, &filter)
+			want, _ := workflowBackend.GetWorkflowRuns(context.TODO(), wf, &filter)
 			if d := cmp.Diff(want, got); d != "" {
 				t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
 			}
@@ -711,10 +702,10 @@ func TestListRuns(t *testing.T) {
 		// iterate over each codeset and list runs by codeset name and project
 		for _, cs := range codesets {
 			filter := domain.WorkflowRunFilter{CodesetName: cs.Name, CodesetProject: cs.Project}
-			got, err = mgr.ListRuns(context.Background(), &filter)
+			got, err = mgr.GetWorkflowRuns(context.Background(), &filter)
 			assertError(t, err, nil)
 
-			want, _ := workflowBackend.ListWorkflowRuns(context.TODO(), wf, &filter)
+			want, _ := workflowBackend.GetWorkflowRuns(context.TODO(), wf, &filter)
 			if d := cmp.Diff(want, got); d != "" {
 				t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
 			}
@@ -728,7 +719,7 @@ func TestListRuns(t *testing.T) {
 
 		// nil status, no runs
 		filterNoRunsNilStatus := domain.WorkflowRunFilter{Status: nil}
-		got, err := mgr.ListRuns(context.Background(), &filterNoRunsNilStatus)
+		got, err := mgr.GetWorkflowRuns(context.Background(), &filterNoRunsNilStatus)
 		assertError(t, err, nil)
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
@@ -736,7 +727,7 @@ func TestListRuns(t *testing.T) {
 
 		// empty status, no runs
 		filterNoRunsEmptyStatus := domain.WorkflowRunFilter{Status: []string{}}
-		got, err = mgr.ListRuns(context.Background(), &filterNoRunsEmptyStatus)
+		got, err = mgr.GetWorkflowRuns(context.Background(), &filterNoRunsEmptyStatus)
 		assertError(t, err, nil)
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
@@ -744,13 +735,13 @@ func TestListRuns(t *testing.T) {
 
 		// with status, no runs
 		filterNoRunsWithStatus := domain.WorkflowRunFilter{Status: []string{"Succeeded"}}
-		got, err = mgr.ListRuns(context.Background(), &filterNoRunsWithStatus)
+		got, err = mgr.GetWorkflowRuns(context.Background(), &filterNoRunsWithStatus)
 		assertError(t, err, nil)
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
 		}
 
-		wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: "wf"})
+		wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: "wf"})
 		assertError(t, err, nil)
 
 		// create 3 runs for workflow 'wf' using cs0:
@@ -767,10 +758,10 @@ func TestListRuns(t *testing.T) {
 		for _, s := range workflowRunStatuses {
 			status := []string{s}
 			filter := domain.WorkflowRunFilter{Status: status}
-			got, err = mgr.ListRuns(context.Background(), &filter)
+			got, err = mgr.GetWorkflowRuns(context.Background(), &filter)
 			assertError(t, err, nil)
 
-			want, _ := workflowBackend.ListWorkflowRuns(context.TODO(), wf, &filter)
+			want, _ := workflowBackend.GetWorkflowRuns(context.TODO(), wf, &filter)
 			if d := cmp.Diff(want, got); d != "" {
 				t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
 			}
@@ -786,7 +777,7 @@ func TestListRuns(t *testing.T) {
 		// wf2 -> 2 runs (cs1, project1, Succeeded) (cs2, project1, Failed)
 		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
 		for i := 0; i < len(codesets); i++ {
-			wf, err := mgr.Create(context.Background(), &domain.Workflow{Name: fmt.Sprintf("wf%d", i)})
+			wf, err := mgr.CreateWorkflow(context.Background(), &domain.Workflow{Name: fmt.Sprintf("wf%d", i)})
 			assertError(t, err, nil)
 
 			for j := 0; j < i; j++ {
@@ -809,15 +800,49 @@ func TestListRuns(t *testing.T) {
 				for _, status := range workflowRunStatuses {
 					status := []string{status}
 					filter := domain.WorkflowRunFilter{WorkflowName: &wfName, CodesetName: csName, CodesetProject: csProject, Status: status}
-					got, err := mgr.ListRuns(context.Background(), &filter)
+					got, err := mgr.GetWorkflowRuns(context.Background(), &filter)
 					assertError(t, err, nil)
 
-					want, _ := workflowBackend.ListWorkflowRuns(context.TODO(), &domain.Workflow{Name: wfName}, &filter)
+					want, _ := workflowBackend.GetWorkflowRuns(context.TODO(), &domain.Workflow{Name: wfName}, &filter)
 					if d := cmp.Diff(want, got); d != "" {
 						t.Errorf("Unexpected Workflow Runs: %s", diff.PrintWantGot(d))
 					}
 				}
 			}
+		}
+	})
+}
+
+func TestGetAssignmentStatus(t *testing.T) {
+	t.Run("not assigned", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+
+		wf, err := mgr.CreateWorkflow(context.TODO(), &domain.Workflow{Name: "wf"})
+		assertError(t, err, nil)
+
+		got := mgr.GetAssignmentStatus(context.TODO(), wf.Name)
+		want := domain.WorkflowAssignmentStatus{}
+		if d := cmp.Diff(&want, got); d != "" {
+			t.Errorf("Unexpected Workflow Assignment Status: %s", diff.PrintWantGot(d))
+		}
+	})
+
+	t.Run("assigned", func(t *testing.T) {
+		mgr := newFakeWorkflowManager(t)
+
+		wf, err := mgr.CreateWorkflow(context.TODO(), &domain.Workflow{Name: "wf"})
+		assertError(t, err, nil)
+
+		codesets, _ := codesetStore.GetAll(context.TODO(), nil, nil)
+		codeset := codesets[0]
+
+		listener, _, err := mgr.AssignToCodeset(context.TODO(), wf.Name, codeset.Project, codeset.Name)
+		assertError(t, err, nil)
+
+		got := mgr.GetAssignmentStatus(context.TODO(), wf.Name)
+		want := domain.WorkflowAssignmentStatus{Available: listener.Available, URL: listener.DashboardURL}
+		if d := cmp.Diff(&want, got); d != "" {
+			t.Errorf("Unexpected Workflow Assignment Status: %s", diff.PrintWantGot(d))
 		}
 	})
 }
@@ -969,7 +994,7 @@ func (b *fakeWorkflowBackend) CreateWorkflowRun(ctx context.Context, workflowNam
 	return nil
 }
 
-func (b *fakeWorkflowBackend) ListWorkflowRuns(ctx context.Context, wf *domain.Workflow, filter *domain.WorkflowRunFilter) ([]*domain.WorkflowRun, error) {
+func (b *fakeWorkflowBackend) GetWorkflowRuns(ctx context.Context, wf *domain.Workflow, filter *domain.WorkflowRunFilter) ([]*domain.WorkflowRun, error) {
 	b.t.Helper()
 
 	res := []*domain.WorkflowRun{}

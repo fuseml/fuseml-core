@@ -106,8 +106,8 @@ func (w *WorkflowBackend) CreateWorkflowRun(ctx context.Context, workflowName st
 	return nil
 }
 
-// ListWorkflowRuns returns a list of WorkflowRun for the given Workflow
-func (w *WorkflowBackend) ListWorkflowRuns(ctx context.Context, wf *domain.Workflow, filter *domain.WorkflowRunFilter) ([]*domain.WorkflowRun, error) {
+// GetWorkflowRuns returns a list of WorkflowRun for the given Workflow
+func (w *WorkflowBackend) GetWorkflowRuns(ctx context.Context, wf *domain.Workflow, filter *domain.WorkflowRunFilter) ([]*domain.WorkflowRun, error) {
 	labelSelector := fmt.Sprintf("%s=%s", LabelWorkflowRef, wf.Name)
 	if filter.CodesetName != "" {
 		labelSelector = fmt.Sprintf("%s,%s=%s", labelSelector, LabelCodesetName, filter.CodesetName)

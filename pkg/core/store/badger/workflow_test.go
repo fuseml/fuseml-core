@@ -170,12 +170,12 @@ func TestDeleteWorkflow(t *testing.T) {
 		_, err := store.AddWorkflow(context.TODO(), &wf)
 		assertNoError(t, err)
 
-		cs := &domain.Codeset{
+		cs := domain.Codeset{
 			Name: "test-cs",
 		}
+		webhookID := (int64)(10)
 
-		ca := domain.CodesetAssignment{Codeset: cs}
-		store.AddCodesetAssignment(context.TODO(), wfName, &ca)
+		store.AddCodesetAssignment(context.TODO(), wfName, &cs, &webhookID)
 
 		err = store.DeleteWorkflow(context.TODO(), wfName)
 		assertError(t, err, domain.ErrCannotDeleteAssignedWorkflow)
@@ -183,6 +183,19 @@ func TestDeleteWorkflow(t *testing.T) {
 }
 
 func TestAddCodesetAssignment(t *testing.T) {
+	t.Run("no workflow", func(t *testing.T) {
+		store, done := newWorkflowStore(t)
+		defer done()
+
+		cs := domain.Codeset{
+			Name: "test-cs",
+		}
+
+		webhookID := (int64)(10)
+		_, err := store.AddCodesetAssignment(context.TODO(), "", &cs, &webhookID)
+		assertError(t, err, domain.ErrWorkflowNotFound)
+	})
+
 	t.Run("new", func(t *testing.T) {
 		store, done := newWorkflowStore(t)
 		defer done()
@@ -193,14 +206,15 @@ func TestAddCodesetAssignment(t *testing.T) {
 		_, err := store.AddWorkflow(context.TODO(), &wf)
 		assertNoError(t, err)
 
-		cs := &domain.Codeset{
+		cs := domain.Codeset{
 			Name: "test-cs",
 		}
 
-		ca := domain.CodesetAssignment{Codeset: cs}
-		got := store.AddCodesetAssignment(context.TODO(), wfName, &ca)
+		webhookID := (int64)(10)
+		got, err := store.AddCodesetAssignment(context.TODO(), wfName, &cs, &webhookID)
+		assertNoError(t, err)
 
-		want := []*domain.CodesetAssignment{&ca}
+		want := []*domain.CodesetAssignment{{Codeset: &cs, WebhookID: &webhookID}}
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Assignments: %s", diff.PrintWantGot(d))
 		}
@@ -220,22 +234,36 @@ func TestAddCodesetAssignment(t *testing.T) {
 			Name: "test-cs",
 		}
 
-		ca := domain.CodesetAssignment{Codeset: &cs}
-		got := store.AddCodesetAssignment(context.TODO(), wfName, &ca)
+		webhookID := (int64)(10)
 
-		want := []*domain.CodesetAssignment{&ca}
+		got, err := store.AddCodesetAssignment(context.TODO(), wfName, &cs, &webhookID)
+		assertNoError(t, err)
+
+		want := []*domain.CodesetAssignment{{Codeset: &cs, WebhookID: &webhookID}}
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Assignments: %s", diff.PrintWantGot(d))
 		}
 
-		got = store.AddCodesetAssignment(context.TODO(), wfName, &ca)
+		got, err = store.AddCodesetAssignment(context.TODO(), wfName, &cs, &webhookID)
+		assertNoError(t, err)
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Assignments: %s", diff.PrintWantGot(d))
 		}
 	})
 }
 
-func TestGetAssignedCodesets(t *testing.T) {
+func TestGetCodesetAssignments(t *testing.T) {
+	t.Run("no workflow", func(t *testing.T) {
+		store, done := newWorkflowStore(t)
+		defer done()
+
+		got := store.GetCodesetAssignments(context.TODO(), "test")
+		want := []*domain.CodesetAssignment{}
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected Assignments: %s", diff.PrintWantGot(d))
+		}
+	})
+
 	t.Run("no assignments", func(t *testing.T) {
 		store, done := newWorkflowStore(t)
 		defer done()
@@ -246,7 +274,7 @@ func TestGetAssignedCodesets(t *testing.T) {
 		_, err := store.AddWorkflow(context.TODO(), &wf)
 		assertNoError(t, err)
 
-		got := store.GetAssignedCodesets(context.TODO(), wfName)
+		got := store.GetCodesetAssignments(context.TODO(), wfName)
 		want := []*domain.CodesetAssignment{}
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Assignments: %s", diff.PrintWantGot(d))
@@ -267,18 +295,18 @@ func TestGetAssignedCodesets(t *testing.T) {
 			Name: "test-cs",
 		}
 
-		ac := domain.CodesetAssignment{Codeset: &cs}
-		store.AddCodesetAssignment(context.TODO(), wfName, &ac)
+		webhookID := (int64)(10)
+		store.AddCodesetAssignment(context.TODO(), wfName, &cs, &webhookID)
 
-		got := store.GetAssignedCodesets(context.TODO(), wfName)
-		want := []*domain.CodesetAssignment{&ac}
+		got := store.GetCodesetAssignments(context.TODO(), wfName)
+		want := []*domain.CodesetAssignment{{Codeset: &cs, WebhookID: &webhookID}}
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Assignments: %s", diff.PrintWantGot(d))
 		}
 	})
 }
 
-func TestGetAssignments(t *testing.T) {
+func TestGetAllCodesetAssignments(t *testing.T) {
 	t.Run("no assignments", func(t *testing.T) {
 		store, done := newWorkflowStore(t)
 		defer done()
@@ -289,7 +317,7 @@ func TestGetAssignments(t *testing.T) {
 		_, err := store.AddWorkflow(context.TODO(), &wf)
 		assertNoError(t, err)
 
-		got := store.GetAssignments(context.TODO(), &wfName)
+		got := store.GetAllCodesetAssignments(context.TODO(), &wfName)
 		want := map[string][]*domain.CodesetAssignment{}
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Assignments: %s", diff.PrintWantGot(d))
@@ -310,11 +338,19 @@ func TestGetAssignments(t *testing.T) {
 			Name: "test-cs",
 		}
 
-		ca := domain.CodesetAssignment{Codeset: &cs}
-		store.AddCodesetAssignment(context.TODO(), wfName, &ca)
+		webhookID := (int64)(10)
 
-		got := store.GetAssignments(context.TODO(), &wfName)
-		want := map[string][]*domain.CodesetAssignment{wfName: {&ca}}
+		store.AddCodesetAssignment(context.TODO(), wfName, &cs, &webhookID)
+
+		// with name
+		got := store.GetAllCodesetAssignments(context.TODO(), &wfName)
+		want := map[string][]*domain.CodesetAssignment{wfName: {{Codeset: &cs, WebhookID: &webhookID}}}
+		if d := cmp.Diff(want, got); d != "" {
+			t.Errorf("Unexpected Assignments: %s", diff.PrintWantGot(d))
+		}
+
+		// without name
+		got = store.GetAllCodesetAssignments(context.TODO(), nil)
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Assignments: %s", diff.PrintWantGot(d))
 		}
@@ -322,6 +358,18 @@ func TestGetAssignments(t *testing.T) {
 }
 
 func TestDeleteCodesetAssignment(t *testing.T) {
+	t.Run("no workflow", func(t *testing.T) {
+		store, done := newWorkflowStore(t)
+		defer done()
+
+		cs := domain.Codeset{
+			Name: "test-cs",
+		}
+
+		_, err := store.DeleteCodesetAssignment(context.TODO(), "test", &cs)
+		assertError(t, err, domain.ErrWorkflowNotFound)
+	})
+
 	t.Run("no assignments", func(t *testing.T) {
 		store, done := newWorkflowStore(t)
 		defer done()
@@ -332,11 +380,11 @@ func TestDeleteCodesetAssignment(t *testing.T) {
 		_, err := store.AddWorkflow(context.TODO(), &wf)
 		assertNoError(t, err)
 
-		cs := &domain.Codeset{
+		cs := domain.Codeset{
 			Name: "test-cs",
 		}
 
-		got := store.DeleteCodesetAssignment(context.TODO(), wfName, cs)
+		got, _ := store.DeleteCodesetAssignment(context.TODO(), wfName, &cs)
 		want := []*domain.CodesetAssignment{}
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Assignments: %s", diff.PrintWantGot(d))
@@ -361,19 +409,18 @@ func TestDeleteCodesetAssignment(t *testing.T) {
 			Name: "test-cs2",
 		}
 
-		ac := domain.CodesetAssignment{Codeset: &cs1}
-		store.AddCodesetAssignment(context.TODO(), wfName, &ac)
+		webhookID := (int64)(10)
 
-		ca := domain.CodesetAssignment{Codeset: &cs2}
-		store.AddCodesetAssignment(context.TODO(), wfName, &ca)
+		store.AddCodesetAssignment(context.TODO(), wfName, &cs1, &webhookID)
+		store.AddCodesetAssignment(context.TODO(), wfName, &cs2, &webhookID)
 
-		got := store.DeleteCodesetAssignment(context.TODO(), wfName, &cs1)
-		want := []*domain.CodesetAssignment{{Codeset: &cs2}}
+		got, _ := store.DeleteCodesetAssignment(context.TODO(), wfName, &cs1)
+		want := []*domain.CodesetAssignment{{Codeset: &cs2, WebhookID: &webhookID}}
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Assignments: %s", diff.PrintWantGot(d))
 		}
 
-		got = store.DeleteCodesetAssignment(context.TODO(), wfName, &cs2)
+		got, _ = store.DeleteCodesetAssignment(context.TODO(), wfName, &cs2)
 		want = []*domain.CodesetAssignment{}
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Assignments: %s", diff.PrintWantGot(d))
@@ -381,7 +428,7 @@ func TestDeleteCodesetAssignment(t *testing.T) {
 	})
 }
 
-func TestGetAssignedCodeset(t *testing.T) {
+func TestGetCodesetAssignment(t *testing.T) {
 	t.Run("no workflow", func(t *testing.T) {
 		store, done := newWorkflowStore(t)
 		defer done()
@@ -389,7 +436,7 @@ func TestGetAssignedCodeset(t *testing.T) {
 		cs := domain.Codeset{
 			Name: "test-cs",
 		}
-		_, got := store.GetAssignedCodeset(context.TODO(), "no-wf", &cs)
+		_, got := store.GetCodesetAssignment(context.TODO(), "no-wf", &cs)
 		assertError(t, got, domain.ErrWorkflowNotFound)
 	})
 
@@ -407,7 +454,7 @@ func TestGetAssignedCodeset(t *testing.T) {
 			Name: "test-cs",
 		}
 
-		_, err = store.GetAssignedCodeset(context.TODO(), wfName, &cs)
+		_, err = store.GetCodesetAssignment(context.TODO(), wfName, &cs)
 		assertError(t, err, domain.ErrWorkflowNotAssignedToCodeset)
 	})
 
@@ -425,12 +472,13 @@ func TestGetAssignedCodeset(t *testing.T) {
 			Name: "test-cs",
 		}
 
-		ca := domain.CodesetAssignment{Codeset: &cs}
-		store.AddCodesetAssignment(context.TODO(), wfName, &ca)
+		webhookID := (int64)(10)
 
-		got, err := store.GetAssignedCodeset(context.TODO(), wfName, &cs)
+		store.AddCodesetAssignment(context.TODO(), wfName, &cs, &webhookID)
+
+		got, err := store.GetCodesetAssignment(context.TODO(), wfName, &cs)
 		assertNoError(t, err)
-		want := &ca
+		want := &domain.CodesetAssignment{Codeset: &cs, WebhookID: &webhookID}
 		if d := cmp.Diff(want, got); d != "" {
 			t.Errorf("Unexpected Assignments: %s", diff.PrintWantGot(d))
 		}
@@ -453,7 +501,6 @@ func assertNoError(t testing.TB, got error) {
 		t.Errorf("got error %q wants no error", got)
 	}
 }
-
 func newWorkflowStore(t *testing.T) (*WorkflowStore, func()) {
 	t.Helper()
 

@@ -30,13 +30,13 @@ func NewWorkflowManager(
 	return &WorkflowManager{workflowBackend, workflowStore, codesetStore, extensionRegistry}
 }
 
-// List Workflows.
-func (mgr *WorkflowManager) List(ctx context.Context, name *string) []*domain.Workflow {
+// GetWorkflows returns a list of Workflows.
+func (mgr *WorkflowManager) GetWorkflows(ctx context.Context, name *string) []*domain.Workflow {
 	return mgr.workflowStore.GetWorkflows(ctx, name)
 }
 
-// Create a new Workflow.
-func (mgr *WorkflowManager) Create(ctx context.Context, wf *domain.Workflow) (*domain.Workflow, error) {
+// CreateWorkflow creates a new Workflow.
+func (mgr *WorkflowManager) CreateWorkflow(ctx context.Context, wf *domain.Workflow) (*domain.Workflow, error) {
 	wf.Created = time.Now()
 	err := mgr.resolveExtensionReferences(ctx, wf)
 	if err != nil {
@@ -49,17 +49,17 @@ func (mgr *WorkflowManager) Create(ctx context.Context, wf *domain.Workflow) (*d
 	return mgr.workflowStore.AddWorkflow(ctx, wf)
 }
 
-// Get a Workflow.
-func (mgr *WorkflowManager) Get(ctx context.Context, name string) (*domain.Workflow, error) {
+// GetWorkflow retrieves a Workflow.
+func (mgr *WorkflowManager) GetWorkflow(ctx context.Context, name string) (*domain.Workflow, error) {
 	return mgr.workflowStore.GetWorkflow(ctx, name)
 }
 
-// Delete a Workflow and its assignments.
-func (mgr *WorkflowManager) Delete(ctx context.Context, name string) error {
+// DeleteWorkflow deletes a Workflow and its assignments.
+func (mgr *WorkflowManager) DeleteWorkflow(ctx context.Context, name string) error {
 	// unassign all assigned codesets, if there's any
-	assignedCodesets := mgr.workflowStore.GetAssignedCodesets(ctx, name)
-	for _, ac := range assignedCodesets {
-		err := mgr.UnassignFromCodeset(ctx, name, ac.Codeset.Project, ac.Codeset.Name)
+	codesetAssignments := mgr.workflowStore.GetCodesetAssignments(ctx, name)
+	for _, ca := range codesetAssignments {
+		err := mgr.UnassignFromCodeset(ctx, name, ca.Codeset.Project, ca.Codeset.Name)
 		if err != nil {
 			return err
 		}
@@ -96,7 +96,7 @@ func (mgr *WorkflowManager) AssignToCodeset(ctx context.Context, name, codesetPr
 		return nil, nil, err
 	}
 
-	assignment, err := mgr.workflowStore.GetAssignedCodeset(ctx, name, codeset)
+	assignment, err := mgr.workflowStore.GetCodesetAssignment(ctx, name, codeset)
 	if err == nil {
 		return wfListener, assignment.WebhookID, nil
 	}
@@ -106,7 +106,7 @@ func (mgr *WorkflowManager) AssignToCodeset(ctx context.Context, name, codesetPr
 		return nil, nil, err
 	}
 
-	mgr.workflowStore.AddCodesetAssignment(ctx, name, &domain.CodesetAssignment{Codeset: codeset, WebhookID: webhookID})
+	mgr.workflowStore.AddCodesetAssignment(ctx, name, codeset, webhookID)
 	mgr.codesetStore.Subscribe(ctx, mgr, codeset)
 	mgr.workflowBackend.CreateWorkflowRun(ctx, name, codeset)
 	return
@@ -119,7 +119,7 @@ func (mgr *WorkflowManager) UnassignFromCodeset(ctx context.Context, name, codes
 		return err
 	}
 
-	assignment, err := mgr.workflowStore.GetAssignedCodeset(ctx, name, codeset)
+	assignment, err := mgr.workflowStore.GetCodesetAssignment(ctx, name, codeset)
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (mgr *WorkflowManager) UnassignFromCodeset(ctx context.Context, name, codes
 		}
 	}
 
-	if len(mgr.workflowStore.GetAssignedCodesets(ctx, name)) == 1 {
+	if len(mgr.workflowStore.GetCodesetAssignments(ctx, name)) == 1 {
 		err = mgr.workflowBackend.DeleteWorkflowListener(ctx, name)
 		if err != nil {
 			return err
@@ -143,23 +143,26 @@ func (mgr *WorkflowManager) UnassignFromCodeset(ctx context.Context, name, codes
 	return
 }
 
-// ListAssignments lists Workflow assignments.
-func (mgr *WorkflowManager) ListAssignments(ctx context.Context, name *string) ([]*domain.WorkflowAssignment, error) {
-	assignments := []*domain.WorkflowAssignment{}
-	for wf, acs := range mgr.workflowStore.GetAssignments(ctx, name) {
-
-		listener, err := mgr.workflowBackend.GetWorkflowListener(ctx, wf)
-		if err != nil {
-			return nil, err
-		}
-
-		assignments = append(assignments, newWorkflowAssignment(wf, acs, listener))
-	}
-	return assignments, nil
+// GetAllCodesetAssignments lists Workflow assignments.
+func (mgr *WorkflowManager) GetAllCodesetAssignments(ctx context.Context, name *string) map[string][]*domain.CodesetAssignment {
+	return mgr.workflowStore.GetAllCodesetAssignments(ctx, name)
 }
 
-// ListRuns lists Workflow runs.
-func (mgr *WorkflowManager) ListRuns(ctx context.Context, filter *domain.WorkflowRunFilter) ([]*domain.WorkflowRun, error) {
+// GetAssignmentStatus returns the status of a Workflow assignment.
+func (mgr *WorkflowManager) GetAssignmentStatus(ctx context.Context, name string) *domain.WorkflowAssignmentStatus {
+	status := domain.WorkflowAssignmentStatus{}
+	listener, err := mgr.workflowBackend.GetWorkflowListener(ctx, name)
+	if err != nil {
+		return &status
+	}
+
+	status.Available = listener.Available
+	status.URL = listener.DashboardURL
+	return &status
+}
+
+// GetWorkflowRuns returns a lists Workflow runs.
+func (mgr *WorkflowManager) GetWorkflowRuns(ctx context.Context, filter *domain.WorkflowRunFilter) ([]*domain.WorkflowRun, error) {
 	workflowRuns := []*domain.WorkflowRun{}
 	var wfName *string
 	if filter != nil {
@@ -168,7 +171,7 @@ func (mgr *WorkflowManager) ListRuns(ctx context.Context, filter *domain.Workflo
 	workflows := mgr.workflowStore.GetWorkflows(ctx, wfName)
 
 	for _, workflow := range workflows {
-		runs, err := mgr.workflowBackend.ListWorkflowRuns(ctx, workflow, filter)
+		runs, err := mgr.workflowBackend.GetWorkflowRuns(ctx, workflow, filter)
 		if err != nil {
 			return nil, err
 		}
@@ -180,7 +183,7 @@ func (mgr *WorkflowManager) ListRuns(ctx context.Context, filter *domain.Workflo
 
 // OnDeletingCodeset perform operations on workflows when a codeset is deleted
 func (mgr *WorkflowManager) OnDeletingCodeset(ctx context.Context, codeset *domain.Codeset) {
-	for _, wf := range mgr.List(ctx, nil) {
+	for _, wf := range mgr.GetWorkflows(ctx, nil) {
 		mgr.UnassignFromCodeset(ctx, wf.Name, codeset.Project, codeset.Name)
 	}
 }
@@ -224,19 +227,4 @@ func (mgr *WorkflowManager) resolveExtensionReferences(ctx context.Context, wf *
 	}
 
 	return nil
-}
-
-func newWorkflowAssignment(workflowName string, codesets []*domain.CodesetAssignment, listener *domain.WorkflowListener) *domain.WorkflowAssignment {
-	assignment := &domain.WorkflowAssignment{
-		Workflow: workflowName,
-		Status: domain.WorkflowAssignmentStatus{
-			Available: listener.Available,
-			URL:       listener.DashboardURL,
-		},
-	}
-
-	for _, c := range codesets {
-		assignment.Codesets = append(assignment.Codesets, c.Codeset)
-	}
-	return assignment
 }
