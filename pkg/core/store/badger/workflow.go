@@ -2,7 +2,6 @@ package badger
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/fuseml/fuseml-core/pkg/domain"
 	"github.com/timshannon/badgerhold/v3"
@@ -20,13 +19,8 @@ type WorkflowStore struct {
 	store *badgerhold.Store
 }
 
-func NewWorkflowStore(options badgerhold.Options) (*WorkflowStore, error) {
-	store, err := badgerhold.Open(options)
-	if err != nil {
-		return nil, fmt.Errorf("error opening BadgerDB for Workflow: %w", err)
-	}
-
-	return &WorkflowStore{store: store}, nil
+func NewWorkflowStore(store *badgerhold.Store) *WorkflowStore {
+	return &WorkflowStore{store: store}
 }
 
 // GetWorkflow returns a workflow identified by its name
@@ -174,10 +168,6 @@ func (ws *WorkflowStore) GetAssignedCodeset(ctx context.Context, workflowName st
 	}
 
 	return nil, domain.ErrWorkflowNotAssignedToCodeset
-}
-
-func (ws *WorkflowStore) Close() error {
-	return ws.store.Close()
 }
 
 func getAssignedCodeset(assignedCodesets []*domain.CodesetAssignment, codeset *domain.Codeset) (*domain.CodesetAssignment, int) {
