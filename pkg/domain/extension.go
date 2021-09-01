@@ -397,8 +397,8 @@ type ExtensionRegistry interface {
 	AddEndpoint(ctx context.Context, endpoint *ExtensionEndpoint) (result *ExtensionEndpoint, err error)
 	// Add a set of credentials to an existing extension service
 	AddCredentials(ctx context.Context, credentials *ExtensionCredentials) (result *ExtensionCredentials, err error)
-	// Retrieve all registered extensions, with all participating services, endpoints and credentials
-	GetAllExtensions(ctx context.Context) (result []*ExtensionRecord, err error)
+	// List all registered extensions that match the supplied query parameters
+	ListExtensions(ctx context.Context, query *ExtensionQuery) (result []*ExtensionRecord, err error)
 	// Retrieve an extension by ID and, optionally, its entire service/endpoint/credentials subtree
 	GetExtension(ctx context.Context, extensionID string, fullTree bool) (result *ExtensionRecord, err error)
 	// Retrieve an extension service by ID and, optionally, its entire endpoint/credentials subtree

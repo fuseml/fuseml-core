@@ -389,14 +389,14 @@ var WorkflowStepExtension = Type("WorkflowStepExtension", func() {
 	})
 	tag++
 	Field(tag, "extension_id", String, "Reference extension explicitly by ID", func() {
-		Pattern(identifierPattern)
+		Pattern(optionalIdentifierPattern)
 		MaxLength(100)
 		Example("s3-storage-axW45s")
 		Default("")
 	})
 	tag++
 	Field(tag, "service_id", String, "Reference service explicitly by ID", func() {
-		Pattern(identifierPattern)
+		Pattern(optionalIdentifierPattern)
 		MaxLength(100)
 		Example("s3")
 		Default("")
@@ -459,14 +459,14 @@ The zone filter is also used to automatically select between internal and extern
 var WorkflowStepExtensionStatus = Type("WorkflowStepExtensionStatus", func() {
 	tag := 1
 	Field(tag, "extension_id", String, "The unique ID of the extension", func() {
-		Pattern(identifierPattern)
+		Pattern(optionalIdentifierPattern)
 		MaxLength(100)
 		Example("s3-storage-axW45s")
 		Default("")
 	})
 	tag++
 	Field(tag, "service_id", String, "The unique ID of the service belonging to the extension", func() {
-		Pattern(identifierPattern)
+		Pattern(optionalIdentifierPattern)
 		MaxLength(100)
 		Example("s3")
 		Default("")
@@ -482,7 +482,7 @@ Also used to uniquely identifies an endpoint within the scope of a service`, fun
 		})
 	tag++
 	Field(tag, "credentials_id", String, "The ID of the set of credentials required to access the endpoint", func() {
-		Pattern(identifierPattern)
+		Pattern(optionalIdentifierPattern)
 		MaxLength(100)
 		Example("dev-token-1353411")
 		Default("")

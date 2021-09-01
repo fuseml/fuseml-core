@@ -70,6 +70,8 @@ var _ = Service("extension", func() {
 	Method("listExtensions", func() {
 		Description("List extensions registered in FuseML")
 
+		Payload(ExtensionQuery, "Extension query parameters")
+
 		Result(ArrayOf(Extension), "Return all registered extensions.")
 
 		HTTP(func() {
@@ -660,7 +662,7 @@ var _ = Service("extension", func() {
 var Extension = Type("Extension", func() {
 	tag := 1
 	Field(tag, "id", String, "Uniquely identifies an extension in the registry", func() {
-		Pattern(identifierPattern)
+		Pattern(optionalIdentifierPattern)
 		MaxLength(100)
 		Example("s3-storage-axW45s")
 	})
@@ -732,7 +734,7 @@ var ExtensionStatus = Type("ExtensionStatus", func() {
 var ExtensionService = Type("ExtensionService", func() {
 	tag := 1
 	Field(tag, "id", String, "Uniquely identifies an extension service within the scope of an extension", func() {
-		Pattern(identifierPattern)
+		Pattern(optionalIdentifierPattern)
 		MaxLength(100)
 		Example("s3")
 	})
@@ -863,7 +865,7 @@ var ExtensionEndpointStatus = Type("ExtensionEndpointStatus", func() {
 var ExtensionCredentials = Type("ExtensionCredentials", func() {
 	tag := 1
 	Field(tag, "id", String, "Uniquely identifies a set of credentials within the scope of an extension service", func() {
-		Pattern(identifierPattern)
+		Pattern(optionalIdentifierPattern)
 		MaxLength(100)
 		Example("dev-token-1353411")
 	})
@@ -931,4 +933,69 @@ var ExtensionCredentialsStatus = Type("ExtensionCredentialsStatus", func() {
 		Default(time.Now().Format(time.RFC3339))
 		Example(time.Now().Format(time.RFC3339))
 	})
+})
+
+// ExtensionQuery parameters
+var ExtensionQuery = Type("ExtensionQuery", func() {
+	tag := 1
+	Field(tag, "extension_id", String, "Query by explicit extension ID", func() {
+		Pattern(optionalIdentifierPattern)
+		MaxLength(100)
+		Default("")
+		Example("s3-storage-axW45s")
+	})
+	tag++
+	Field(tag, "product", String,
+		`Match extensions by a universal product identifier. Product values can be used to identify
+installations of the same product registered with the same or different FuseML servers`, func() {
+			MaxLength(100)
+			Default("")
+			Example("mlflow")
+		})
+	tag++
+	Field(tag, "version", String,
+		`Match extensions by version or by semantic version constraints`, func() {
+			MaxLength(100)
+			Default("")
+			Example("1.0")
+			Example("v10.3.1-prealpha+b10022020")
+			Example(">=v1.1,<v2.5")
+		})
+	tag++
+	Field(tag, "zone", String,
+		`Return only extensions installed in a particular the infrastructure location / zone / area / domain
+(e.g. kubernetes cluster).`, func() {
+			MaxLength(100)
+			Default("")
+			Example("eu-central-01")
+			Example("kube-cluster-dev-00126")
+		})
+	tag++
+	Field(tag, "service_id", String,
+		"Match extensions that provide services identified by an explicit service ID", func() {
+			Pattern(optionalIdentifierPattern)
+			MaxLength(100)
+			Default("")
+			Example("s3")
+		})
+	tag++
+	Field(tag, "service_resource", String,
+		`A service resource identifier can be used to match only extensions providing a particular API or protocol
+(e.g. s3, git, mlflow)`, func() {
+			MaxLength(100)
+			Default("")
+			Example("s3")
+			Example("git")
+			Example("mlflow-tracker")
+		})
+	tag++
+	Field(tag, "service_category", String,
+		`A universal service category can be used to match extensions providing one of the well-known
+categories of AI/ML services (e.g. model store, feature store, distributed training, serving)`, func() {
+			MaxLength(100)
+			Default("")
+			Example("model-store")
+			Example("serving-platform")
+		})
+	tag++
 })

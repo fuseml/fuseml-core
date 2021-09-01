@@ -104,6 +104,22 @@ func extensionServiceRecordToDomain(service *extension.ExtensionService) (result
 	return result
 }
 
+func extensionQueryToDomain(query *extension.ExtensionQuery) (result *domain.ExtensionQuery) {
+	result = &domain.ExtensionQuery{
+		ExtensionID:        query.ExtensionID,
+		Product:            query.Product,
+		VersionConstraints: query.Version,
+		Zone:               query.Zone,
+		// If a zone is supplied, it must be used to do strict zone matching
+		StrictZoneMatch: true,
+		ServiceID:       query.ServiceID,
+		ServiceResource: query.ServiceResource,
+		ServiceCategory: query.ServiceCategory,
+	}
+
+	return result
+}
+
 func extensionToRest(ext *domain.Extension) *extension.Extension {
 	return &extension.Extension{
 		ID:            refString(ext.ID),
@@ -244,9 +260,9 @@ func (s *extensionRegistrySvc) GetExtension(ctx context.Context, req *extension.
 }
 
 // List extensions registered in FuseML
-func (s *extensionRegistrySvc) ListExtensions(ctx context.Context) (res []*extension.Extension, err error) {
+func (s *extensionRegistrySvc) ListExtensions(ctx context.Context, query *extension.ExtensionQuery) (res []*extension.Extension, err error) {
 	s.logger.Print("extension.listExtensions")
-	extRecords, err := s.registry.GetAllExtensions(ctx)
+	extRecords, err := s.registry.ListExtensions(ctx, extensionQueryToDomain(query))
 	if err != nil {
 		return nil, errToRest(err)
 	}
@@ -348,7 +364,7 @@ func (s *extensionRegistrySvc) UpdateService(ctx context.Context, req *extension
 	svcUpdate := domain.ExtensionService{
 		ExtensionServiceID: svcRecord.ExtensionServiceID,
 		Resource:           derefString(req.Resource, svcRecord.Resource),
-		Category:           derefString(req.Category, svcRecord.Resource),
+		Category:           derefString(req.Category, svcRecord.Category),
 		Description:        derefString(req.Description, svcRecord.Description),
 		AuthRequired:       derefBool(req.AuthRequired, svcRecord.AuthRequired),
 		Configuration:      svcRecord.Configuration,

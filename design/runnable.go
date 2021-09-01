@@ -4,10 +4,6 @@ import (
 	. "goa.design/goa/v3/dsl"
 )
 
-const (
-	identifierPattern = `^[A-Za-z0-9_][A-Za-z0-9-_]*$`
-)
-
 var _ = Service("runnable", func() {
 	Description("The runable service performs operations on runnables.")
 

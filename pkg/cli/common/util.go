@@ -11,6 +11,12 @@ import (
 	"github.com/spf13/viper"
 )
 
+// KeyValueArgs is used with key-value command line arguments
+type KeyValueArgs struct {
+	Packed   []string
+	Unpacked map[string]string
+}
+
 // CheckErr prints a user friendly error to STDERR and exits with a non-zero
 // exit code. This function is used as a wrapper for the set of steps that comprise
 // the execution of a cobra command. It is the common exit point used by
@@ -31,7 +37,7 @@ func CheckErr(err error) {
 	os.Exit(-1)
 }
 
-// UnpackLabelArgs converts a list of strings into a map. This helper function can be used
+// Unpack converts a list of strings into a map. This helper function can be used
 // to unpack command line arguments used to supplye dictionary values, e.g.:
 //
 //   --label foo:bar --label fan: --label fin
@@ -44,8 +50,9 @@ func CheckErr(err error) {
 //
 //   {"foo": "bar", "fan": "", "fin":""}
 //
-func UnpackLabelArgs(labelArgs []string, labels map[string]string) {
-	for _, l := range labelArgs {
+func (args *KeyValueArgs) Unpack() {
+	args.Unpacked = make(map[string]string)
+	for _, l := range args.Packed {
 		var k, v string
 		l = strings.TrimSpace(l)
 		s := strings.Split(l, ":")
@@ -59,7 +66,7 @@ func UnpackLabelArgs(labelArgs []string, labels map[string]string) {
 			k = l
 			v = ""
 		}
-		labels[k] = v
+		args.Unpacked[k] = v
 	}
 }
 
@@ -99,6 +106,24 @@ func WriteConfigFile() error {
 
 	if err := viper.WriteConfigAs(cf); err != nil {
 		return err
+	}
+	return nil
+}
+
+// StringInSlice verifies if a string slice contains a string value
+func StringInSlice(s string, slice []string) bool {
+	for _, v := range slice {
+		if s == v {
+			return true
+		}
+	}
+	return false
+}
+
+// ValidateEnumArgument is used to validate command line arguments that can take a limited set of values
+func ValidateEnumArgument(argName, argValue string, values []string) error {
+	if !StringInSlice(argValue, values) {
+		return fmt.Errorf("%s must be one of: %s", argName, strings.Join(values, ", "))
 	}
 	return nil
 }

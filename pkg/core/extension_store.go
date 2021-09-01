@@ -667,7 +667,7 @@ func (store *ExtensionStore) findExtensionRecords(ctx context.Context, query *do
 
 		services, err := store.findServiceRecords(ctx, extRecord, query)
 
-		if err == nil && len(services) > 0 {
+		if err == nil {
 			result = append(result,
 				&domain.ExtensionRecord{
 					Extension: extRecord.Extension,
@@ -706,9 +706,9 @@ func (store *ExtensionStore) findServiceRecords(
 		}
 
 		endpoints, err := store.findEndpoints(ctx, svcRecord, query)
-		if err == nil && len(endpoints) > 0 {
+		if err == nil {
 			credentials, err := store.findCredentials(ctx, svcRecord, query)
-			if err == nil && (len(credentials) > 0 || !svcRecord.AuthRequired) {
+			if err == nil {
 				result = append(result,
 					&domain.ExtensionServiceRecord{
 						ExtensionService: svcRecord.ExtensionService,

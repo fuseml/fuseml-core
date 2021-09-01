@@ -20,7 +20,7 @@ type ListOptions struct {
 	format *common.FormattingOptions
 	ID     string
 	Kind   string
-	Labels map[string]string
+	Labels common.KeyValueArgs
 }
 
 // custom formatting handler used to format runnable labels
@@ -51,15 +51,12 @@ func NewListOptions(o *common.GlobalOptions) (res *ListOptions) {
 func NewSubCmdRunnableList(gOpt *common.GlobalOptions) *cobra.Command {
 
 	o := NewListOptions(gOpt)
-	// local variable used to collect the label arguments and then unpack them
-	var labels []string
-
 	cmd := &cobra.Command{
 		Use:   "list [-i|--id ID] [-k|--kind KIND] [-l|--label LABEL_KEY:LABEL_VALUE]...",
 		Short: "List runnables.",
 		Long:  `Retrieve information about Runnables registered in FuseML`,
 		Run: func(cmd *cobra.Command, args []string) {
-			common.UnpackLabelArgs(labels, o.Labels)
+			o.Labels.Unpack()
 			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(o.validate())
 			common.CheckErr(o.run())
@@ -69,7 +66,7 @@ func NewSubCmdRunnableList(gOpt *common.GlobalOptions) *cobra.Command {
 
 	cmd.Flags().StringVarP(&o.ID, "id", "i", "", "ID value or regular expression used to filter runnables")
 	cmd.Flags().StringVarP(&o.Kind, "kind", "k", "", "kind value or regular expression used to filter runnables")
-	cmd.Flags().StringSliceVar(&labels, "label", []string{}, "label value or regular expression used to filter runnables. One or more may be supplied.")
+	cmd.Flags().StringSliceVar(&o.Labels.Packed, "label", []string{}, "label value or regular expression used to filter runnables. One or more may be supplied.")
 	o.format.AddMultiValueFormattingFlags(cmd)
 
 	return cmd
@@ -80,7 +77,7 @@ func (o *ListOptions) validate() error {
 }
 
 func (o *ListOptions) run() error {
-	request, err := runnablec.BuildListPayload(o.ID, o.Kind, o.Labels)
+	request, err := runnablec.BuildListPayload(o.ID, o.Kind, o.Labels.Unpacked)
 	if err != nil {
 		return err
 	}

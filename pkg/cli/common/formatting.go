@@ -304,3 +304,27 @@ func (o *FormattingOptions) FormatValue(out io.Writer, value interface{}) {
 		o.formatObject(out, value)
 	}
 }
+
+// FormatMapField is a generic formatter for map fields
+func FormatMapField(object interface{}, column string, field interface{}) (formated string) {
+	if m, ok := field.(map[string]interface{}); ok {
+		values := make([]string, 0)
+		for k, v := range m {
+			values = append(values, fmt.Sprintf("%s: %s", k, v))
+		}
+		formated += strings.Join(values, "\n")
+	}
+	return
+}
+
+// FormatSliceField is a generic formatter for slice fields
+func FormatSliceField(object interface{}, column string, field interface{}) (formated string) {
+	if s, ok := field.([]interface{}); ok {
+		values := make([]string, len(s))
+		for i, v := range s {
+			values[i] = fmt.Sprintf("%s", v)
+		}
+		formated += strings.Join(values, "\n")
+	}
+	return
+}
