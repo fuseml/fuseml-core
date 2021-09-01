@@ -76,7 +76,7 @@ func handleHTTPServer(ctx context.Context, u *url.URL, endpoints *endpoints, wg 
 		projectServer = projectsvr.New(endpoints.project, mux, dec, enc, eh, nil)
 		workflowServer = workflowsvr.New(endpoints.workflow, mux, dec, enc, eh, nil)
 		extensionServer = extensionsvr.New(endpoints.extension, mux, dec, enc, eh, nil)
-		openapiServer = openapisvr.New(nil, mux, dec, enc, eh, nil)
+		openapiServer = openapisvr.New(nil, mux, dec, enc, eh, nil, nil, nil, nil, nil)
 		if debug {
 			servers := goahttp.Servers{
 				versionServer,
@@ -97,7 +97,7 @@ func handleHTTPServer(ctx context.Context, u *url.URL, endpoints *endpoints, wg 
 	runnablesvr.Mount(mux, runnableServer)
 	codesetsvr.Mount(mux, codesetServer)
 	projectsvr.Mount(mux, projectServer)
-	openapisvr.Mount(mux)
+	openapisvr.Mount(mux, openapiServer)
 	workflowsvr.Mount(mux, workflowServer)
 	extensionsvr.Mount(mux, extensionServer)
 

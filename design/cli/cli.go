@@ -4,13 +4,9 @@
 package cli
 
 import (
-	"encoding/json"
 	"fmt"
-	"reflect"
-	"strconv"
 	"strings"
 
-	"github.com/goccy/go-yaml"
 	"goa.design/goa/v3/codegen"
 	"goa.design/goa/v3/codegen/service"
 	"goa.design/goa/v3/expr"
@@ -250,63 +246,6 @@ func flagType(tname string) string {
 	}
 }
 
-// jsonExample generates a json example
-func jsonExample(v interface{}) string {
-	// In JSON, keys must be a string. But goa allows map keys to be anything.
-	r := reflect.ValueOf(v)
-	if r.Kind() == reflect.Map {
-		keys := r.MapKeys()
-		if keys[0].Kind() != reflect.String {
-			a := make(map[string]interface{}, len(keys))
-			var kstr string
-			for _, k := range keys {
-				switch t := k.Interface().(type) {
-				case bool:
-					kstr = strconv.FormatBool(t)
-				case int32:
-					kstr = strconv.FormatInt(int64(t), 10)
-				case int64:
-					kstr = strconv.FormatInt(t, 10)
-				case int:
-					kstr = strconv.Itoa(t)
-				case float32:
-					kstr = strconv.FormatFloat(float64(t), 'f', -1, 32)
-				case float64:
-					kstr = strconv.FormatFloat(t, 'f', -1, 64)
-				default:
-					kstr = k.String()
-				}
-				a[kstr] = r.MapIndex(k).Interface()
-			}
-			v = a
-		}
-	}
-	b, err := json.MarshalIndent(v, "   ", "   ")
-	ex := "?"
-	if err == nil {
-		ex = string(b)
-	}
-	if strings.Contains(ex, "\n") {
-		ex = "'" + strings.Replace(ex, "'", "\\'", -1) + "'"
-	}
-	return ex
-}
-
-// yamlExample generates a yaml example
-func yamlExample(v interface{}) string {
-	// Scalars are represented on a single line
-	r := reflect.ValueOf(v)
-	if r.Kind() != reflect.Map && r.Kind() != reflect.Array {
-		return fmt.Sprintf("\"%s\"", r)
-	}
-	b, err := yaml.Marshal(v)
-	ex := "?"
-	if err == nil {
-		ex = "\"" + string(b) + "\""
-	}
-	return ex
-}
-
 var (
 	boolN    = codegen.GoNativeTypeName(expr.Boolean)
 	intN     = codegen.GoNativeTypeName(expr.Int)
@@ -420,7 +359,7 @@ func fieldCode(init *PayloadInitData) string {
 	}
 	// We can ignore the transform helpers as there won't be any generated
 	// because the args cannot be user types.
-	c, _, err := codegen.InitStructFields(init.Args, init.ReturnTypeName, varn, "", init.ReturnTypePkg, init.Code == "")
+	c, _, err := codegen.InitStructFields(init.Args, varn, "", init.ReturnTypePkg)
 	if err != nil {
 		panic(err) //bug
 	}

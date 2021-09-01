@@ -123,8 +123,8 @@ tidy:
 
 # Download dependecies needed to generate code by goa
 deps:
-	go get goa.design/goa/v3/cmd/goa@v3.3.1
-	go get goa.design/goa/v3/http/codegen/openapi/v2@v3.3.1
+	go get goa.design/goa/v3/cmd/goa@v3.4.3
+	go get goa.design/goa/v3/http/codegen/openapi/v2@v3.4.3
 	go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc
 	go get -u google.golang.org/protobuf/cmd/protoc-gen-go
 	go get golang.org/x/lint/golint
