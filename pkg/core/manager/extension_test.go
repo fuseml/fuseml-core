@@ -24,138 +24,65 @@ func newExtensionRegistry() *ExtensionRegistry {
 	return NewExtensionRegistry(core.NewExtensionStore())
 }
 
-func newExtension(extension *domain.Extension) (result *domain.ExtensionRecord) {
-	return &domain.ExtensionRecord{
-		Extension: *extension,
-		Services:  make([]*domain.ExtensionServiceRecord, 0),
-	}
-}
-
-func addService(extRecord *domain.ExtensionRecord, service *domain.ExtensionService) (result *domain.ExtensionServiceRecord) {
-	result = &domain.ExtensionServiceRecord{
-		ExtensionService: *service,
-		Endpoints:        make([]*domain.ExtensionEndpoint, 0),
-		Credentials:      make([]*domain.ExtensionCredentials, 0),
-	}
-	extRecord.Services = append(extRecord.Services, result)
-	return
-}
-
-func addEndpoint(svcRecord *domain.ExtensionServiceRecord, endpoint *domain.ExtensionEndpoint) {
-	svcRecord.Endpoints = append(svcRecord.Endpoints, endpoint)
-}
-
-func addCredentials(svcRecord *domain.ExtensionServiceRecord, credentials *domain.ExtensionCredentials) {
-	svcRecord.Credentials = append(svcRecord.Credentials, credentials)
-}
-
 // Test registering an extension
 func TestExtensionRegister(t *testing.T) {
 	t.Run("explicit IDs", func(t *testing.T) {
 		registry := newExtensionRegistry()
-		e := &domain.Extension{
-			ID: "testextension",
-		}
-		er := newExtension(e)
-		s1 := &domain.ExtensionService{
-			ExtensionServiceID: domain.ExtensionServiceID{
-				ID: "testservice-001",
-			},
-		}
-		sr1 := addService(er, s1)
-		s2 := &domain.ExtensionService{
-			ExtensionServiceID: domain.ExtensionServiceID{
-				ID: "testservice-002",
-			},
-		}
-		sr2 := addService(er, s2)
-		ep1 := &domain.ExtensionEndpoint{
-			ExtensionEndpointID: domain.ExtensionEndpointID{
-				URL: "https://testendpoint-001.com",
-			},
-		}
-		addEndpoint(sr1, ep1)
-		ep2 := &domain.ExtensionEndpoint{
-			ExtensionEndpointID: domain.ExtensionEndpointID{
-				URL: "https://testendpoint-002.com",
-			},
-		}
-		addEndpoint(sr2, ep2)
-		c1 := &domain.ExtensionCredentials{
-			ExtensionCredentialsID: domain.ExtensionCredentialsID{
-				ID: "testcredentials-001",
-			},
-		}
-		addCredentials(sr1, c1)
-		c2 := &domain.ExtensionCredentials{
-			ExtensionCredentialsID: domain.ExtensionCredentialsID{
-				ID: "testcredentials-002",
-			},
-		}
-		addCredentials(sr2, c2)
+		e := &domain.Extension{ID: "testextension"}
+		ctx := context.Background()
 
-		erIn, err := registry.RegisterExtension(context.Background(), er)
+		s1 := &domain.ExtensionService{ID: "testservice-001"}
+		ep1 := &domain.ExtensionServiceEndpoint{URL: "https://testendpoint-001.com"}
+		c1 := &domain.ExtensionServiceCredentials{ID: "testcredentials-001"}
+		s1.AddEndpoint(ep1)
+		s1.AddCredentials(c1)
+		e.AddService(s1)
+
+		s2 := &domain.ExtensionService{ID: "testservice-002"}
+		ep2 := &domain.ExtensionServiceEndpoint{URL: "https://testendpoint-002.com"}
+		c2 := &domain.ExtensionServiceCredentials{ID: "testcredentials-002"}
+		s2.AddEndpoint(ep2)
+		s2.AddCredentials(c2)
+		e.AddService(s2)
+
+		eIn, err := registry.RegisterExtension(ctx, e)
 		assertError(t, err, nil)
-		if d := cmp.Diff(er, erIn); d != "" {
+		if d := cmp.Diff(e, eIn); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
-		erOut, err := registry.GetExtension(context.Background(), "testextension", true)
+
+		eOut, err := registry.GetExtension(ctx, e.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(erIn, erOut); d != "" {
+		if d := cmp.Diff(eIn, eOut); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
-		sr1Out, err := registry.GetService(context.Background(), domain.ExtensionServiceID{
-			ExtensionID: "testextension",
-			ID:          "testservice-001",
-		}, true)
+
+		s1Out, err := registry.GetService(ctx, e.ID, s1.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(sr1, sr1Out); d != "" {
+		if d := cmp.Diff(s1, s1Out); d != "" {
 			t.Errorf("Unexpected Service: %s", diff.PrintWantGot(d))
 		}
-		sr2Out, err := registry.GetService(context.Background(), domain.ExtensionServiceID{
-			ExtensionID: "testextension",
-			ID:          "testservice-002",
-		}, true)
+		s2Out, err := registry.GetService(ctx, e.ID, s2.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(sr2, sr2Out); d != "" {
+		if d := cmp.Diff(s2, s2Out); d != "" {
 			t.Errorf("Unexpected Service: %s", diff.PrintWantGot(d))
 		}
-		ep1Out, err := registry.GetEndpoint(
-			context.Background(), domain.ExtensionEndpointID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-001",
-				URL:         "https://testendpoint-001.com",
-			})
+		ep1Out, err := registry.GetEndpoint(ctx, e.ID, s1.ID, ep1.URL)
 		assertError(t, err, nil)
 		if d := cmp.Diff(ep1, ep1Out); d != "" {
 			t.Errorf("Unexpected Endpoint: %s", diff.PrintWantGot(d))
 		}
-		ep2Out, err := registry.GetEndpoint(
-			context.Background(), domain.ExtensionEndpointID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-002",
-				URL:         "https://testendpoint-002.com",
-			})
+		ep2Out, err := registry.GetEndpoint(ctx, e.ID, s2.ID, ep2.URL)
 		assertError(t, err, nil)
 		if d := cmp.Diff(ep2, ep2Out); d != "" {
 			t.Errorf("Unexpected Endpoint: %s", diff.PrintWantGot(d))
 		}
-		c1Out, err := registry.GetCredentials(
-			context.Background(), domain.ExtensionCredentialsID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-001",
-				ID:          "testcredentials-001",
-			})
+		c1Out, err := registry.GetCredentials(ctx, e.ID, s1.ID, c1.ID)
 		assertError(t, err, nil)
 		if d := cmp.Diff(c1, c1Out); d != "" {
 			t.Errorf("Unexpected Credentials: %s", diff.PrintWantGot(d))
 		}
-		c2Out, err := registry.GetCredentials(
-			context.Background(), domain.ExtensionCredentialsID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-002",
-				ID:          "testcredentials-002",
-			})
+		c2Out, err := registry.GetCredentials(ctx, e.ID, s2.ID, c2.ID)
 		assertError(t, err, nil)
 		if d := cmp.Diff(c2, c2Out); d != "" {
 			t.Errorf("Unexpected Credentials: %s", diff.PrintWantGot(d))
@@ -164,44 +91,36 @@ func TestExtensionRegister(t *testing.T) {
 
 	t.Run("generated ID", func(t *testing.T) {
 		registry := newExtensionRegistry()
-		e := &domain.Extension{
-			Product: "testproduct",
-		}
-		er := newExtension(e)
-		s1 := &domain.ExtensionService{}
-		sr1 := addService(er, s1)
-		s2 := &domain.ExtensionService{Resource: "testresource"}
-		sr2 := addService(er, s2)
-		ep1 := &domain.ExtensionEndpoint{
-			ExtensionEndpointID: domain.ExtensionEndpointID{
-				URL: "https://testendpoint-001.com",
-			},
-		}
-		addEndpoint(sr1, ep1)
-		ep2 := &domain.ExtensionEndpoint{
-			ExtensionEndpointID: domain.ExtensionEndpointID{
-				URL: "https://testendpoint-002.com",
-			},
-		}
-		addEndpoint(sr2, ep2)
-		c1 := &domain.ExtensionCredentials{}
-		addCredentials(sr1, c1)
-		c2 := &domain.ExtensionCredentials{}
-		addCredentials(sr2, c2)
+		e := &domain.Extension{Product: "testproduct"}
+		ctx := context.Background()
 
-		erIn, err := registry.RegisterExtension(context.Background(), er)
+		s1 := &domain.ExtensionService{}
+		ep1 := &domain.ExtensionServiceEndpoint{URL: "https://testendpoint-001.com"}
+		c1 := &domain.ExtensionServiceCredentials{}
+		s1.AddEndpoint(ep1)
+		s1.AddCredentials(c1)
+		e.AddService(s1)
+
+		s2 := &domain.ExtensionService{Resource: "testresource"}
+		ep2 := &domain.ExtensionServiceEndpoint{URL: "https://testendpoint-002.com"}
+		c2 := &domain.ExtensionServiceCredentials{}
+		s2.AddEndpoint(ep2)
+		s2.AddCredentials(c2)
+		e.AddService(s2)
+
+		eIn, err := registry.RegisterExtension(ctx, e)
 		assertError(t, err, nil)
-		if d := cmp.Diff(er, erIn); d != "" {
+		if d := cmp.Diff(e, eIn); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
-		if !strings.HasPrefix(er.ID, "testproduct-") {
-			t.Errorf("Unexpected Extension ID: %s", er.ID)
+		if !strings.HasPrefix(e.ID, "testproduct-") {
+			t.Errorf("Unexpected Extension ID: %s", eIn.ID)
 		}
-		if !strings.HasPrefix(sr1.ID, "testproduct-service-") {
-			t.Errorf("Unexpected Service ID: %s", sr1.ID)
+		if !strings.HasPrefix(s1.ID, "testproduct-service-") {
+			t.Errorf("Unexpected Service ID: %s", s1.ID)
 		}
-		if !strings.HasPrefix(sr2.ID, "testresource-") {
-			t.Errorf("Unexpected Service ID: %s", sr2.ID)
+		if !strings.HasPrefix(s2.ID, "testresource-") {
+			t.Errorf("Unexpected Service ID: %s", s2.ID)
 		}
 		if !strings.HasPrefix(c1.ID, "creds-") {
 			t.Errorf("Unexpected Credentials ID: %s", c1.ID)
@@ -210,42 +129,38 @@ func TestExtensionRegister(t *testing.T) {
 			t.Errorf("Unexpected Credentials ID: %s", c2.ID)
 		}
 
-		erOut, err := registry.GetExtension(context.Background(), er.ID, true)
+		eOut, err := registry.GetExtension(ctx, e.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(erIn, erOut); d != "" {
+		if d := cmp.Diff(eIn, eOut); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
 
-		sr1Out, err := registry.GetService(context.Background(), sr1.ExtensionServiceID, true)
+		s1Out, err := registry.GetService(ctx, e.ID, s1.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(sr1, sr1Out); d != "" {
+		if d := cmp.Diff(s1, s1Out); d != "" {
 			t.Errorf("Unexpected Service: %s", diff.PrintWantGot(d))
 		}
-		sr2Out, err := registry.GetService(context.Background(), sr2.ExtensionServiceID, true)
+		s2Out, err := registry.GetService(ctx, e.ID, s2.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(sr2, sr2Out); d != "" {
+		if d := cmp.Diff(s2, s2Out); d != "" {
 			t.Errorf("Unexpected Service: %s", diff.PrintWantGot(d))
 		}
-		ep1Out, err := registry.GetEndpoint(
-			context.Background(), ep1.ExtensionEndpointID)
+		ep1Out, err := registry.GetEndpoint(ctx, e.ID, s1.ID, ep1.URL)
 		assertError(t, err, nil)
 		if d := cmp.Diff(ep1, ep1Out); d != "" {
 			t.Errorf("Unexpected Endpoint: %s", diff.PrintWantGot(d))
 		}
-		ep2Out, err := registry.GetEndpoint(
-			context.Background(), ep2.ExtensionEndpointID)
+		ep2Out, err := registry.GetEndpoint(ctx, e.ID, s2.ID, ep2.URL)
 		assertError(t, err, nil)
 		if d := cmp.Diff(ep2, ep2Out); d != "" {
 			t.Errorf("Unexpected Endpoint: %s", diff.PrintWantGot(d))
 		}
-		c1Out, err := registry.GetCredentials(
-			context.Background(), c1.ExtensionCredentialsID)
+		c1Out, err := registry.GetCredentials(ctx, e.ID, s1.ID, c1.ID)
 		assertError(t, err, nil)
 		if d := cmp.Diff(c1, c1Out); d != "" {
 			t.Errorf("Unexpected Credentials: %s", diff.PrintWantGot(d))
 		}
-		c2Out, err := registry.GetCredentials(
-			context.Background(), c2.ExtensionCredentialsID)
+		c2Out, err := registry.GetCredentials(ctx, e.ID, s2.ID, c2.ID)
 		assertError(t, err, nil)
 		if d := cmp.Diff(c2, c2Out); d != "" {
 			t.Errorf("Unexpected Credentials: %s", diff.PrintWantGot(d))
@@ -258,177 +173,108 @@ func TestExtensionRegister(t *testing.T) {
 func TestExtensionAdd(t *testing.T) {
 	t.Run("explicit IDs", func(t *testing.T) {
 		registry := newExtensionRegistry()
-		e := &domain.Extension{
-			ID: "testextension",
-		}
-		er := newExtension(e)
-		erIn, err := registry.RegisterExtension(context.Background(), er)
+		e := &domain.Extension{ID: "testextension"}
+		ctx := context.Background()
+
+		erIn, err := registry.RegisterExtension(ctx, e)
 		assertError(t, err, nil)
-		if d := cmp.Diff(er, erIn); d != "" {
-			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
-		}
-		erOut, err := registry.GetExtension(context.Background(), "testextension", true)
-		assertError(t, err, nil)
-		if d := cmp.Diff(erIn, erOut); d != "" {
+		if d := cmp.Diff(e, erIn); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
 
-		s1 := &domain.ExtensionService{
-			ExtensionServiceID: domain.ExtensionServiceID{
-				ExtensionID: "testextension",
-				ID:          "testservice-001",
-			},
-		}
-		sr1 := addService(er, s1)
-		s2 := &domain.ExtensionService{
-			ExtensionServiceID: domain.ExtensionServiceID{
-				ExtensionID: "testextension",
-				ID:          "testservice-002",
-			},
-		}
-		sr2 := addService(er, s2)
-
-		sr1In, err := registry.AddService(context.Background(), sr1)
+		eOut, err := registry.GetExtension(ctx, e.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(sr1, sr1In); d != "" {
-			t.Errorf("Unexpected Service: %s", diff.PrintWantGot(d))
-		}
-		sr1Out, err := registry.GetService(context.Background(), domain.ExtensionServiceID{
-			ExtensionID: "testextension",
-			ID:          "testservice-001",
-		}, true)
-		assertError(t, err, nil)
-		if d := cmp.Diff(sr1, sr1Out); d != "" {
-			t.Errorf("Unexpected Service: %s", diff.PrintWantGot(d))
-		}
-
-		sr2In, err := registry.AddService(context.Background(), sr2)
-		assertError(t, err, nil)
-		if d := cmp.Diff(sr2, sr2In); d != "" {
-			t.Errorf("Unexpected Service: %s", diff.PrintWantGot(d))
-		}
-		sr2Out, err := registry.GetService(context.Background(), domain.ExtensionServiceID{
-			ExtensionID: "testextension",
-			ID:          "testservice-002",
-		}, true)
-		assertError(t, err, nil)
-		if d := cmp.Diff(sr2, sr2Out); d != "" {
-			t.Errorf("Unexpected Service: %s", diff.PrintWantGot(d))
-		}
-
-		erOut, err = registry.GetExtension(context.Background(), "testextension", true)
-		assertError(t, err, nil)
-		if d := cmp.Diff(erIn, erOut); d != "" {
+		if d := cmp.Diff(erIn, eOut); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
 
-		ep1 := &domain.ExtensionEndpoint{
-			ExtensionEndpointID: domain.ExtensionEndpointID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-001",
-				URL:         "https://testendpoint-001.com",
-			},
+		s1 := &domain.ExtensionService{ID: "testservice-001"}
+		s1In, err := registry.AddService(ctx, e.ID, s1)
+		assertError(t, err, nil)
+		if d := cmp.Diff(s1, s1In); d != "" {
+			t.Errorf("Unexpected Service: %s", diff.PrintWantGot(d))
 		}
-		addEndpoint(sr1, ep1)
-		ep2 := &domain.ExtensionEndpoint{
-			ExtensionEndpointID: domain.ExtensionEndpointID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-002",
-				URL:         "https://testendpoint-002.com",
-			},
+		s1Out, err := registry.GetService(ctx, e.ID, s1.ID)
+		assertError(t, err, nil)
+		if d := cmp.Diff(s1, s1Out); d != "" {
+			t.Errorf("Unexpected Service: %s", diff.PrintWantGot(d))
 		}
-		addEndpoint(sr2, ep2)
 
-		ep1In, err := registry.AddEndpoint(context.Background(), ep1)
+		s2 := &domain.ExtensionService{ID: "testservice-002"}
+		s2In, err := registry.AddService(ctx, e.ID, s2)
+		assertError(t, err, nil)
+		if d := cmp.Diff(s2, s2In); d != "" {
+			t.Errorf("Unexpected Service: %s", diff.PrintWantGot(d))
+		}
+		s2Out, err := registry.GetService(ctx, e.ID, s2.ID)
+		assertError(t, err, nil)
+		if d := cmp.Diff(s2, s2Out); d != "" {
+			t.Errorf("Unexpected Service: %s", diff.PrintWantGot(d))
+		}
+
+		eOut, err = registry.GetExtension(ctx, e.ID)
+		assertError(t, err, nil)
+		if d := cmp.Diff(erIn, eOut); d != "" {
+			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
+		}
+
+		ep1 := &domain.ExtensionServiceEndpoint{URL: "https://testendpoint-001.com"}
+		ep1In, err := registry.AddEndpoint(ctx, e.ID, s1.ID, ep1)
 		assertError(t, err, nil)
 		if d := cmp.Diff(ep1, ep1In); d != "" {
 			t.Errorf("Unexpected Endpoint: %s", diff.PrintWantGot(d))
 		}
-		ep1Out, err := registry.GetEndpoint(
-			context.Background(), domain.ExtensionEndpointID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-001",
-				URL:         "https://testendpoint-001.com",
-			})
+		ep1Out, err := registry.GetEndpoint(ctx, e.ID, s1.ID, ep1.URL)
 		assertError(t, err, nil)
 		if d := cmp.Diff(ep1, ep1Out); d != "" {
 			t.Errorf("Unexpected Endpoint: %s", diff.PrintWantGot(d))
 		}
 
-		ep2In, err := registry.AddEndpoint(context.Background(), ep2)
+		ep2 := &domain.ExtensionServiceEndpoint{URL: "https://testendpoint-002.com"}
+		ep2In, err := registry.AddEndpoint(ctx, e.ID, s2.ID, ep2)
 		assertError(t, err, nil)
 		if d := cmp.Diff(ep2, ep2In); d != "" {
 			t.Errorf("Unexpected Endpoint: %s", diff.PrintWantGot(d))
 		}
-		ep2Out, err := registry.GetEndpoint(
-			context.Background(), domain.ExtensionEndpointID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-002",
-				URL:         "https://testendpoint-002.com",
-			})
+		ep2Out, err := registry.GetEndpoint(ctx, e.ID, s2.ID, ep2.URL)
 		assertError(t, err, nil)
 		if d := cmp.Diff(ep2, ep2Out); d != "" {
 			t.Errorf("Unexpected Endpoint: %s", diff.PrintWantGot(d))
 		}
 
-		erOut, err = registry.GetExtension(context.Background(), "testextension", true)
+		eOut, err = registry.GetExtension(ctx, e.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(erIn, erOut); d != "" {
+		if d := cmp.Diff(erIn, eOut); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
 
-		c1 := &domain.ExtensionCredentials{
-			ExtensionCredentialsID: domain.ExtensionCredentialsID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-001",
-				ID:          "testcredentials-001",
-			},
-		}
-		addCredentials(sr1, c1)
-		c2 := &domain.ExtensionCredentials{
-			ExtensionCredentialsID: domain.ExtensionCredentialsID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-002",
-				ID:          "testcredentials-002",
-			},
-		}
-		addCredentials(sr2, c2)
-
-		c1In, err := registry.AddCredentials(context.Background(), c1)
+		c1 := &domain.ExtensionServiceCredentials{ID: "testcredentials-001"}
+		c1In, err := registry.AddCredentials(ctx, e.ID, s1.ID, c1)
 		assertError(t, err, nil)
 		if d := cmp.Diff(c1, c1In); d != "" {
 			t.Errorf("Unexpected Credentials: %s", diff.PrintWantGot(d))
 		}
-		c1Out, err := registry.GetCredentials(
-			context.Background(), domain.ExtensionCredentialsID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-001",
-				ID:          "testcredentials-001",
-			})
+		c1Out, err := registry.GetCredentials(ctx, e.ID, s1.ID, c1.ID)
 		assertError(t, err, nil)
 		if d := cmp.Diff(c1, c1Out); d != "" {
 			t.Errorf("Unexpected Credentials: %s", diff.PrintWantGot(d))
 		}
 
-		c2In, err := registry.AddCredentials(context.Background(), c2)
+		c2 := &domain.ExtensionServiceCredentials{ID: "testcredentials-002"}
+		c2In, err := registry.AddCredentials(ctx, e.ID, s2.ID, c2)
 		assertError(t, err, nil)
 		if d := cmp.Diff(c2, c2In); d != "" {
 			t.Errorf("Unexpected Credentials: %s", diff.PrintWantGot(d))
 		}
-		c2Out, err := registry.GetCredentials(
-			context.Background(), domain.ExtensionCredentialsID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-002",
-				ID:          "testcredentials-002",
-			})
+		c2Out, err := registry.GetCredentials(ctx, e.ID, s2.ID, c2.ID)
 		assertError(t, err, nil)
 		if d := cmp.Diff(c2, c2Out); d != "" {
 			t.Errorf("Unexpected Credentials: %s", diff.PrintWantGot(d))
 		}
 
-		erOut, err = registry.GetExtension(context.Background(), "testextension", true)
+		eOut, err = registry.GetExtension(ctx, e.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(erIn, erOut); d != "" {
+		if d := cmp.Diff(erIn, eOut); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
 
@@ -439,182 +285,104 @@ func TestExtensionAdd(t *testing.T) {
 func TestExtensionRemove(t *testing.T) {
 	t.Run("incremental", func(t *testing.T) {
 		registry := newExtensionRegistry()
-		e := &domain.Extension{
-			ID: "testextension",
-		}
-		er := newExtension(e)
-		s1 := &domain.ExtensionService{
-			ExtensionServiceID: domain.ExtensionServiceID{
-				ID: "testservice-001",
-			},
-		}
-		sr1 := addService(er, s1)
-		s2 := &domain.ExtensionService{
-			ExtensionServiceID: domain.ExtensionServiceID{
-				ID: "testservice-002",
-			},
-		}
-		sr2 := addService(er, s2)
-		ep1 := &domain.ExtensionEndpoint{
-			ExtensionEndpointID: domain.ExtensionEndpointID{
-				URL: "https://testendpoint-001.com",
-			},
-		}
-		addEndpoint(sr1, ep1)
-		ep2 := &domain.ExtensionEndpoint{
-			ExtensionEndpointID: domain.ExtensionEndpointID{
-				URL: "https://testendpoint-002.com",
-			},
-		}
-		addEndpoint(sr2, ep2)
-		c1 := &domain.ExtensionCredentials{
-			ExtensionCredentialsID: domain.ExtensionCredentialsID{
-				ID: "testcredentials-001",
-			},
-		}
-		addCredentials(sr1, c1)
-		c2 := &domain.ExtensionCredentials{
-			ExtensionCredentialsID: domain.ExtensionCredentialsID{
-				ID: "testcredentials-002",
-			},
-		}
-		addCredentials(sr2, c2)
+		e := &domain.Extension{ID: "testextension"}
+		ctx := context.Background()
 
-		erIn, err := registry.RegisterExtension(context.Background(), er)
+		s1 := &domain.ExtensionService{ID: "testservice-001"}
+		ep1 := &domain.ExtensionServiceEndpoint{URL: "https://testendpoint-001.com"}
+		c1 := &domain.ExtensionServiceCredentials{ID: "testcredentials-001"}
+		s1.AddEndpoint(ep1)
+		s1.AddCredentials(c1)
+		e.AddService(s1)
+
+		s2 := &domain.ExtensionService{ID: "testservice-002"}
+		ep2 := &domain.ExtensionServiceEndpoint{URL: "https://testendpoint-002.com"}
+		c2 := &domain.ExtensionServiceCredentials{ID: "testcredentials-002"}
+		s2.AddEndpoint(ep2)
+		s2.AddCredentials(c2)
+		e.AddService(s2)
+
+		eIn, err := registry.RegisterExtension(ctx, e)
 		assertError(t, err, nil)
-		if d := cmp.Diff(er, erIn); d != "" {
+		if d := cmp.Diff(e, eIn); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
-		erOut, err := registry.GetExtension(context.Background(), "testextension", true)
+		eOut, err := registry.GetExtension(ctx, e.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(erIn, erOut); d != "" {
+		if d := cmp.Diff(eIn, eOut); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
 
-		sr1.Endpoints = sr1.Endpoints[:0]
-		err = registry.RemoveEndpoint(
-			context.Background(), domain.ExtensionEndpointID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-001",
-				URL:         "https://testendpoint-001.com",
-			})
+		err = registry.RemoveEndpoint(ctx, e.ID, s1.ID, ep1.URL)
 		assertError(t, err, nil)
-		_, err = registry.GetEndpoint(
-			context.Background(), domain.ExtensionEndpointID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-001",
-				URL:         "https://testendpoint-001.com",
-			})
-		assertErrorType(t, err, domain.NewErrExtensionEndpointNotFound("testextension", "testservice-001", "https://testendpoint-001.com"))
-		erOut, err = registry.GetExtension(context.Background(), "testextension", true)
+		_, err = registry.GetEndpoint(ctx, e.ID, s1.ID, ep1.URL)
+		assertErrorType(t, err, domain.NewErrExtensionServiceEndpointNotFound(e.ID, s1.ID, ep1.URL))
+
+		eOut, err = registry.GetExtension(ctx, e.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(erIn, erOut); d != "" {
+		if d := cmp.Diff(eIn, eOut); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
 
-		sr2.Endpoints = sr2.Endpoints[:0]
-		err = registry.RemoveEndpoint(
-			context.Background(), domain.ExtensionEndpointID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-002",
-				URL:         "https://testendpoint-002.com",
-			})
+		err = registry.RemoveEndpoint(ctx, e.ID, s2.ID, ep2.URL)
 		assertError(t, err, nil)
-		_, err = registry.GetEndpoint(
-			context.Background(), domain.ExtensionEndpointID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-002",
-				URL:         "https://testendpoint-002.com",
-			})
-		assertErrorType(t, err, domain.NewErrExtensionEndpointNotFound("testextension", "testservice-002", "https://testendpoint-002.com"))
-		erOut, err = registry.GetExtension(context.Background(), "testextension", true)
+		_, err = registry.GetEndpoint(ctx, e.ID, s2.ID, ep2.URL)
+		assertErrorType(t, err, domain.NewErrExtensionServiceEndpointNotFound(e.ID, s2.ID, ep2.URL))
+
+		eOut, err = registry.GetExtension(ctx, e.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(erIn, erOut); d != "" {
+		if d := cmp.Diff(eIn, eOut); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
 
-		sr1.Credentials = sr1.Credentials[:0]
-		err = registry.RemoveCredentials(
-			context.Background(), domain.ExtensionCredentialsID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-001",
-				ID:          "testcredentials-001",
-			})
+		err = registry.RemoveCredentials(ctx, e.ID, s1.ID, c1.ID)
 		assertError(t, err, nil)
-		_, err = registry.GetCredentials(
-			context.Background(), domain.ExtensionCredentialsID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-001",
-				ID:          "testcredentials-001",
-			})
-		assertErrorType(t, err, domain.NewErrExtensionCredentialsNotFound("testextension", "testservice-001", "testcredentials-001"))
-		erOut, err = registry.GetExtension(context.Background(), "testextension", true)
+		_, err = registry.GetCredentials(ctx, e.ID, s1.ID, c1.ID)
+		assertErrorType(t, err, domain.NewErrExtensionServiceCredentialsNotFound(e.ID, s1.ID, c1.ID))
+
+		eOut, err = registry.GetExtension(ctx, e.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(erIn, erOut); d != "" {
+		if d := cmp.Diff(eIn, eOut); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
 
-		sr2.Credentials = sr2.Credentials[:0]
-		err = registry.RemoveCredentials(
-			context.Background(), domain.ExtensionCredentialsID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-002",
-				ID:          "testcredentials-002",
-			})
+		err = registry.RemoveCredentials(ctx, e.ID, s2.ID, c2.ID)
 		assertError(t, err, nil)
-		_, err = registry.GetCredentials(
-			context.Background(), domain.ExtensionCredentialsID{
-				ExtensionID: "testextension",
-				ServiceID:   "testservice-002",
-				ID:          "testcredentials-002",
-			})
-		assertErrorType(t, err, domain.NewErrExtensionCredentialsNotFound("testextension", "testservice-002", "testcredentials-002"))
-		erOut, err = registry.GetExtension(context.Background(), "testextension", true)
+		_, err = registry.GetCredentials(ctx, e.ID, s2.ID, c2.ID)
+		assertErrorType(t, err, domain.NewErrExtensionServiceCredentialsNotFound(e.ID, s2.ID, c2.ID))
+
+		eOut, err = registry.GetExtension(ctx, e.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(erIn, erOut); d != "" {
+		if d := cmp.Diff(eIn, eOut); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
 
-		er.Services = er.Services[:1]
-		err = registry.RemoveService(
-			context.Background(), domain.ExtensionServiceID{
-				ExtensionID: "testextension",
-				ID:          "testservice-002",
-			})
+		err = registry.RemoveService(ctx, e.ID, s1.ID)
 		assertError(t, err, nil)
-		_, err = registry.GetService(context.Background(), domain.ExtensionServiceID{
-			ExtensionID: "testextension",
-			ID:          "testservice-002",
-		}, true)
-		assertErrorType(t, err, domain.NewErrExtensionServiceNotFound("testextension", "testservice-002"))
-		erOut, err = registry.GetExtension(context.Background(), "testextension", true)
+		_, err = registry.GetService(ctx, e.ID, s1.ID)
+		assertErrorType(t, err, domain.NewErrExtensionServiceNotFound(e.ID, s1.ID))
+
+		eOut, err = registry.GetExtension(ctx, e.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(erIn, erOut); d != "" {
+		if d := cmp.Diff(eIn, eOut); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
 
-		er.Services = make([]*domain.ExtensionServiceRecord, 0)
-		err = registry.RemoveService(
-			context.Background(), domain.ExtensionServiceID{
-				ExtensionID: "testextension",
-				ID:          "testservice-001",
-			})
+		err = registry.RemoveService(ctx, e.ID, s2.ID)
 		assertError(t, err, nil)
-		_, err = registry.GetService(context.Background(), domain.ExtensionServiceID{
-			ExtensionID: "testextension",
-			ID:          "testservice-001",
-		}, true)
-		assertErrorType(t, err, domain.NewErrExtensionServiceNotFound("testextension", "testservice-001"))
-		erOut, err = registry.GetExtension(context.Background(), "testextension", true)
+		_, err = registry.GetService(ctx, e.ID, s2.ID)
+		assertErrorType(t, err, domain.NewErrExtensionServiceNotFound(e.ID, s2.ID))
+
+		eOut, err = registry.GetExtension(ctx, e.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(erIn, erOut); d != "" {
+		if d := cmp.Diff(eIn, eOut); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
 
-		err = registry.RemoveExtension(context.Background(), "testextension")
+		err = registry.RemoveExtension(ctx, e.ID)
 		assertError(t, err, nil)
-		_, err = registry.GetExtension(context.Background(), "testextension", true)
-		assertErrorType(t, err, domain.NewErrExtensionNotFound("testextension"))
+		_, err = registry.GetExtension(ctx, e.ID)
+		assertErrorType(t, err, domain.NewErrExtensionNotFound(e.ID))
 
 	})
 }
@@ -634,11 +402,10 @@ func TestExtensionUpdate(t *testing.T) {
 				"ext-config-two": "ext-value-two",
 			},
 		}
-		er := newExtension(e)
+		ctx := context.Background()
+
 		s1 := &domain.ExtensionService{
-			ExtensionServiceID: domain.ExtensionServiceID{
-				ID: "testservice-001",
-			},
+			ID:           "testservice-001",
 			Resource:     "testresource-one",
 			Category:     "testcategory-one",
 			Description:  "Test service 001",
@@ -648,47 +415,16 @@ func TestExtensionUpdate(t *testing.T) {
 				"svc-001-config-two": "svc-001-value-two",
 			},
 		}
-		sr1 := addService(er, s1)
-		s2 := &domain.ExtensionService{
-			ExtensionServiceID: domain.ExtensionServiceID{
-				ID: "testservice-002",
-			},
-			Resource:     "testresource-two",
-			Category:     "testcategory-two",
-			Description:  "Test service 002",
-			AuthRequired: true,
-			Configuration: map[string]string{
-				"svc-002-config-one": "svc-002-value-one",
-				"svc-002-config-two": "svc-002-value-two",
-			},
-		}
-		sr2 := addService(er, s2)
-		ep1 := &domain.ExtensionEndpoint{
-			ExtensionEndpointID: domain.ExtensionEndpointID{
-				URL: "https://testendpoint-001.com",
-			},
+		ep1 := &domain.ExtensionServiceEndpoint{
+			URL:  "https://testendpoint-001.com",
 			Type: domain.EETExternal,
 			Configuration: map[string]string{
 				"ep-001-config-one": "svc-001-value-one",
 				"ep-001-config-two": "svc-001-value-two",
 			},
 		}
-		addEndpoint(sr1, ep1)
-		ep2 := &domain.ExtensionEndpoint{
-			ExtensionEndpointID: domain.ExtensionEndpointID{
-				URL: "https://testendpoint-002.com",
-			},
-			Type: domain.EETInternal,
-			Configuration: map[string]string{
-				"ep-002-config-one": "svc-002-value-one",
-				"ep-002-config-two": "svc-002-value-two",
-			},
-		}
-		addEndpoint(sr2, ep2)
-		c1 := &domain.ExtensionCredentials{
-			ExtensionCredentialsID: domain.ExtensionCredentialsID{
-				ID: "testcredentials-001",
-			},
+		c1 := &domain.ExtensionServiceCredentials{
+			ID:       "testcredentials-001",
 			Scope:    domain.ECSGlobal,
 			Default:  true,
 			Projects: []string{},
@@ -698,11 +434,32 @@ func TestExtensionUpdate(t *testing.T) {
 				"cred-001-config-two": "cred-001-value-two",
 			},
 		}
-		addCredentials(sr1, c1)
-		c2 := &domain.ExtensionCredentials{
-			ExtensionCredentialsID: domain.ExtensionCredentialsID{
-				ID: "testcredentials-002",
+		s1.AddEndpoint(ep1)
+		s1.AddCredentials(c1)
+		e.AddService(s1)
+
+		s2 := &domain.ExtensionService{
+			ID:           "testservice-002",
+			Resource:     "testresource-two",
+			Category:     "testcategory-two",
+			Description:  "Test service 002",
+			AuthRequired: true,
+			Configuration: map[string]string{
+				"svc-002-config-one": "svc-002-value-one",
+				"svc-002-config-two": "svc-002-value-two",
 			},
+		}
+		ep2 := &domain.ExtensionServiceEndpoint{
+			URL:  "https://testendpoint-002.com",
+			Type: domain.EETInternal,
+			Configuration: map[string]string{
+				"ep-002-config-one": "svc-002-value-one",
+				"ep-002-config-two": "svc-002-value-two",
+			},
+		}
+		c2 := &domain.ExtensionServiceCredentials{
+			ID: "testcredentials-002",
+
 			Scope:    domain.ECSUser,
 			Default:  false,
 			Projects: []string{"project-one", "project-two"},
@@ -712,21 +469,23 @@ func TestExtensionUpdate(t *testing.T) {
 				"cred-002-config-two": "cred-002-value-two",
 			},
 		}
-		addCredentials(sr2, c2)
+		s2.AddEndpoint(ep2)
+		s2.AddCredentials(c2)
+		e.AddService(s2)
 
-		erIn, err := registry.RegisterExtension(context.Background(), er)
+		eIn, err := registry.RegisterExtension(ctx, e)
 		assertError(t, err, nil)
-		if d := cmp.Diff(er, erIn); d != "" {
+		if d := cmp.Diff(e, eIn); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
-		erOut, err := registry.GetExtension(context.Background(), "testextension", true)
+		eOut, err := registry.GetExtension(ctx, e.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(erIn, erOut); d != "" {
+		if d := cmp.Diff(eIn, eOut); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
 
-		er.Extension = domain.Extension{
-			ID:          er.ID,
+		e = &domain.Extension{
+			ID:          e.ID,
 			Product:     "testproduct-update",
 			Version:     "v2.0",
 			Description: "Test extension v2.0",
@@ -735,118 +494,123 @@ func TestExtensionUpdate(t *testing.T) {
 				"ext-config-one": "ext-value-one-updated",
 				"ext-config-two": "ext-value-two-updated",
 			},
+			Services: e.Services,
 		}
-		err = registry.UpdateExtension(context.Background(), &er.Extension)
+		err = registry.UpdateExtension(ctx, e)
 		assertError(t, err, nil)
-		erOut, err = registry.GetExtension(context.Background(), "testextension", true)
+		eOut, err = registry.GetExtension(ctx, e.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(er, erOut); d != "" {
+		if d := cmp.Diff(e, eOut); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
 
-		sr1.ExtensionService = domain.ExtensionService{
-			ExtensionServiceID: sr1.ExtensionServiceID,
-			Resource:           "testresource-one-updated",
-			Category:           "testcategory-one-updated",
-			Description:        "Test service 001 updated",
-			AuthRequired:       true,
+		s1 = &domain.ExtensionService{
+			ID:           s1.ID,
+			Resource:     "testresource-one-updated",
+			Category:     "testcategory-one-updated",
+			Description:  "Test service 001 updated",
+			AuthRequired: true,
 			Configuration: map[string]string{
 				"svc-001-config-one": "svc-001-value-one-updated",
 				"svc-001-config-two": "svc-001-value-two-updated",
 			},
+			Endpoints:   s1.Endpoints,
+			Credentials: s1.Credentials,
 		}
-		err = registry.UpdateService(context.Background(), &sr1.ExtensionService)
+		err = registry.UpdateService(ctx, e.ID, s1)
 		assertError(t, err, nil)
-		sr1Out, err := registry.GetService(context.Background(), sr1.ExtensionServiceID, true)
+		s1Out, err := registry.GetService(ctx, e.ID, s1.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(sr1, sr1Out); d != "" {
+		if d := cmp.Diff(s1, s1Out); d != "" {
 			t.Errorf("Unexpected Service: %s", diff.PrintWantGot(d))
 		}
 
-		sr2.ExtensionService = domain.ExtensionService{
-			ExtensionServiceID: sr2.ExtensionServiceID,
-			Resource:           "testresource-two-updated",
-			Category:           "testcategory-two-updated",
-			Description:        "Test service 002-updated",
-			AuthRequired:       false,
+		s2 = &domain.ExtensionService{
+			ID:           s2.ID,
+			Resource:     "testresource-two-updated",
+			Category:     "testcategory-two-updated",
+			Description:  "Test service 002-updated",
+			AuthRequired: false,
 			Configuration: map[string]string{
 				"svc-002-config-one": "svc-002-value-one-updated",
 				"svc-002-config-two": "svc-002-value-two-updated",
 			},
+			Endpoints:   s2.Endpoints,
+			Credentials: s2.Credentials,
 		}
-		err = registry.UpdateService(context.Background(), &sr2.ExtensionService)
+		err = registry.UpdateService(ctx, e.ID, s2)
 		assertError(t, err, nil)
-		sr2Out, err := registry.GetService(context.Background(), sr2.ExtensionServiceID, true)
+		s2Out, err := registry.GetService(ctx, e.ID, s2.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(sr2, sr2Out); d != "" {
+		if d := cmp.Diff(s2, s2Out); d != "" {
 			t.Errorf("Unexpected Service: %s", diff.PrintWantGot(d))
 		}
 
-		*ep1 = domain.ExtensionEndpoint{
-			ExtensionEndpointID: ep1.ExtensionEndpointID,
-			Type:                domain.EETInternal,
+		ep1 = &domain.ExtensionServiceEndpoint{
+			URL:  ep1.URL,
+			Type: domain.EETInternal,
 			Configuration: map[string]string{
 				"ep-001-config-one": "svc-001-value-one-updated",
 				"ep-001-config-two": "svc-001-value-two-updated",
 			},
 		}
-		err = registry.UpdateEndpoint(context.Background(), ep1)
+		err = registry.UpdateEndpoint(ctx, e.ID, s1.ID, ep1)
 		assertError(t, err, nil)
-		ep1Out, err := registry.GetEndpoint(context.Background(), ep1.ExtensionEndpointID)
+		ep1Out, err := registry.GetEndpoint(ctx, e.ID, s1.ID, ep1.URL)
 		assertError(t, err, nil)
 		if d := cmp.Diff(ep1, ep1Out); d != "" {
 			t.Errorf("Unexpected Endpoint: %s", diff.PrintWantGot(d))
 		}
 
-		*ep2 = domain.ExtensionEndpoint{
-			ExtensionEndpointID: ep2.ExtensionEndpointID,
-			Type:                domain.EETExternal,
+		ep2 = &domain.ExtensionServiceEndpoint{
+			URL:  ep2.URL,
+			Type: domain.EETExternal,
 			Configuration: map[string]string{
 				"ep-002-config-one": "svc-002-value-one-updated",
 				"ep-002-config-two": "svc-002-value-two-updated",
 			},
 		}
-		err = registry.UpdateEndpoint(context.Background(), ep2)
+		err = registry.UpdateEndpoint(ctx, e.ID, s2.ID, ep2)
 		assertError(t, err, nil)
-		ep2Out, err := registry.GetEndpoint(context.Background(), ep2.ExtensionEndpointID)
+		ep2Out, err := registry.GetEndpoint(ctx, e.ID, s2.ID, ep2.URL)
 		assertError(t, err, nil)
 		if d := cmp.Diff(ep2, ep2Out); d != "" {
 			t.Errorf("Unexpected Endpoint: %s", diff.PrintWantGot(d))
 		}
 
-		*c1 = domain.ExtensionCredentials{
-			ExtensionCredentialsID: c1.ExtensionCredentialsID,
-			Scope:                  domain.ECSProject,
-			Default:                true,
-			Projects:               []string{"project-one", "project-two"},
-			Users:                  []string{},
+		c1 = &domain.ExtensionServiceCredentials{
+			ID:       c1.ID,
+			Scope:    domain.ECSProject,
+			Default:  true,
+			Projects: []string{"project-one", "project-two"},
+			Users:    []string{},
 			Configuration: map[string]string{
 				"cred-001-config-one": "cred-001-value-one-updated",
 				"cred-001-config-two": "cred-001-value-two-updated",
 			},
 		}
-		err = registry.UpdateCredentials(context.Background(), c1)
+		err = registry.UpdateCredentials(ctx, e.ID, s1.ID, c1)
 		assertError(t, err, nil)
-		c1Out, err := registry.GetCredentials(context.Background(), c1.ExtensionCredentialsID)
+		c1Out, err := registry.GetCredentials(ctx, e.ID, s1.ID, c1.ID)
 		assertError(t, err, nil)
 		if d := cmp.Diff(c1, c1Out); d != "" {
 			t.Errorf("Unexpected Credentials: %s", diff.PrintWantGot(d))
 		}
 
-		*c2 = domain.ExtensionCredentials{
-			ExtensionCredentialsID: c2.ExtensionCredentialsID,
-			Scope:                  domain.ECSGlobal,
-			Default:                true,
-			Projects:               []string{},
-			Users:                  []string{},
+		c2 = &domain.ExtensionServiceCredentials{
+			ID:       c2.ID,
+			Scope:    domain.ECSGlobal,
+			Default:  true,
+			Projects: []string{},
+			Users:    []string{},
 			Configuration: map[string]string{
 				"cred-002-config-one": "cred-002-value-one-updated",
 				"cred-002-config-two": "cred-002-value-two-updated",
 			},
 		}
-		err = registry.UpdateCredentials(context.Background(), c2)
+		err = registry.UpdateCredentials(ctx, e.ID, s2.ID, c2)
 		assertError(t, err, nil)
-		c2Out, err := registry.GetCredentials(context.Background(), c2.ExtensionCredentialsID)
+		c2Out, err := registry.GetCredentials(ctx, e.ID, s2.ID, c2.ID)
 		assertError(t, err, nil)
 		if d := cmp.Diff(c2, c2Out); d != "" {
 			t.Errorf("Unexpected Credentials: %s", diff.PrintWantGot(d))
@@ -859,6 +623,7 @@ func TestExtensionUpdate(t *testing.T) {
 func TestExtensionQuery(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		registry := newExtensionRegistry()
+		ctx := context.Background()
 		e1 := &domain.Extension{
 			ID:          "testextension-one",
 			Product:     "testproduct",
@@ -870,11 +635,9 @@ func TestExtensionQuery(t *testing.T) {
 				"ext-config-two": "ext-value-two",
 			},
 		}
-		er1 := newExtension(e1)
+
 		s1 := &domain.ExtensionService{
-			ExtensionServiceID: domain.ExtensionServiceID{
-				ID: "testservice-001",
-			},
+			ID:           "testservice-001",
 			Resource:     "testresource-one",
 			Category:     "testcategory-one",
 			Description:  "Test service 001",
@@ -884,47 +647,16 @@ func TestExtensionQuery(t *testing.T) {
 				"svc-001-config-two": "svc-001-value-two",
 			},
 		}
-		sr1 := addService(er1, s1)
-		s2 := &domain.ExtensionService{
-			ExtensionServiceID: domain.ExtensionServiceID{
-				ID: "testservice-002",
-			},
-			Resource:     "testresource-two",
-			Category:     "testcategory-two",
-			Description:  "Test service 002",
-			AuthRequired: true,
-			Configuration: map[string]string{
-				"svc-002-config-one": "svc-002-value-one",
-				"svc-002-config-two": "svc-002-value-two",
-			},
-		}
-		sr2 := addService(er1, s2)
-		ep1 := &domain.ExtensionEndpoint{
-			ExtensionEndpointID: domain.ExtensionEndpointID{
-				URL: "https://testendpoint-001.com",
-			},
+		ep1 := &domain.ExtensionServiceEndpoint{
+			URL:  "https://testendpoint-001.com",
 			Type: domain.EETExternal,
 			Configuration: map[string]string{
 				"ep-001-config-one": "svc-001-value-one",
 				"ep-001-config-two": "svc-001-value-two",
 			},
 		}
-		addEndpoint(sr1, ep1)
-		ep2 := &domain.ExtensionEndpoint{
-			ExtensionEndpointID: domain.ExtensionEndpointID{
-				URL: "https://testendpoint-002.com",
-			},
-			Type: domain.EETInternal,
-			Configuration: map[string]string{
-				"ep-002-config-one": "svc-002-value-one",
-				"ep-002-config-two": "svc-002-value-two",
-			},
-		}
-		addEndpoint(sr2, ep2)
-		c1 := &domain.ExtensionCredentials{
-			ExtensionCredentialsID: domain.ExtensionCredentialsID{
-				ID: "testcredentials-001",
-			},
+		c1 := &domain.ExtensionServiceCredentials{
+			ID:       "testcredentials-001",
 			Scope:    domain.ECSGlobal,
 			Default:  true,
 			Projects: []string{},
@@ -934,11 +666,31 @@ func TestExtensionQuery(t *testing.T) {
 				"cred-001-config-two": "cred-001-value-two",
 			},
 		}
-		addCredentials(sr1, c1)
-		c2 := &domain.ExtensionCredentials{
-			ExtensionCredentialsID: domain.ExtensionCredentialsID{
-				ID: "testcredentials-002",
+		s1.AddEndpoint(ep1)
+		s1.AddCredentials(c1)
+		e1.AddService(s1)
+
+		s2 := &domain.ExtensionService{
+			ID:           "testservice-002",
+			Resource:     "testresource-two",
+			Category:     "testcategory-two",
+			Description:  "Test service 002",
+			AuthRequired: true,
+			Configuration: map[string]string{
+				"svc-002-config-one": "svc-002-value-one",
+				"svc-002-config-two": "svc-002-value-two",
 			},
+		}
+		ep2 := &domain.ExtensionServiceEndpoint{
+			URL:  "https://testendpoint-002.com",
+			Type: domain.EETInternal,
+			Configuration: map[string]string{
+				"ep-002-config-one": "svc-002-value-one",
+				"ep-002-config-two": "svc-002-value-two",
+			},
+		}
+		c2 := &domain.ExtensionServiceCredentials{
+			ID:       "testcredentials-002",
 			Scope:    domain.ECSUser,
 			Default:  false,
 			Projects: []string{"project-one", "project-two"},
@@ -948,16 +700,18 @@ func TestExtensionQuery(t *testing.T) {
 				"cred-002-config-two": "cred-002-value-two",
 			},
 		}
-		addCredentials(sr2, c2)
+		s2.AddEndpoint(ep2)
+		s2.AddCredentials(c2)
+		e1.AddService(s2)
 
-		er1In, err := registry.RegisterExtension(context.Background(), er1)
+		e1In, err := registry.RegisterExtension(ctx, e1)
 		assertError(t, err, nil)
-		if d := cmp.Diff(er1, er1In); d != "" {
+		if d := cmp.Diff(e1, e1In); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
-		er1Out, err := registry.GetExtension(context.Background(), "testextension-one", true)
+		e1Out, err := registry.GetExtension(ctx, e1.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(er1In, er1Out); d != "" {
+		if d := cmp.Diff(e1In, e1Out); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
 
@@ -972,11 +726,8 @@ func TestExtensionQuery(t *testing.T) {
 				"ext-config-two": "ext-value-two",
 			},
 		}
-		er2 := newExtension(e2)
 		s3 := &domain.ExtensionService{
-			ExtensionServiceID: domain.ExtensionServiceID{
-				ID: "testservice-003",
-			},
+			ID:           "testservice-003",
 			Resource:     "testresource-one",
 			Category:     "testcategory-one",
 			Description:  "Test service 003",
@@ -986,47 +737,16 @@ func TestExtensionQuery(t *testing.T) {
 				"svc-003-config-two": "svc-003-value-two",
 			},
 		}
-		sr3 := addService(er2, s3)
-		s4 := &domain.ExtensionService{
-			ExtensionServiceID: domain.ExtensionServiceID{
-				ID: "testservice-004",
-			},
-			Resource:     "testresource-two",
-			Category:     "testcategory-two",
-			Description:  "Test service 004",
-			AuthRequired: true,
-			Configuration: map[string]string{
-				"svc-004-config-one": "svc-004-value-one",
-				"svc-004-config-two": "svc-004-value-two",
-			},
-		}
-		sr4 := addService(er2, s4)
-		ep3 := &domain.ExtensionEndpoint{
-			ExtensionEndpointID: domain.ExtensionEndpointID{
-				URL: "https://testendpoint-003.com",
-			},
+		ep3 := &domain.ExtensionServiceEndpoint{
+			URL:  "https://testendpoint-003.com",
 			Type: domain.EETExternal,
 			Configuration: map[string]string{
 				"ep-003-config-one": "svc-003-value-one",
 				"ep-003-config-two": "svc-003-value-two",
 			},
 		}
-		addEndpoint(sr3, ep3)
-		ep4 := &domain.ExtensionEndpoint{
-			ExtensionEndpointID: domain.ExtensionEndpointID{
-				URL: "https://testendpoint-004.com",
-			},
-			Type: domain.EETInternal,
-			Configuration: map[string]string{
-				"ep-004-config-one": "svc-004-value-one",
-				"ep-004-config-two": "svc-004-value-two",
-			},
-		}
-		addEndpoint(sr4, ep4)
-		c3 := &domain.ExtensionCredentials{
-			ExtensionCredentialsID: domain.ExtensionCredentialsID{
-				ID: "testcredentials-003",
-			},
+		c3 := &domain.ExtensionServiceCredentials{
+			ID:       "testcredentials-003",
 			Scope:    domain.ECSGlobal,
 			Default:  true,
 			Projects: []string{},
@@ -1036,11 +756,31 @@ func TestExtensionQuery(t *testing.T) {
 				"cred-003-config-two": "cred-003-value-two",
 			},
 		}
-		addCredentials(sr3, c3)
-		c4 := &domain.ExtensionCredentials{
-			ExtensionCredentialsID: domain.ExtensionCredentialsID{
-				ID: "testcredentials-004",
+		s3.AddEndpoint(ep3)
+		s3.AddCredentials(c3)
+		e2.AddService(s3)
+
+		s4 := &domain.ExtensionService{
+			ID:           "testservice-004",
+			Resource:     "testresource-two",
+			Category:     "testcategory-two",
+			Description:  "Test service 004",
+			AuthRequired: true,
+			Configuration: map[string]string{
+				"svc-004-config-one": "svc-004-value-one",
+				"svc-004-config-two": "svc-004-value-two",
 			},
+		}
+		ep4 := &domain.ExtensionServiceEndpoint{
+			URL:  "https://testendpoint-004.com",
+			Type: domain.EETInternal,
+			Configuration: map[string]string{
+				"ep-004-config-one": "svc-004-value-one",
+				"ep-004-config-two": "svc-004-value-two",
+			},
+		}
+		c4 := &domain.ExtensionServiceCredentials{
+			ID:       "testcredentials-004",
 			Scope:    domain.ECSUser,
 			Default:  false,
 			Projects: []string{"project-one", "project-two"},
@@ -1050,20 +790,22 @@ func TestExtensionQuery(t *testing.T) {
 				"cred-004-config-two": "cred-004-value-two",
 			},
 		}
-		addCredentials(sr4, c4)
+		s4.AddEndpoint(ep4)
+		s4.AddCredentials(c4)
+		e2.AddService(s4)
 
-		er2In, err := registry.RegisterExtension(context.Background(), er2)
+		e2In, err := registry.RegisterExtension(ctx, e2)
 		assertError(t, err, nil)
-		if d := cmp.Diff(er2, er2In); d != "" {
+		if d := cmp.Diff(e2, e2In); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
-		er2Out, err := registry.GetExtension(context.Background(), "testextension-two", true)
+		e2Out, err := registry.GetExtension(ctx, e2.ID)
 		assertError(t, err, nil)
-		if d := cmp.Diff(er2In, er2Out); d != "" {
+		if d := cmp.Diff(e2In, e2Out); d != "" {
 			t.Errorf("Unexpected Extension: %s", diff.PrintWantGot(d))
 		}
 
-		var epType domain.ExtensionEndpointType = domain.EETExternal
+		var epType domain.ExtensionServiceEndpointType = domain.EETExternal
 		q := &domain.ExtensionQuery{
 			ExtensionID:        "testextension-one",
 			Product:            "testproduct",
@@ -1081,13 +823,15 @@ func TestExtensionQuery(t *testing.T) {
 			Project:            "",
 		}
 
+		e1Copy := *e1
+		e1Copy.Services = map[string]*domain.ExtensionService{s1.ID: s1}
 		qRes := []*domain.ExtensionAccessDescriptor{{
-			Extension:   er1.Extension,
-			Service:     sr1.ExtensionService,
+			Extension:   e1Copy,
+			Service:     *s1,
 			Endpoint:    *ep1,
 			Credentials: c1,
 		}}
-		qOut, err := registry.RunExtensionAccessQuery(context.Background(), q)
+		qOut, err := registry.GetExtensionAccessDescriptors(ctx, q)
 		assertError(t, err, nil)
 		if d := cmp.Diff(qRes, qOut); d != "" {
 			t.Errorf("Unexpected Query Results: %s", diff.PrintWantGot(d))
@@ -1103,13 +847,14 @@ func TestExtensionQuery(t *testing.T) {
 			User:               "user-one",
 		}
 
+		e1Copy.Services = map[string]*domain.ExtensionService{s2.ID: s2}
 		qRes = []*domain.ExtensionAccessDescriptor{{
-			Extension:   er1.Extension,
-			Service:     sr2.ExtensionService,
+			Extension:   e1Copy,
+			Service:     *s2,
 			Endpoint:    *ep2,
 			Credentials: c2,
 		}}
-		qOut, err = registry.RunExtensionAccessQuery(context.Background(), q)
+		qOut, err = registry.GetExtensionAccessDescriptors(ctx, q)
 		assertError(t, err, nil)
 		if d := cmp.Diff(qRes, qOut); d != "" {
 			t.Errorf("Unexpected Query Results: %s", diff.PrintWantGot(d))
@@ -1122,21 +867,23 @@ func TestExtensionQuery(t *testing.T) {
 			ServiceResource: "testresource-two",
 		}
 
+		e2Copy := *e2
+		e2Copy.Services = map[string]*domain.ExtensionService{s4.ID: s4}
 		qRes = []*domain.ExtensionAccessDescriptor{
 			{
-				Extension:   er1.Extension,
-				Service:     sr2.ExtensionService,
+				Extension:   e1Copy,
+				Service:     *s2,
 				Endpoint:    *ep2,
 				Credentials: c2,
 			},
 			{
-				Extension:   er2.Extension,
-				Service:     sr4.ExtensionService,
+				Extension:   e2Copy,
+				Service:     *s4,
 				Endpoint:    *ep4,
 				Credentials: c4,
 			},
 		}
-		qOut, err = registry.RunExtensionAccessQuery(context.Background(), q)
+		qOut, err = registry.GetExtensionAccessDescriptors(ctx, q)
 		assertError(t, err, nil)
 		if d := cmp.Diff(qRes, qOut); d != "" {
 			t.Errorf("Unexpected Query Results: %s", diff.PrintWantGot(d))
