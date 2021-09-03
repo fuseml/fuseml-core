@@ -11,6 +11,7 @@ import (
 	"github.com/fuseml/fuseml-core/gen/extension"
 	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
+	"github.com/fuseml/fuseml-core/pkg/util"
 )
 
 type extensionListOptions struct {
@@ -31,17 +32,6 @@ func newExtensionListOptions(o *common.GlobalOptions) (res *extensionListOptions
 	return
 }
 
-func derefString(s *string, defaultValue ...string) string {
-	ds := ""
-	if len(defaultValue) > 0 {
-		ds = defaultValue[0]
-	}
-	if s != nil {
-		return *s
-	}
-	return ds
-}
-
 func formatServices(object interface{}, column string, field interface{}) (formated string) {
 	if ext, ok := object.(*extension.Extension); ok {
 		for _, svc := range ext.Services {
@@ -49,7 +39,7 @@ func formatServices(object interface{}, column string, field interface{}) (forma
 resource: %s
 category: %s
 
-`, derefString(svc.ID), derefString(svc.Resource, "N/A"), derefString(svc.Category, "N/A"))
+`, util.DerefString(svc.ID), util.DerefString(svc.Resource, "N/A"), util.DerefString(svc.Category, "N/A"))
 		}
 	}
 	return
@@ -61,9 +51,9 @@ func formatEndpoints(object interface{}, column string, field interface{}) (form
 			if len(svc.Endpoints) == 0 {
 				continue
 			}
-			formated += fmt.Sprintf("[ %s ]\n", derefString(svc.ID))
+			formated += fmt.Sprintf("[ %s ]\n", util.DerefString(svc.ID))
 			for _, ep := range svc.Endpoints {
-				formated += fmt.Sprintf("%s: %s\n", derefString(ep.Type, "external"), derefString(ep.URL))
+				formated += fmt.Sprintf("%s: %s\n", util.DerefString(ep.Type, "external"), util.DerefString(ep.URL))
 			}
 			formated += "\n"
 		}
@@ -77,12 +67,12 @@ func formatCredentials(object interface{}, column string, field interface{}) (fo
 			if len(svc.Credentials) == 0 {
 				continue
 			}
-			formated += fmt.Sprintf("[ %s ]\n", derefString(svc.ID))
+			formated += fmt.Sprintf("[ %s ]\n", util.DerefString(svc.ID))
 			for _, cred := range svc.Credentials {
 				projects := strings.Join(cred.Projects, ", ")
 				users := strings.Join(cred.Users, ", ")
-				scope := derefString(cred.Scope)
-				formated += fmt.Sprintf("%s: %s\n", derefString(cred.ID), scope)
+				scope := util.DerefString(cred.Scope)
+				formated += fmt.Sprintf("%s: %s\n", util.DerefString(cred.ID), scope)
 				if scope == "project" {
 					formated += fmt.Sprintf("  projects: %s\n", projects)
 				}

@@ -7,6 +7,7 @@ import (
 
 	"github.com/Masterminds/semver"
 	"github.com/fuseml/fuseml-core/pkg/domain"
+	"github.com/fuseml/fuseml-core/pkg/util"
 	"k8s.io/apimachinery/pkg/util/rand"
 )
 
@@ -760,15 +761,6 @@ func (store *ExtensionStore) findEndpoints(
 	return result, nil
 }
 
-func stringInSlice(s string, slice []string) bool {
-	for _, v := range slice {
-		if s == v {
-			return true
-		}
-	}
-	return false
-}
-
 func (store *ExtensionStore) findCredentials(
 	ctx context.Context, svcRecord *extensionServiceRecord, query *domain.ExtensionQuery) (result []*domain.ExtensionCredentials, err error) {
 	result = make([]*domain.ExtensionCredentials, 0)
@@ -787,7 +779,7 @@ func (store *ExtensionStore) findCredentials(
 			if credentials.Scope == domain.ECSUser {
 				return
 			}
-			if credentials.Scope == domain.ECSProject && !stringInSlice(query.Project, credentials.Projects) {
+			if credentials.Scope == domain.ECSProject && !util.StringInSlice(query.Project, credentials.Projects) {
 				return
 			}
 		}
@@ -795,10 +787,10 @@ func (store *ExtensionStore) findCredentials(
 		// those project scoped to the supplied project, and those user scoped to the supplied user and project
 		// are a match
 		if query.CredentialsScope == domain.ECSUser {
-			if credentials.Scope != domain.ECSGlobal && query.Project != "" && !stringInSlice(query.Project, credentials.Projects) {
+			if credentials.Scope != domain.ECSGlobal && query.Project != "" && !util.StringInSlice(query.Project, credentials.Projects) {
 				return
 			}
-			if credentials.Scope == domain.ECSUser && !stringInSlice(query.User, credentials.Users) {
+			if credentials.Scope == domain.ECSUser && !util.StringInSlice(query.User, credentials.Users) {
 				return
 			}
 		}

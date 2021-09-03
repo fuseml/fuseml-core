@@ -21,6 +21,7 @@ import (
 
 	"github.com/fuseml/fuseml-core/pkg/core/tekton/builder"
 	"github.com/fuseml/fuseml-core/pkg/domain"
+	"github.com/fuseml/fuseml-core/pkg/util"
 )
 
 const (
@@ -123,8 +124,8 @@ func (w *WorkflowBackend) GetWorkflowRuns(ctx context.Context, wf *domain.Workfl
 
 	if filter.Status != nil && len(filter.Status) > 0 {
 		for _, run := range runs.Items {
-			if len(run.Status.Conditions) > 0 && contains(filter.Status,
-				pipelineReasonToWorkflowStatus(run.Status.Conditions[0].Reason)) {
+			if len(run.Status.Conditions) > 0 && util.StringInSlice(
+				pipelineReasonToWorkflowStatus(run.Status.Conditions[0].Reason), filter.Status) {
 				workflowRuns = append(workflowRuns, w.toWorkflowRun(wf, run))
 			}
 		}
@@ -681,15 +682,6 @@ func getPipelineRunResultValue(resultName string, results []v1beta1.PipelineRunR
 		}
 	}
 	return ""
-}
-
-func contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
 }
 
 func (w *WorkflowBackend) tektonDeleteIfError(ctx context.Context, err *error, tektonWorkload interface{}) {

@@ -11,6 +11,7 @@ import (
 
 	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
+	"github.com/fuseml/fuseml-core/pkg/util"
 )
 
 const extensionGetTemplate = `{{decorate "bold" "ID"}}:	{{ .ID }}
@@ -106,7 +107,7 @@ func newSubCmdExtensionGet(gOpt *common.GlobalOptions) *cobra.Command {
 	o := newExtensionGetOptions(gOpt)
 	cmd := &cobra.Command{
 		Use:   `get {EXTENSION_ID}`,
-		Short: "Get a extension",
+		Short: "Get an extension",
 		Long:  `Show detailed information about an extension`,
 		Run: func(cmd *cobra.Command, args []string) {
 			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
@@ -135,12 +136,7 @@ func (o *extensionGetOptions) run(extensionID string) error {
 			"formatParam": formatted.Param,
 			"colorStatus": formatted.ColorStatus,
 			"join":        strings.Join,
-			"deref": func(s *string) string {
-				if s != nil {
-					return *s
-				}
-				return ""
-			},
+			"deref":       util.DerefString,
 		}
 
 		w := tabwriter.NewWriter(os.Stdout, 0, 5, 3, ' ', tabwriter.TabIndent)

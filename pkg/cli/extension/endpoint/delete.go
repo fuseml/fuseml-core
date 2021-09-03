@@ -22,8 +22,8 @@ func newSubCmdEndpointDelete(gOpt *common.GlobalOptions) *cobra.Command {
 	o := newEndpointDeleteOptions(gOpt)
 	cmd := &cobra.Command{
 		Use:   "delete {EXTENSION_ID} {SERVICE_ID} {ENDPOINT_URL}",
-		Short: "Deletes a endpoint from an extension service",
-		Long:  `Delete a endpoint from an extension service registered with the FuseML extension registry.`,
+		Short: "Deletes an endpoint from an extension service",
+		Long:  `Delete an endpoint from an extension service registered with the FuseML extension registry.`,
 		Run: func(cmd *cobra.Command, args []string) {
 			common.CheckErr(o.InitializeClients(gOpt.URL, gOpt.Timeout, gOpt.Verbose))
 			common.CheckErr(o.validate())

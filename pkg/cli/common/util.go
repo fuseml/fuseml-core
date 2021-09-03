@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/fuseml/fuseml-core/pkg/util"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 )
@@ -110,19 +111,9 @@ func WriteConfigFile() error {
 	return nil
 }
 
-// StringInSlice verifies if a string slice contains a string value
-func StringInSlice(s string, slice []string) bool {
-	for _, v := range slice {
-		if s == v {
-			return true
-		}
-	}
-	return false
-}
-
 // ValidateEnumArgument is used to validate command line arguments that can take a limited set of values
 func ValidateEnumArgument(argName, argValue string, values []string) error {
-	if !StringInSlice(argValue, values) {
+	if !util.StringInSlice(argValue, values) {
 		return fmt.Errorf("%s must be one of: %s", argName, strings.Join(values, ", "))
 	}
 	return nil
