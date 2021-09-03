@@ -27,7 +27,7 @@ func newCredentialsUpdateOptions(o *common.GlobalOptions) *credentialsUpdateOpti
 func newSubCmdCredentialsUpdate(gOpt *common.GlobalOptions) *cobra.Command {
 	o := newCredentialsUpdateOptions(gOpt)
 	cmd := &cobra.Command{
-		Use:   `update [--scope {global|project|user}] [--project PROJECT]... [--user USER]... [-c|--configuration KEY:VALUE]... {EXTENSION_ID} {SERVICE_ID} {CREDENTIALS_ID}`,
+		Use:   `update [--scope {global|project|user}] [--proj PROJECT]... [--user USER]... [-c|--configuration KEY:VALUE]... {EXTENSION_ID} {SERVICE_ID} {CREDENTIALS_ID}`,
 		Short: "Update the attributes of an existing set of FuseML extension credentials",
 		Long:  `Update the attributes of a set of FuseML extension service credentials already registered with the extension registry`,
 		Run: func(cmd *cobra.Command, args []string) {
@@ -39,7 +39,7 @@ func newSubCmdCredentialsUpdate(gOpt *common.GlobalOptions) *cobra.Command {
 		Args: cobra.ExactArgs(3),
 	}
 	cmd.Flags().StringVar(&o.credentialsScope, "scope", "global", "credentials scope (global/project/user)")
-	cmd.Flags().StringSliceVar(&o.projects, "project", []string{}, "project that has access to the credentials. One or more may be supplied")
+	cmd.Flags().StringSliceVar(&o.projects, "proj", []string{}, "project that has access to the credentials. One or more may be supplied")
 	cmd.Flags().StringSliceVar(&o.users, "user", []string{}, "user that has access to the credentials. One or more may be supplied")
 	cmd.Flags().StringSliceVarP(&o.config.Packed, "configuration", "c", []string{}, "credentials configuration data. One or more may be supplied")
 

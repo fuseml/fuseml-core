@@ -27,7 +27,7 @@ func newCredentialsAddOptions(o *common.GlobalOptions) *credentialsAddOptions {
 func newSubCmdCredentialsAdd(gOpt *common.GlobalOptions) *cobra.Command {
 	o := newCredentialsAddOptions(gOpt)
 	cmd := &cobra.Command{
-		Use:   `add [--id CREDENTIALS_ID] [--scope {global|project|user}] [--project PROJECT]... [--user USER]... [-c|--configuration KEY:VALUE]... {EXTENSION_ID} {SERVICE_ID}`,
+		Use:   `add [--id CREDENTIALS_ID] [--scope {global|project|user}] [--proj PROJECT]... [--user USER]... [-c|--configuration KEY:VALUE]... {EXTENSION_ID} {SERVICE_ID}`,
 		Short: "Add a new credentials to an existing FuseML extension service",
 		Long:  `Add an credentials to a FuseML extension service already registered with the extension registry`,
 		Run: func(cmd *cobra.Command, args []string) {
@@ -40,7 +40,7 @@ func newSubCmdCredentialsAdd(gOpt *common.GlobalOptions) *cobra.Command {
 	}
 	cmd.Flags().StringVar(&o.credentialsID, "id", "", "credentials ID")
 	cmd.Flags().StringVar(&o.credentialsScope, "scope", "global", "credentials scope (global/project/user)")
-	cmd.Flags().StringSliceVar(&o.projects, "project", []string{}, "project that has access to the credentials. One or more may be supplied")
+	cmd.Flags().StringSliceVar(&o.projects, "proj", []string{}, "project that has access to the credentials. One or more may be supplied")
 	cmd.Flags().StringSliceVar(&o.users, "user", []string{}, "user that has access to the credentials. One or more may be supplied")
 	cmd.Flags().StringSliceVarP(&o.config.Packed, "configuration", "c", []string{}, "credentials configuration data. One or more may be supplied")
 

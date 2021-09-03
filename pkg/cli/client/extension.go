@@ -24,7 +24,7 @@ func NewExtensionClient(scheme string, host string, doer goahttp.Doer, encoder f
 }
 
 // RegisterExtensionFromFile - register an extension from a file YAML or JSON descriptor.
-func (ec *ExtensionClient) RegisterExtensionFromFile(filepath string) (res *extension.Extension, err error) {
+func (ec *ExtensionClient) ReadExtensionFromFile(filepath string) (res *extension.Extension, err error) {
 
 	var extDescriptor string
 	err = common.LoadFileIntoVar(filepath, &extDescriptor)
@@ -37,7 +37,7 @@ func (ec *ExtensionClient) RegisterExtensionFromFile(filepath string) (res *exte
 		return nil, err
 	}
 
-	return ec.RegisterExtension(request)
+	return request, err
 }
 
 // RegisterExtension - register an extension.

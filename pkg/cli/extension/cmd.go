@@ -24,7 +24,6 @@ func NewCmdExtension(c *common.GlobalOptions) *cobra.Command {
 	cmd.AddCommand(newSubCmdExtensionGet(c))
 	cmd.AddCommand(newSubCmdExtensionList(c))
 	cmd.AddCommand(newSubCmdExtensionDelete(c))
-	cmd.AddCommand(newSubCmdExtensionAdd(c))
 	cmd.AddCommand(newSubCmdExtensionUpdate(c))
 
 	return cmd
