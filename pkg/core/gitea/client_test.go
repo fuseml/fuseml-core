@@ -9,6 +9,7 @@ import (
 
 	"code.gitea.io/sdk/gitea"
 	"github.com/fuseml/fuseml-core/pkg/domain"
+	"github.com/fuseml/fuseml-core/pkg/util"
 )
 
 type TestStore struct {
@@ -206,7 +207,7 @@ func TestPrepareRepository(t *testing.T) {
 		t.Errorf("No users present in Owners team after adding repository")
 	}
 
-	if !contains(usersInTeam, generateUserName(project1)) {
+	if !util.StringInSlice(generateUserName(project1), usersInTeam) {
 		t.Errorf("New user is not present in the Owners team")
 	}
 }

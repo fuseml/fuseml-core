@@ -10,6 +10,7 @@ import (
 
 	config "github.com/fuseml/fuseml-core/pkg/core/config"
 	"github.com/fuseml/fuseml-core/pkg/domain"
+	"github.com/fuseml/fuseml-core/pkg/util"
 )
 
 // Client describes the interface of Gitea Client
@@ -325,16 +326,6 @@ func (gac *AdminClient) PrepareRepository(code *domain.Codeset, listenerURL *str
 	return user, pass, nil
 }
 
-// simple check if a string is present in a slice
-func contains(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
-			return true
-		}
-	}
-	return false
-}
-
 // GetReposForOrg retrieves all repositories for given project, can be filtered by label
 func (gac *AdminClient) GetReposForOrg(org string, label *string) ([]*domain.Codeset, error) {
 	var codesets []*domain.Codeset
@@ -349,7 +340,7 @@ func (gac *AdminClient) GetReposForOrg(org string, label *string) ([]*domain.Cod
 		if err != nil {
 			return nil, errors.Wrap(err, "Failed to list repo topics")
 		}
-		if label != nil && !contains(labels, *label) {
+		if label != nil && !util.StringInSlice(*label, labels) {
 			continue
 		}
 

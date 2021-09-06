@@ -14,6 +14,7 @@ import (
 
 	"github.com/fuseml/fuseml-core/pkg/core"
 	"github.com/fuseml/fuseml-core/pkg/domain"
+	"github.com/fuseml/fuseml-core/pkg/util"
 )
 
 const errCodesetNotFound = codesetErr("codeset not found")
@@ -1014,7 +1015,7 @@ func (b *fakeWorkflowBackend) GetWorkflowRuns(ctx context.Context, wf *domain.Wo
 
 	if filter.CodesetName != "" || filter.CodesetProject != "" {
 		for _, run := range runs {
-			if len(filter.Status) == 0 || contains(filter.Status, run.Status) {
+			if len(filter.Status) == 0 || util.StringInSlice(run.Status, filter.Status) {
 				for _, input := range run.Inputs {
 					if input.Input.Type == "codeset" {
 						csProject, csName := getCodesetProjectName(input.Value)
@@ -1034,7 +1035,7 @@ func (b *fakeWorkflowBackend) GetWorkflowRuns(ctx context.Context, wf *domain.Wo
 
 	if len(filter.Status) > 0 {
 		for _, run := range runs {
-			if contains(filter.Status, run.Status) {
+			if util.StringInSlice(run.Status, filter.Status) {
 				res = append(res, run)
 			}
 		}

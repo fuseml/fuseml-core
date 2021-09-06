@@ -8,6 +8,7 @@ import (
 
 	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/domain"
+	"github.com/fuseml/fuseml-core/pkg/util"
 )
 
 // workflow service example implementation.
@@ -138,7 +139,7 @@ func (s *workflowsrvc) ListRuns(ctx context.Context, w *workflow.ListRunsPayload
 func workflowRestToDomain(restWf *workflow.Workflow) *domain.Workflow {
 	wf := &domain.Workflow{
 		Name:        restWf.Name,
-		Description: derefString(restWf.Description),
+		Description: util.DerefString(restWf.Description),
 		Inputs:      workflowInputsRestToDomain(restWf.Inputs),
 		Outputs:     workflowOutputsRestToDomain(restWf.Outputs),
 		Steps:       workflowStepsRestToDomain(restWf.Steps),
@@ -151,9 +152,9 @@ func workflowInputsRestToDomain(restInputs []*workflow.WorkflowInput) []*domain.
 	for i, restInput := range restInputs {
 		inputs[i] = &domain.WorkflowInput{
 			Name:        restInput.Name,
-			Description: derefString(restInput.Description),
-			Type:        domain.WorkflowIOType(derefString(restInput.Type)),
-			Default:     derefString(restInput.Default),
+			Description: util.DerefString(restInput.Description),
+			Type:        domain.WorkflowIOType(util.DerefString(restInput.Type)),
+			Default:     util.DerefString(restInput.Default),
 			Labels:      restInput.Labels,
 		}
 	}
@@ -165,8 +166,8 @@ func workflowOutputsRestToDomain(restOutputs []*workflow.WorkflowOutput) []*doma
 	for i, restOutput := range restOutputs {
 		outputs[i] = &domain.WorkflowOutput{
 			Name:        restOutput.Name,
-			Description: derefString(restOutput.Description),
-			Type:        domain.WorkflowIOType(derefString(restOutput.Type)),
+			Description: util.DerefString(restOutput.Description),
+			Type:        domain.WorkflowIOType(util.DerefString(restOutput.Type)),
 		}
 	}
 	return outputs
@@ -192,12 +193,12 @@ func workflowStepInputsRestToDomain(restStepInputs []*workflow.WorkflowStepInput
 	for i, restStepInput := range restStepInputs {
 		domainStepInput := domain.WorkflowStepInput{
 			Name:  restStepInput.Name,
-			Value: derefString(restStepInput.Value),
+			Value: util.DerefString(restStepInput.Value),
 		}
 		if restStepInput.Codeset != nil {
 			domainStepInput.Codeset = &domain.WorkflowStepInputCodeset{
 				Name: restStepInput.Codeset.Name,
-				Path: derefString(restStepInput.Codeset.Path),
+				Path: util.DerefString(restStepInput.Codeset.Path),
 			}
 		}
 		inputs[i] = &domainStepInput
@@ -214,7 +215,7 @@ func workflowStepOutputsRestToDomain(restStepOutputs []*workflow.WorkflowStepOut
 		if restStepOutput.Image != nil {
 			domainStepOutput.Image = &domain.WorkflowStepOutputImage{
 				Name:       restStepOutput.Image.Name,
-				Dockerfile: derefString(restStepOutput.Image.Dockerfile),
+				Dockerfile: util.DerefString(restStepOutput.Image.Dockerfile),
 			}
 		}
 		outputs[i] = &domainStepOutput
@@ -256,7 +257,7 @@ func workflowDomainToRest(wf *domain.Workflow) *workflow.Workflow {
 	return &workflow.Workflow{
 		Created:     &created,
 		Name:        wf.Name,
-		Description: refString(wf.Description),
+		Description: util.RefString(wf.Description),
 		Inputs:      workflowInputsDomainToRest(wf.Inputs),
 		Outputs:     workflowOutputsDomainToRest(wf.Outputs),
 		Steps:       workflowStepsDomainToRest(wf.Steps),
@@ -274,9 +275,9 @@ func workflowInputsDomainToRest(domainInputs []*domain.WorkflowInput) []*workflo
 func workflowInputDomainToRest(domainInput *domain.WorkflowInput) *workflow.WorkflowInput {
 	return &workflow.WorkflowInput{
 		Name:        domainInput.Name,
-		Description: refString(domainInput.Description),
-		Type:        refString(domainInput.Type.String()),
-		Default:     refString(domainInput.Default),
+		Description: util.RefString(domainInput.Description),
+		Type:        util.RefString(domainInput.Type.String()),
+		Default:     util.RefString(domainInput.Default),
 		Labels:      domainInput.Labels,
 	}
 }
@@ -292,8 +293,8 @@ func workflowOutputsDomainToRest(domainOutputs []*domain.WorkflowOutput) []*work
 func workflowOutputDomainToRest(domainOutput *domain.WorkflowOutput) *workflow.WorkflowOutput {
 	return &workflow.WorkflowOutput{
 		Name:        domainOutput.Name,
-		Description: refString(domainOutput.Description),
-		Type:        refString(domainOutput.Type.String()),
+		Description: util.RefString(domainOutput.Description),
+		Type:        util.RefString(domainOutput.Type.String()),
 	}
 }
 
@@ -317,12 +318,12 @@ func workflowStepInputsDomainToRest(domainStepInputs []*domain.WorkflowStepInput
 	for i, domainStepInput := range domainStepInputs {
 		restStepInput := workflow.WorkflowStepInput{
 			Name:  domainStepInput.Name,
-			Value: refString(domainStepInput.Value),
+			Value: util.RefString(domainStepInput.Value),
 		}
 		if domainStepInput.Codeset != nil {
 			restStepInput.Codeset = &workflow.WorkflowStepInputCodeset{
 				Name: domainStepInput.Codeset.Name,
-				Path: refString(domainStepInput.Codeset.Path),
+				Path: util.RefString(domainStepInput.Codeset.Path),
 			}
 		}
 		restStepInputs[i] = &restStepInput
@@ -339,7 +340,7 @@ func workflowStepOutputsDomainToRest(domainStepOutputs []*domain.WorkflowStepOut
 		if domainStepOutput.Image != nil {
 			restStepOutput.Image = &workflow.WorkflowStepOutputImage{
 				Name:       domainStepOutput.Image.Name,
-				Dockerfile: refString(domainStepOutput.Image.Dockerfile),
+				Dockerfile: util.RefString(domainStepOutput.Image.Dockerfile),
 			}
 		}
 		restStepOutputs[i] = &restStepOutput
@@ -398,7 +399,7 @@ func workflowAssignmentDomainToRest(domainAssignment []*domain.CodesetAssignment
 		Codesets: restCodesets,
 		Status: &workflow.WorkflowAssignmentStatus{
 			Available: wfAsgStatus.Available,
-			URL:       refString(wfAsgStatus.URL),
+			URL:       util.RefString(wfAsgStatus.URL),
 		},
 	}
 	return &restAssignment
@@ -421,7 +422,7 @@ func workflowRunDomainToRest(domainRun *domain.WorkflowRun) *workflow.WorkflowRu
 		StartTime:      domainRun.StartTime.Format(time.RFC3339),
 		CompletionTime: domainRun.CompletionTime.Format(time.RFC3339),
 		Status:         domainRun.Status,
-		URL:            refString(domainRun.URL),
+		URL:            util.RefString(domainRun.URL),
 	}
 }
 

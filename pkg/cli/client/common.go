@@ -23,6 +23,7 @@ type Clients struct {
 	ProjectClient     *ProjectClient
 	RunnableClient    *runnablec.Client
 	VersionClient     *VersionClient
+	ExtensionClient   *ExtensionClient
 }
 
 // InitializeClients initializes a list of fuseml clients based on global configuration parameters
@@ -57,6 +58,7 @@ func (c *Clients) InitializeClients(URL string, timeout int, verbose bool) error
 	c.RunnableClient = runnablec.NewClient(scheme, host, doer, encoder, decoder, verbose)
 	c.VersionClient = NewVersionClient(scheme, host, doer, encoder, decoder, verbose)
 	c.WorkflowClient = NewWorkflowClient(scheme, host, doer, encoder, decoder, verbose)
+	c.ExtensionClient = NewExtensionClient(scheme, host, doer, encoder, decoder, verbose)
 
 	return nil
 }

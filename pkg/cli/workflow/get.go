@@ -12,6 +12,7 @@ import (
 	"github.com/fuseml/fuseml-core/gen/workflow"
 	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
+	"github.com/fuseml/fuseml-core/pkg/util"
 )
 
 const getTemplate = `{{decorate "bold" "Name"}}:	{{ .Workflow.Name }}
@@ -130,7 +131,7 @@ func (o *getOptions) run() error {
 			"formatDuration": formatDuration,
 			"colorStatus":    formatted.ColorStatus,
 			"join":           strings.Join,
-			"deref":          func(s *string) string { return *s },
+			"deref":          util.DerefString,
 		}
 
 		w := tabwriter.NewWriter(os.Stdout, 0, 5, 3, ' ', tabwriter.TabIndent)
