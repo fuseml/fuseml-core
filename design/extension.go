@@ -354,7 +354,6 @@ var _ = Service("extension", func() {
 				Example("s3")
 			})
 			Field(3, "url", String, "Endpoint URL", func() {
-				Format(FormatURI)
 				MaxLength(200)
 				Example("https://mlflow.10.120.130.140.nip.io")
 			})
@@ -452,8 +451,8 @@ var _ = Service("extension", func() {
 				Example("s3")
 			})
 			Field(3, "url", String, "Endpoint URL", func() {
-				Format(FormatURI)
 				MaxLength(200)
+
 				Example("https://mlflow.10.120.130.140.nip.io")
 			})
 			Required("extension_id", "service_id", "url")
@@ -815,7 +814,6 @@ var ExtensionEndpoint = Type("ExtensionEndpoint", func() {
 	Field(tag, "url", String,
 		`Endpoint URL. In case of k8s controllers and operators, the URL points to the cluster API.
 Also used to uniquely identifies an endpoint within the scope of a service`, func() {
-			Format(FormatURI)
 			MaxLength(200)
 			Example("https://mlflow.10.120.130.140.nip.io")
 		})

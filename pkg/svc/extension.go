@@ -3,6 +3,7 @@ package svc
 import (
 	"context"
 	"log"
+	"net/url"
 	"time"
 
 	"github.com/fuseml/fuseml-core/gen/extension"
@@ -46,12 +47,19 @@ func extensionServiceToDomain(service *extension.ExtensionService) (result *doma
 	}
 }
 
+func extensionEndpointURLToDomain(URL *string) string {
+	// the endpoint URL might be URL-encoded; attempt to decode it and ignore the error
+	decodedURL := util.DerefString(URL)
+	decodedURL, _ = url.PathUnescape(decodedURL)
+	return decodedURL
+}
+
 func extensionEndpointToDomain(endpoint *extension.ExtensionEndpoint) (result *domain.ExtensionEndpoint) {
 	return &domain.ExtensionEndpoint{
 		ExtensionEndpointID: domain.ExtensionEndpointID{
 			ExtensionID: util.DerefString(endpoint.ExtensionID),
 			ServiceID:   util.DerefString(endpoint.ServiceID),
-			URL:         util.DerefString(endpoint.URL),
+			URL:         extensionEndpointURLToDomain(endpoint.URL),
 		},
 		Type:          domain.ExtensionEndpointType(util.DerefString(endpoint.Type, string(domain.EETExternal))),
 		Configuration: endpoint.Configuration,
@@ -411,7 +419,7 @@ func (s *extensionRegistrySvc) GetEndpoint(ctx context.Context, req *extension.G
 	endpoint, err := s.registry.GetEndpoint(ctx, domain.ExtensionEndpointID{
 		ExtensionID: req.ExtensionID,
 		ServiceID:   req.ServiceID,
-		URL:         req.URL,
+		URL:         extensionEndpointURLToDomain(&req.URL),
 	})
 	if err != nil {
 		return nil, errToRest(err)
@@ -441,7 +449,7 @@ func (s *extensionRegistrySvc) UpdateEndpoint(ctx context.Context, req *extensio
 	s.logger.Print("extension.updateEndpoint")
 	endpoint := extensionEndpointToDomain(req)
 	ep, err := s.registry.GetEndpoint(ctx, domain.ExtensionEndpointID{
-		URL:         endpoint.URL,
+		URL:         extensionEndpointURLToDomain(&endpoint.URL),
 		ExtensionID: endpoint.ExtensionID,
 		ServiceID:   endpoint.ServiceID,
 	})
@@ -472,7 +480,7 @@ func (s *extensionRegistrySvc) DeleteEndpoint(ctx context.Context, req *extensio
 	err = s.registry.RemoveEndpoint(ctx, domain.ExtensionEndpointID{
 		ExtensionID: req.ExtensionID,
 		ServiceID:   req.ServiceID,
-		URL:         req.URL,
+		URL:         extensionEndpointURLToDomain(&req.URL),
 	})
 	if err != nil {
 		return errToRest(err)

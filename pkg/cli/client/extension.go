@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"net/http"
+	"net/url"
 
 	goahttp "goa.design/goa/v3/http"
 
@@ -23,7 +24,7 @@ func NewExtensionClient(scheme string, host string, doer goahttp.Doer, encoder f
 	return ec
 }
 
-// RegisterExtensionFromFile - register an extension from a file YAML or JSON descriptor.
+// ReadExtensionFromFile - register an extension from a file YAML or JSON descriptor.
 func (ec *ExtensionClient) ReadExtensionFromFile(filepath string) (res *extension.Extension, err error) {
 
 	var extDescriptor string
@@ -168,7 +169,9 @@ func (ec *ExtensionClient) AddEndpoint(ep *extension.ExtensionEndpoint) (res *ex
 
 // DeleteEndpoint - delete an endpoint from an extension service.
 func (ec *ExtensionClient) DeleteEndpoint(extensionID, serviceID, URL string) error {
-	request, err := extensionc.BuildDeleteEndpointPayload(extensionID, serviceID, URL)
+
+	url := url.QueryEscape(URL)
+	request, err := extensionc.BuildDeleteEndpointPayload(extensionID, serviceID, url)
 	if err != nil {
 		return err
 	}
@@ -184,6 +187,8 @@ func (ec *ExtensionClient) DeleteEndpoint(extensionID, serviceID, URL string) er
 // UpdateEndpoint - update the attributes of an endpoint from an extension service.
 func (ec *ExtensionClient) UpdateEndpoint(endpoint *extension.ExtensionEndpoint) (res *extension.ExtensionEndpoint, err error) {
 
+	url := url.QueryEscape(*endpoint.URL)
+	endpoint.URL = &url
 	response, err := ec.c.UpdateEndpoint()(context.Background(), endpoint)
 	if err != nil {
 		return nil, err
