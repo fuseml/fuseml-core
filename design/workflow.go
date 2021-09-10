@@ -231,7 +231,6 @@ var _ = Service("workflow", func() {
 				Example("mlflow-project-001")
 			})
 			Field(4, "status", String, "status of the workflow runs to list", func() {
-				Enum("", "Started", "Running", "Cancelled", "Succeeded", "Failed", "Completed", "Timeout")
 				Example("Succeeded")
 
 			})
@@ -517,7 +516,6 @@ var WorkflowRun = Type("WorkflowRun", func() {
 		Example("2021-04-09T06:20:35Z")
 	})
 	Field(7, "status", String, "The current status of the workflow run", func() {
-		Enum("Started", "Running", "Cancelled", "Succeeded", "Failed", "Completed", "Timeout", "Unknown")
 		Example("Succeeded")
 	})
 	Field(8, "URL", String, "Dashboard URL to the workflow run")

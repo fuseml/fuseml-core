@@ -1,7 +1,9 @@
 package workflow
 
 import (
+	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -34,6 +36,12 @@ func formatRunDuration(object interface{}, column string, field interface{}) str
 
 func formatRunStatus(object interface{}, column string, field interface{}) string {
 	if wr, ok := object.(*workflow.WorkflowRun); ok {
+		// The status may also include the reason for a failed run (e.g. "Failed (CouldntCreateWorkspacePVC)"),
+		// color the status only.
+		status := strings.Split(wr.Status, " (")
+		if len(status) > 1 {
+			return fmt.Sprintf("%s (%s", formatted.ColorStatus(status[0]), status[1])
+		}
 		return formatted.ColorStatus(wr.Status)
 	}
 	return ""

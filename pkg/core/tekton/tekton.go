@@ -654,7 +654,13 @@ func (w *WorkflowBackend) toWorkflowRun(wf *domain.Workflow, p v1beta1.PipelineR
 // Some PipelineRun status starts with "PipelineRun" see:
 // https://github.com/tektoncd/pipeline/blob/main/docs/pipelineruns.md#monitoring-execution-status
 func pipelineReasonToWorkflowStatus(reason string) string {
-	return strings.TrimPrefix(reason, "PipelineRun")
+	expectedStatus := []string{"Succeeded", "Running", "Cancelled", "Completed", "Pending", "Started", "Failed", "Unknown"}
+	status := strings.TrimPrefix(reason, "PipelineRun")
+	// If it is not an expected Status it means that the job failed and the status is the reason it failed
+	if !util.StringInSlice(status, expectedStatus) {
+		status = fmt.Sprintf("Failed (%s)", status)
+	}
+	return status
 }
 
 func getPipelineResourceParamValue(paramName string, resource v1beta1.PipelineResourceBinding) *string {
