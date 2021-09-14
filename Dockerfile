@@ -1,8 +1,6 @@
 # Build the fuseml_core binary
 FROM golang:1.16 as builder
 
-ARG LDFLAGS="-w -s"
-
 WORKDIR /workspace
 
 # Copy the Go Modules manifests
@@ -18,6 +16,7 @@ COPY cmd/ cmd/
 COPY pkg/ pkg/
 
 # Build
+ARG LDFLAGS="-w -s"
 RUN CGO_ENABLED=0 GO111MODULE=on go build -a -ldflags "$LDFLAGS" -o fuseml_core ./cmd/fuseml_core
 
 # Use docker scratch as minimal base image to package FuseML binaries
