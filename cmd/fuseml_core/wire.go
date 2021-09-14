@@ -39,8 +39,8 @@ var storeSet = wire.NewSet(
 	wire.Bind(new(domain.RunnableStore), new(*core.RunnableStore)),
 	badger.NewWorkflowStore,
 	wire.Bind(new(domain.WorkflowStore), new(*badger.WorkflowStore)),
-	core.NewExtensionStore,
-	wire.Bind(new(domain.ExtensionStore), new(*core.ExtensionStore)),
+	badger.NewExtensionStore,
+	wire.Bind(new(domain.ExtensionStore), new(*badger.ExtensionStore)),
 )
 
 var managerSet = wire.NewSet(
