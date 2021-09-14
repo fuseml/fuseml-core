@@ -136,3 +136,7 @@ docker-build: test
 # Push the docker image
 docker-push:
 	docker push ${IMG}
+
+# Build and release a multi-arch docker image
+docker-release: test
+	docker buildx build . -t ${IMG} --build-arg LDFLAGS="$(LDFLAGS)" --platform linux/amd64,linux/arm64,linux/arm/v7 --push
