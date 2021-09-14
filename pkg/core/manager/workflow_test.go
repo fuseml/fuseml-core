@@ -95,7 +95,7 @@ func TestCreateWorkflow(t *testing.T) {
 					Name:               "test-extension",
 					Product:            ext.Product,
 					VersionConstraints: ">=" + ext.Version,
-					ServiceResource:    ext.Services[0].Resource,
+					ServiceResource:    ext.ListServices()[0].Resource,
 				}},
 			}},
 		}
@@ -126,7 +126,7 @@ func TestCreateWorkflow(t *testing.T) {
 					Name:               "test-extension",
 					Product:            ext.Product,
 					VersionConstraints: "<" + ext.Version,
-					ServiceResource:    ext.Services[0].Resource,
+					ServiceResource:    ext.ListServices()[0].Resource,
 				}},
 			}},
 		}
@@ -894,7 +894,7 @@ func newFakeWorkflowManager(t *testing.T) *WorkflowManager {
 	return NewWorkflowManager(workflowBackend, workflowStore, codesetStore, extensionRegistry)
 }
 
-func createFakeExtension(t *testing.T, wfm *WorkflowManager, prefix string) *domain.ExtensionRecord {
+func createFakeExtension(t *testing.T, wfm *WorkflowManager, prefix string) *domain.Extension {
 	t.Helper()
 
 	e := &domain.Extension{
@@ -903,49 +903,36 @@ func createFakeExtension(t *testing.T, wfm *WorkflowManager, prefix string) *dom
 		Version: "1.0",
 		Zone:    prefix + "zone",
 	}
-	er := newExtension(e)
 	s1 := &domain.ExtensionService{
-		ExtensionServiceID: domain.ExtensionServiceID{
-			ID: prefix + "service-001",
-		},
+		ID:       prefix + "service-001",
 		Resource: prefix + "resource",
 		Category: prefix + "category",
 	}
-	sr1 := addService(er, s1)
+	e.AddService(s1)
 	s2 := &domain.ExtensionService{
-		ExtensionServiceID: domain.ExtensionServiceID{
-			ID: prefix + "service-002",
-		},
+		ID: prefix + "service-002",
 	}
-	sr2 := addService(er, s2)
-	ep1 := &domain.ExtensionEndpoint{
-		ExtensionEndpointID: domain.ExtensionEndpointID{
-			URL: fmt.Sprintf("https://%sendpoint-001.com", prefix),
-		},
+	e.AddService(s2)
+	ep1 := &domain.ExtensionServiceEndpoint{
+		URL:  fmt.Sprintf("https://%sendpoint-001.com", prefix),
 		Type: domain.EETInternal,
 	}
-	addEndpoint(sr1, ep1)
-	ep2 := &domain.ExtensionEndpoint{
-		ExtensionEndpointID: domain.ExtensionEndpointID{
-			URL: fmt.Sprintf("https://%sendpoint-002.com", prefix),
-		},
+	e.AddEndpoint(s1.ID, ep1)
+	ep2 := &domain.ExtensionServiceEndpoint{
+		URL:  fmt.Sprintf("https://%sendpoint-002.com", prefix),
 		Type: domain.EETExternal,
 	}
-	addEndpoint(sr2, ep2)
-	c1 := &domain.ExtensionCredentials{
-		ExtensionCredentialsID: domain.ExtensionCredentialsID{
-			ID: prefix + "credentials-001",
-		},
+	e.AddEndpoint(s2.ID, ep2)
+	c1 := &domain.ExtensionServiceCredentials{
+		ID: prefix + "credentials-001",
 	}
-	addCredentials(sr1, c1)
-	c2 := &domain.ExtensionCredentials{
-		ExtensionCredentialsID: domain.ExtensionCredentialsID{
-			ID: prefix + "credentials-002",
-		},
+	e.AddCredentials(s1.ID, c1)
+	c2 := &domain.ExtensionServiceCredentials{
+		ID: prefix + "credentials-002",
 	}
-	addCredentials(sr2, c2)
+	e.AddCredentials(s2.ID, c2)
 
-	return er
+	return e
 }
 
 type fakeStorableWorkflow struct {
@@ -1166,7 +1153,7 @@ func (fcs *fakeCodesetStore) Unsubscribe(ctx context.Context, subscriber domain.
 	fcs.t.Helper()
 
 	sc := fcs.store[codesetID{codeset.Name, codeset.Project}]
-	sc.subscribers = removesubscriber(sc.subscribers, subscriber)
+	sc.subscribers = removeSubscriber(sc.subscribers, subscriber)
 	fcs.store[codesetID{codeset.Name, codeset.Project}] = sc
 	return nil
 }
@@ -1175,16 +1162,7 @@ func (fcs *fakeCodesetStore) getSubscribers(ctx context.Context, c *domain.Codes
 	return fcs.store[codesetID{c.Name, c.Project}].subscribers
 }
 
-func contains(slice []string, item string) bool {
-	for _, s := range slice {
-		if s == item {
-			return true
-		}
-	}
-	return false
-}
-
-func removesubscriber(subscribers []domain.CodesetSubscriber, subscriber domain.CodesetSubscriber) []domain.CodesetSubscriber {
+func removeSubscriber(subscribers []domain.CodesetSubscriber, subscriber domain.CodesetSubscriber) []domain.CodesetSubscriber {
 	for i, s := range subscribers {
 		if s == subscriber {
 			subscribers[len(subscribers)-1], subscribers[i] = subscribers[i], subscribers[len(subscribers)-1]

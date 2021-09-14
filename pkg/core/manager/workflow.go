@@ -193,7 +193,7 @@ func (mgr *WorkflowManager) OnDeletingCodeset(ctx context.Context, codeset *doma
 func (mgr *WorkflowManager) resolveExtensionReferences(ctx context.Context, wf *domain.Workflow) error {
 	for _, step := range wf.Steps {
 		for _, extReq := range step.Extensions {
-			accessDescList, err := mgr.extensionRegistry.RunExtensionAccessQuery(ctx, &domain.ExtensionQuery{
+			accessDescList, err := mgr.extensionRegistry.GetExtensionAccessDescriptors(ctx, &domain.ExtensionQuery{
 				ExtensionID:        extReq.ExtensionID,
 				Product:            extReq.Product,
 				VersionConstraints: extReq.VersionConstraints,
