@@ -373,10 +373,7 @@ func (gac *AdminClient) GetRepositories(org, label *string) ([]*domain.Codeset, 
 	}
 
 	for _, o := range orgs {
-		repos, err := gac.GetReposForOrg(o.UserName, label)
-		if err != nil {
-			return nil, errors.Wrap(err, "Failed to list repos for org "+o.UserName)
-		}
+		repos, _ := gac.GetReposForOrg(o.UserName, label)
 		allRepos = append(allRepos, repos...)
 	}
 	return allRepos, nil
