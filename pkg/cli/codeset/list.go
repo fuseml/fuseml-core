@@ -21,6 +21,7 @@ type ListOptions struct {
 	format  *common.FormattingOptions
 	Project string
 	Label   string
+	All     bool
 }
 
 // custom formatting handler used to format codeset labels
@@ -49,7 +50,7 @@ func NewSubCmdCodesetList(gOpt *common.GlobalOptions) *cobra.Command {
 	o := NewListOptions(gOpt)
 
 	cmd := &cobra.Command{
-		Use:   "list [-p|--project PROJECT] [-l|--label LABEL]",
+		Use:   "list [-p|--project PROJECT] [-l|--label LABEL] [--all]",
 		Short: "List codesets.",
 		Long:  `Retrieve information about Codesets registered in FuseML`,
 		Run: func(cmd *cobra.Command, args []string) {
@@ -60,8 +61,9 @@ func NewSubCmdCodesetList(gOpt *common.GlobalOptions) *cobra.Command {
 		Args: cobra.ExactArgs(0),
 	}
 
-	cmd.Flags().StringVarP(&o.Project, "project", "p", "", "filter codesets by project")
+	cmd.Flags().StringVarP(&o.Project, "project", "p", "", "filter codesets by project (filled by CurrentProject config value if present)")
 	cmd.Flags().StringVarP(&o.Label, "label", "l", "", "filter codesets by label")
+	cmd.Flags().BoolVar(&o.All, "all", false, "show all codesets; ignores 'label' and 'project' options (default: false)")
 	o.format.AddMultiValueFormattingFlags(cmd)
 
 	return cmd
@@ -72,6 +74,10 @@ func (o *ListOptions) validate() error {
 }
 
 func (o *ListOptions) run() error {
+	if o.All {
+		o.Project = ""
+		o.Label = ""
+	}
 	request, err := codesetc.BuildListPayload(o.Project, o.Label)
 	if err != nil {
 		return err
