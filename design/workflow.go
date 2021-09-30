@@ -327,6 +327,7 @@ var WorkflowStep = Type("WorkflowStep", func() {
 	Field(4, "outputs", ArrayOf(WorkflowStepOutput), "List of output from the step")
 	Field(5, "extensions", ArrayOf(WorkflowStepExtension), "List of extension requirements")
 	Field(6, "env", ArrayOf(WorkflowStepEnv), "List of environment variables available for the container running the step")
+	Field(7, "resources", WorkflowStepResources, "Set the resources requests and limits for the step.")
 
 	Required("name", "image")
 })
@@ -499,6 +500,15 @@ var WorkflowStepEnv = Type("WorkflowStepEnv", func() {
 	})
 
 	Required("name", "value")
+})
+
+var WorkflowStepResources = Type("WorkflowStepResources", func() {
+	Field(1, "requests", MapOf(String, String), "Resource requests", func() {
+		Example(map[string]string{"cpu": "1", "memory": "1Gi"})
+	})
+	Field(2, "limits", MapOf(String, String), "Resource limits", func() {
+		Example(map[string]string{"cpu": "2", "memory": "2Gi", "nvidia.com/gpu": "1"})
+	})
 })
 
 // WorkflowRun describes a workflow run returned when listed

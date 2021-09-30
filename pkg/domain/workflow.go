@@ -84,6 +84,8 @@ type WorkflowStep struct {
 	Extensions []*WorkflowStepExtension
 	// Env is the list of environment variables for the step.
 	Env []*WorkflowStepEnv
+	// Resources specify the resources requests and limits for the step.
+	Resources WorkflowStepResources
 }
 
 // WorkflowStepInput represents a input for a FuseML workflow step.
@@ -149,6 +151,14 @@ type WorkflowStepEnv struct {
 	Name string
 	// Value is the value of the environment variable.
 	Value string
+}
+
+// WorkflowStepResources represents the resources requests and limits for a FuseML workflow step.
+type WorkflowStepResources struct {
+	// Requests is a map of resource and its request value.
+	Requests map[string]string
+	// Limits is a map of resource and its limit value.
+	Limits map[string]string
 }
 
 // WorkflowRun represents a FuseML workflow run.

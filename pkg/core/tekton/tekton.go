@@ -584,6 +584,9 @@ func toTektonTaskSpec(step *domain.WorkflowStep, resolver *variablesResolver, en
 		tb.Env(envVar.name, envVar.value)
 	}
 
+	// set task resources requests and limits
+	tb.Resources(step.Resources.Requests, step.Resources.Limits)
+
 	return tb.TaskSpec
 }
 
