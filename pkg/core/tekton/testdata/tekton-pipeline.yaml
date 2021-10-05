@@ -106,7 +106,10 @@ spec:
                 value: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
             image: $(params.IMAGE)
             name: trainer
-            resources: {}
+            resources:
+              limits:
+                cpu: 1
+                memory: 1Gi
             workingDir: /project
         workspaces:
           - mountPath: /project
@@ -152,7 +155,14 @@ spec:
                 value: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
             image: 'ghcr.io/fuseml/kfserving-predictor:0.1'
             name: predictor
-            resources: {}
+            resources:
+              limits:
+                cpu: 2
+                memory: 2Gi
+                nvidia.com/gpu: 1
+              requests:
+                cpu: 1
+                memory: 1Gi
             workingDir: /project
         workspaces:
           - mountPath: /project

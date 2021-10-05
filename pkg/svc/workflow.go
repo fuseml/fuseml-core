@@ -183,6 +183,7 @@ func workflowStepsRestToDomain(restSteps []*workflow.WorkflowStep) []*domain.Wor
 			Outputs:    workflowStepOutputsRestToDomain(restStep.Outputs),
 			Extensions: workflowStepExtensionsRestToDomain(restStep.Extensions),
 			Env:        workflowStepEnvsRestToDomain(restStep.Env),
+			Resources:  workflowStepResourcesRestToDomain(restStep.Resources),
 		}
 	}
 	return steps
@@ -252,6 +253,16 @@ func workflowStepEnvsRestToDomain(restEnvs []*workflow.WorkflowStepEnv) []*domai
 	return envs
 }
 
+func workflowStepResourcesRestToDomain(restResources *workflow.WorkflowStepResources) domain.WorkflowStepResources {
+	if restResources == nil {
+		return domain.WorkflowStepResources{}
+	}
+	return domain.WorkflowStepResources{
+		Requests: restResources.Requests,
+		Limits:   restResources.Limits,
+	}
+}
+
 func workflowDomainToRest(wf *domain.Workflow) *workflow.Workflow {
 	created := wf.Created.Format(time.RFC3339)
 	return &workflow.Workflow{
@@ -308,6 +319,7 @@ func workflowStepsDomainToRest(domainSteps []*domain.WorkflowStep) []*workflow.W
 			Outputs:    workflowStepOutputsDomainToRest(domainStep.Outputs),
 			Extensions: workflowStepExtensionsDomainToRest(domainStep.Extensions),
 			Env:        workflowStepEnvsDomainToRest(domainStep.Env),
+			Resources:  workflowStepResourcesDomainToRest(domainStep.Resources),
 		}
 	}
 	return restSteps
@@ -386,6 +398,13 @@ func workflowStepEnvsDomainToRest(domainStepEnvs []*domain.WorkflowStepEnv) []*w
 		restStepEnvs[i] = &restStepEnv
 	}
 	return restStepEnvs
+}
+
+func workflowStepResourcesDomainToRest(domainStepResources domain.WorkflowStepResources) *workflow.WorkflowStepResources {
+	return &workflow.WorkflowStepResources{
+		Requests: domainStepResources.Requests,
+		Limits:   domainStepResources.Limits,
+	}
 }
 
 func workflowAssignmentDomainToRest(domainAssignment []*domain.CodesetAssignment, wfName string, wfAsgStatus *domain.WorkflowAssignmentStatus) *workflow.WorkflowAssignment {

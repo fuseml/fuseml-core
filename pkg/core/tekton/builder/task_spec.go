@@ -3,6 +3,7 @@ package builder
 import (
 	"github.com/tektoncd/pipeline/pkg/apis/pipeline/v1beta1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 // TaskSpecBuilder holds the tekton task spec definition.
@@ -76,4 +77,24 @@ func (b *TaskSpecBuilder) Result(name string) {
 	b.TaskSpec.Results = append(b.TaskSpec.Results, v1beta1.TaskResult{
 		Name: name,
 	})
+}
+
+// Resources add a Resources to the TaskSpec.
+func (b *TaskSpecBuilder) Resources(requests, limits map[string]string) {
+	b.TaskSpec.Steps[0].Resources = corev1.ResourceRequirements{}
+	if len(requests) > 0 {
+		b.TaskSpec.Steps[0].Resources.Requests = toResourceList(requests)
+	}
+
+	if len(limits) > 0 {
+		b.TaskSpec.Steps[0].Resources.Limits = toResourceList(limits)
+	}
+}
+
+func toResourceList(resources map[string]string) corev1.ResourceList {
+	res := corev1.ResourceList{}
+	for k, v := range resources {
+		res[corev1.ResourceName(k)] = resource.MustParse(v)
+	}
+	return res
 }
