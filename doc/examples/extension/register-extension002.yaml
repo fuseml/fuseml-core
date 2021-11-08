@@ -1,21 +1,21 @@
 # curl -X POST --data-binary @register-extension002.yaml -H "Content-Type: application/x-yaml" http://localhost:8000/extensions
-id: kfserving-local
-product: kfserving
+id: kserve-local
+product: kserve
 version: "0.6.0"
-description: KFServing prediction service platform
+description: KServe prediction service platform
 zone: local
 services:
   - id: API
-    resource: kfserving-api
+    resource: kserve-api
     category: prediction-serving
-    description: KFServing prediction service API
+    description: KServe prediction service API
     endpoints:
       - url: https://kubernetes.default.svc
         type: internal
   - id: UI
-    resource: kfserving-ui
+    resource: kserve-ui
     category: UI
-    description: KFServing UI
+    description: KServe UI
     endpoints:
-      - url: https://kfserving.10.120.130.140.nip.io/
+      - url: https://kserve.10.120.130.140.nip.io/
         type: external
