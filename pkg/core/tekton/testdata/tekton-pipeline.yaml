@@ -9,10 +9,10 @@ spec:
   description: >
     End-to-end pipeline template that takes in an MLFlow compatible codeset,
 
-    runs the MLFlow project to train a model, then creates a KFServing
+    runs the MLFlow project to train a model, then creates a KServe
     prediction
 
-    service that can be used to run predictions against the model."
+    service that can be used to run predictions against the model.
   params:
     - description: Reference to the codeset (git project)
       name: codeset-name
@@ -47,9 +47,9 @@ spec:
     - name: builder-prep
       params:
         - name: IMAGE
-          value: 'ghcr.io/fuseml/mlflow-dockerfile:0.1'
+          value: "ghcr.io/fuseml/mlflow-dockerfile:0.1"
         - name: DOCKERFILE
-          value: ''
+          value: ""
       runAfter:
         - clone
       taskRef:
@@ -84,7 +84,7 @@ spec:
           - description: Name (reference) of the image to run
             name: IMAGE
         results:
-          - description: ''
+          - description: ""
             name: mlflow-model-url
         steps:
           - command:
@@ -97,9 +97,9 @@ spec:
               - name: FUSEML_ENV_WORKFLOW_NAME
                 value: mlflow-sklearn-e2e
               - name: MLFLOW_TRACKING_URI
-                value: 'http://mlflow'
+                value: "http://mlflow"
               - name: MLFLOW_S3_ENDPOINT_URL
-                value: 'http://mlflow-minio:9000'
+                value: "http://mlflow-minio:9000"
               - name: AWS_ACCESS_KEY_ID
                 value: gABTE5DmmLgjJypJzGFs
               - name: AWS_SECRET_ACCESS_KEY
@@ -131,7 +131,7 @@ spec:
           - name: model
           - name: predictor
         results:
-          - description: ''
+          - description: ""
             name: prediction-url
         steps:
           - command:
@@ -148,12 +148,12 @@ spec:
               - name: FUSEML_ENV_WORKFLOW_NAME
                 value: mlflow-sklearn-e2e
               - name: MLFLOW_S3_ENDPOINT_URL
-                value: 'http://mlflow-minio:9000'
+                value: "http://mlflow-minio:9000"
               - name: AWS_ACCESS_KEY_ID
                 value: gABTE5DmmLgjJypJzGFs
               - name: AWS_SECRET_ACCESS_KEY
                 value: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
-            image: 'ghcr.io/fuseml/kfserving-predictor:0.1'
+            image: "ghcr.io/fuseml/kserve-predictor:0.1"
             name: predictor
             resources:
               limits:

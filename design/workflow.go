@@ -321,7 +321,7 @@ var WorkflowStep = Type("WorkflowStep", func() {
 		Example("predictor")
 	})
 	Field(2, "image", String, "The image used to execute the step", func() {
-		Example("ghcr.io/fuseml/kfserving-predictor:1.0")
+		Example("ghcr.io/fuseml/kserve-predictor:1.0")
 	})
 	Field(3, "inputs", ArrayOf(WorkflowStepInput), "List of inputs for the step")
 	Field(4, "outputs", ArrayOf(WorkflowStepOutput), "List of output from the step")

@@ -44,7 +44,7 @@ var _ = Service("extension", func() {
 			Field(1, "id", String, "Extension identifier", func() {
 				Pattern(identifierPattern)
 				MaxLength(100)
-				Example("kfserving-001")
+				Example("kserve-001")
 			})
 			Required("id")
 		})
@@ -119,7 +119,7 @@ var _ = Service("extension", func() {
 			Field(1, "id", String, "Extension identifier", func() {
 				Pattern(identifierPattern)
 				MaxLength(100)
-				Example("kfserving-001")
+				Example("kserve-001")
 			})
 			Required("id")
 		})
@@ -186,7 +186,7 @@ var _ = Service("extension", func() {
 			Field(1, "extension_id", String, "Extension identifier", func() {
 				Pattern(identifierPattern)
 				MaxLength(100)
-				Example("kfserving-001")
+				Example("kserve-001")
 			})
 			Field(2, "id", String, "Uniquely identifies an extension service within the scope of an extension", func() {
 				Pattern(identifierPattern)
@@ -221,7 +221,7 @@ var _ = Service("extension", func() {
 			Field(1, "extension_id", String, "Extension identifier", func() {
 				Pattern(identifierPattern)
 				MaxLength(100)
-				Example("kfserving-001")
+				Example("kserve-001")
 			})
 			Required("extension_id")
 		})
@@ -274,7 +274,7 @@ var _ = Service("extension", func() {
 			Field(1, "extension_id", String, "Extension identifier", func() {
 				Pattern(identifierPattern)
 				MaxLength(100)
-				Example("kfserving-001")
+				Example("kserve-001")
 			})
 			Field(2, "id", String, "Uniquely identifies an extension service within the scope of an extension", func() {
 				Pattern(identifierPattern)
@@ -346,7 +346,7 @@ var _ = Service("extension", func() {
 			Field(1, "extension_id", String, "Extension identifier", func() {
 				Pattern(identifierPattern)
 				MaxLength(100)
-				Example("kfserving-001")
+				Example("kserve-001")
 			})
 			Field(2, "service_id", String, "Extension service identifier", func() {
 				Pattern(identifierPattern)
@@ -385,7 +385,7 @@ var _ = Service("extension", func() {
 			Field(1, "extension_id", String, "Extension identifier", func() {
 				Pattern(identifierPattern)
 				MaxLength(100)
-				Example("kfserving-001")
+				Example("kserve-001")
 			})
 			Field(2, "service_id", String, "Extension service identifier", func() {
 				Pattern(identifierPattern)
@@ -443,7 +443,7 @@ var _ = Service("extension", func() {
 			Field(1, "extension_id", String, "Extension identifier", func() {
 				Pattern(identifierPattern)
 				MaxLength(100)
-				Example("kfserving-001")
+				Example("kserve-001")
 			})
 			Field(2, "service_id", String, "Extension service identifier", func() {
 				Pattern(identifierPattern)
@@ -520,7 +520,7 @@ var _ = Service("extension", func() {
 			Field(1, "extension_id", String, "Extension identifier", func() {
 				Pattern(identifierPattern)
 				MaxLength(100)
-				Example("kfserving-001")
+				Example("kserve-001")
 			})
 			Field(2, "service_id", String, "Extension service identifier", func() {
 				Pattern(identifierPattern)
@@ -560,7 +560,7 @@ var _ = Service("extension", func() {
 			Field(1, "extension_id", String, "Extension identifier", func() {
 				Pattern(identifierPattern)
 				MaxLength(100)
-				Example("kfserving-001")
+				Example("kserve-001")
 			})
 			Field(2, "service_id", String, "Extension service identifier", func() {
 				Pattern(identifierPattern)
@@ -618,7 +618,7 @@ var _ = Service("extension", func() {
 			Field(1, "extension_id", String, "Extension identifier", func() {
 				Pattern(identifierPattern)
 				MaxLength(100)
-				Example("kfserving-001")
+				Example("kserve-001")
 			})
 			Field(2, "service_id", String, "Extension service identifier", func() {
 				Pattern(identifierPattern)

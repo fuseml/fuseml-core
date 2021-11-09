@@ -1,8 +1,8 @@
 name: mlflow-sklearn-e2e
 description: |
   End-to-end pipeline template that takes in an MLFlow compatible codeset,
-  runs the MLFlow project to train a model, then creates a KFServing prediction
-  service that can be used to run predictions against the model."
+  runs the MLFlow project to train a model, then creates a KServe prediction
+  service that can be used to run predictions against the model.
 inputs:
   - name: mlflow-codeset
     description: an MLFlow compatible codeset
@@ -20,18 +20,18 @@ steps:
     image: ghcr.io/fuseml/mlflow-dockerfile:0.1
     inputs:
       - codeset:
-          name: '{{ inputs.mlflow-codeset }}'
+          name: "{{ inputs.mlflow-codeset }}"
           path: /project
     outputs:
       - name: mlflow-env
         image:
-          name: 'registry.fuseml-registry/mlflow-builder/{{ inputs.mlflow-codeset.name }}:{{ inputs.mlflow-codeset.version }}'
+          name: "registry.fuseml-registry/mlflow-builder/{{ inputs.mlflow-codeset.name }}:{{ inputs.mlflow-codeset.version }}"
   - name: trainer
-    image: '{{ steps.builder.outputs.mlflow-env }}'
+    image: "{{ steps.builder.outputs.mlflow-env }}"
     inputs:
       - codeset:
-          name: '{{ inputs.mlflow-codeset }}'
-          path: '/project'
+          name: "{{ inputs.mlflow-codeset }}"
+          path: "/project"
     outputs:
       - name: mlflow-model-url
     resources:
@@ -88,15 +88,15 @@ steps:
               AWS_ACCESS_KEY_ID: gABTE5DmmLgjJypJzGFs
               AWS_SECRET_ACCESS_KEY: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
   - name: predictor
-    image: ghcr.io/fuseml/kfserving-predictor:0.1
+    image: ghcr.io/fuseml/kserve-predictor:0.1
     inputs:
       - name: model
-        value: '{{ steps.trainer.outputs.mlflow-model-url }}'
+        value: "{{ steps.trainer.outputs.mlflow-model-url }}"
       - name: predictor
-        value: '{{ inputs.predictor }}'
+        value: "{{ inputs.predictor }}"
       - codeset:
-          name: '{{ inputs.mlflow-codeset }}'
-          path: '/project'
+          name: "{{ inputs.mlflow-codeset }}"
+          path: "/project"
     outputs:
       - name: prediction-url
     resources:
@@ -134,20 +134,20 @@ steps:
             configuration:
               AWS_ACCESS_KEY_ID: gABTE5DmmLgjJypJzGFs
               AWS_SECRET_ACCESS_KEY: uW1qiFS8DTFuACXCDrM7i5zLJXbbfXd6pReyntjn
-      - name: kfserving
-        service_resource: kfserving-api
+      - name: kserve
+        service_resource: kserve-api
         extensionAccess:
           extension:
-            id: kfserving-local
-            product: kfserving
-            version: "0.6.0"
-            description: KFServing prediction service platform
+            id: kserve-local
+            product: kserve
+            version: "0.7.0"
+            description: KServe prediction service platform
             zone: local
           service:
             id: API
-            resource: kfserving-api
+            resource: kserve-api
             category: prediction-serving
-            description: KFServing prediction service API
+            description: KServe prediction service API
           endpoint:
             url: https://kubernetes.default.svc
             type: internal
