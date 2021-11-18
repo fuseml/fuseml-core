@@ -1,6 +1,8 @@
 package common
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -83,28 +85,62 @@ func LoadFileIntoVar(filePath string, destContent *string) error {
 	return nil
 }
 
-// WriteConfigFile writes new content of the config file.
-// If the file does not exist, it is created at default location
-// TODO temporary solution until upstream https://github.com/spf13/viper/issues/433 is fixed
-func WriteConfigFile() error {
-	cf := viper.ConfigFileUsed()
+// return the file handle of a config file
+// if it does not exist yet, creates a new one at default location
+func getCurrentOrNewConfigFile() (string, error) {
 
+	cf := viper.ConfigFileUsed()
 	if cf == "" {
 		fullname := ConfigFileName + "." + ConfigFileType
 		if dirname, err := os.UserHomeDir(); err == nil {
 			cf = filepath.Join(dirname, ConfigHomeSubdir, ConfigFuseMLSubdir, fullname)
 		}
 		if cf == "" {
-			return errors.New("Failed to acquire config directory name")
+			return "", errors.New("Failed to acquire config directory name")
 		}
 		configDirPath := filepath.Dir(cf)
 		if err := os.MkdirAll(configDirPath, os.ModePerm); err != nil {
-			return err
+			return "", err
 		}
 
 		fmt.Printf("FuseML configuration file created at %s\n", cf)
 	}
+	return cf, nil
+}
 
+// WriteConfigFile writes new content of the config file.
+// If the file does not exist, it is created at default location
+// TODO temporary solution until upstream https://github.com/spf13/viper/issues/433 is fixed
+func WriteConfigFile() error {
+	cf, err := getCurrentOrNewConfigFile()
+	if err != nil {
+		return err
+	}
+
+	if err := viper.WriteConfigAs(cf); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Writes the current content of file and also deletes given key from it
+// As viper does not support this operation directly, here's a workaround
+// taken from https://github.com/spf13/viper/issues/632
+func DeleteKeyAndWriteConfigFile(key string) error {
+	cf, err := getCurrentOrNewConfigFile()
+	if err != nil {
+		return err
+	}
+
+	configMap := viper.AllSettings()
+
+	delete(configMap, strings.ToLower(key))
+	encodedConfig, _ := json.MarshalIndent(configMap, "", " ")
+
+	err = viper.ReadConfig(bytes.NewReader(encodedConfig))
+	if err != nil {
+		return err
+	}
 	if err := viper.WriteConfigAs(cf); err != nil {
 		return err
 	}

@@ -2,6 +2,7 @@ package codeset
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	codesetc "github.com/fuseml/fuseml-core/gen/http/codeset/client"
@@ -60,6 +61,8 @@ func (o *GetOptions) run() error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("Fetching Codeset %s, under project %s:\n", o.Name, o.Project)
 
 	response, err := o.CodesetClient.Get()(context.Background(), request)
 	if err != nil {
