@@ -22,7 +22,10 @@ type listOptions struct {
 func formatInputs(object interface{}, column string, field interface{}) (formated string) {
 	if workflow, ok := object.(*workflow.Workflow); ok {
 		for i, input := range workflow.Inputs {
-			formated += fmt.Sprintf("- name: %s\n  type: %s", input.Name, *input.Type)
+			formated += fmt.Sprintf("- name: %s", input.Name)
+			if input.Type != nil {
+				formated += fmt.Sprintf("\n  type: %s", *input.Type)
+			}
 			if input.Default != nil {
 				formated += fmt.Sprintf("\n  default: %s", *input.Default)
 			}
@@ -36,9 +39,12 @@ func formatInputs(object interface{}, column string, field interface{}) (formate
 
 func formatOutputs(object interface{}, column string, field interface{}) (formated string) {
 	if workflow, ok := object.(*workflow.Workflow); ok {
-		for i, input := range workflow.Outputs {
-			formated += fmt.Sprintf("- name: %s\n  type: %s", input.Name, *input.Type)
-			if i != len(workflow.Inputs)-1 {
+		for i, output := range workflow.Outputs {
+			formated += fmt.Sprintf("- name: %s", output.Name)
+			if output.Type != nil {
+				formated += fmt.Sprintf("\n  type: %s", *output.Type)
+			}
+			if i != len(workflow.Outputs)-1 {
 				formated += "\n"
 			}
 		}

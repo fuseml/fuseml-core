@@ -28,9 +28,9 @@ const getTemplate = `{{decorate "bold" "Name"}}:	{{ .Workflow.Name }}
  NAME	TYPE	DESCRIPTION	DEFAULT
 {{- range $input := .Workflow.Inputs }}
 {{- if not $input.Default }}
- {{decorate "bullet" $input.Name }}	{{ $input.Type }}	{{ formatDesc $input.Description }}	{{ "---" }}
+ {{decorate "bullet" $input.Name }}	{{ deref $input.Type }}	{{ formatDesc $input.Description }}	{{ "---" }}
 {{- else }}
- {{decorate "bullet" $input.Name }}	{{ $input.Type }}	{{ formatDesc $input.Description }}	{{ $input.Default }}
+ {{decorate "bullet" $input.Name }}	{{ deref $input.Type }}	{{ formatDesc $input.Description }}	{{ $input.Default }}
 {{- end }}
 {{- end }}
 {{- end }}
@@ -41,7 +41,7 @@ const getTemplate = `{{decorate "bold" "Name"}}:	{{ .Workflow.Name }}
 {{- else }}
  NAME	TYPE	DESCRIPTION
 {{- range $output := .Workflow.Outputs }}
- {{ decorate "bullet" $output.Name }}	{{ $output.Type }}	{{ formatDesc $output.Description }}
+ {{ decorate "bullet" $output.Name }}	{{ deref $output.Type }}	{{ formatDesc $output.Description }}
 {{- end }}
 {{- end }}
 
