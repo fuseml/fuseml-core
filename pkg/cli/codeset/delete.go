@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pkg/errors"
+
 	codesetc "github.com/fuseml/fuseml-core/gen/http/codeset/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/client"
 	"github.com/fuseml/fuseml-core/pkg/cli/common"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // DeleteOptions holds the options for 'codeset delete' sub command
@@ -63,6 +66,13 @@ func (o *DeleteOptions) run() error {
 	}
 
 	fmt.Printf("Codeset %s successfully deleted\n", o.Name)
+
+	if viper.GetString("CurrentCodeset") == o.Name {
+		if err := common.DeleteKeyAndWriteConfigFile("CurrentCodeset"); err != nil {
+			return errors.Wrap(err, "Error writing config file")
+		}
+		fmt.Println("No current codeset configured")
+	}
 
 	return nil
 }
